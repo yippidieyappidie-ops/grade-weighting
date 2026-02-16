@@ -409,7 +409,7 @@ const ALL_CATS = ["Exámenes","Proyectos","Trabajo diario","Actitud","Participac
 function uid() { return Math.random().toString(36).slice(2,8); }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────
-function calcNotaFinal(categorias, subitems, notas) {
+function calcNotaFinal(categorias, subitems, notas, escalaMax, usePercent) {
   let total = 0;
   for (const cat of categorias) {
     const subs = subitems[cat.id] || [];
@@ -418,7 +418,9 @@ function calcNotaFinal(categorias, subitems, notas) {
     let mediaCat = 0;
     const totalSubPeso = subs.reduce((a,s) => a + s.peso, 0) || 1;
     for (const sub of subs) {
-      const nota = notas?.[cat.id]?.[sub.id] ?? 0;
+      let nota = notas?.[cat.id]?.[sub.id] ?? 0;
+      // si el profesor introduce en %, convertimos a la escala real
+      if (usePercent) nota = nota / 100 * escalaMax;
       mediaCat += nota * (sub.peso / totalSubPeso);
     }
     total += mediaCat * pesoCat;
@@ -488,6 +490,10 @@ const TRANSLATIONS = {
     btnExcel: "📊 Descargar Excel (.xlsx)",
     btnPDF: "📄 Descargar PDF",
     exportLabel: "📥 Exportar informe:",
+    exportFileName: "Nombre del archivo",
+    exportFileNamePlaceholder: "ej. clase_3A_trimestre1",
+    percentMode: "Introducir notas en porcentaje (0–100%)",
+    percentModeDesc: "Actívalo para evaluar siempre sobre 100, independientemente de la escala máxima.",
     // PDF
     pdfTitle: "Grade Weighting — Informe de Notas",
     pdfGenerated: (d) => `Generado el ${d}`,
@@ -553,6 +559,10 @@ const TRANSLATIONS = {
     btnExcel: "📊 Download Excel (.xlsx)",
     btnPDF: "📄 Download PDF",
     exportLabel: "📥 Export report:",
+    exportFileName: "File name",
+    exportFileNamePlaceholder: "e.g. class_3A_term1",
+    percentMode: "Enter grades as percentage (0–100%)",
+    percentModeDesc: "Enable to always grade out of 100, regardless of the maximum scale.",
     pdfTitle: "Grade Weighting — Grade Report",
     pdfGenerated: (d) => `Generated on ${d}`,
     pdfCategories: "Categories",
@@ -577,6 +587,8 @@ function App() {
   const [lang, setLang] = useState("es");
   const [escalaMax, setEscalaMax] = useState(10);
   const [escalaInput, setEscalaInput] = useState("10");
+  const [exportFileName, setExportFileName] = useState("notas_clase");
+  const [usePercent, setUsePercent] = useState(false); // introduce notas en % siempre
 
   const t = TRANSLATIONS[lang];
 
@@ -621,7 +633,7 @@ function App() {
     setCategorias(prev => prev.map(c => c.id===catId ? {...c, peso} : c));
   }
 
-  // ── HANDLERS SUBITEMS ──
+  
   function addSubitem(catId) {
     const subs = subitems[catId] || [];
     const newPeso = subs.length ? Math.floor(100/(subs.length+1)) : 100;
@@ -643,7 +655,7 @@ function App() {
     }));
   }
 
-  // ── HANDLERS ALUMNOS ──
+  
   function addAlumno() {
     setAlumnos(prev => [...prev, { id: uid(), nombre: t.defaultStudent(prev.length+1) }]);
   }
@@ -655,7 +667,8 @@ function App() {
     setAlumnos(prev => prev.map(a => a.id===id ? {...a, nombre} : a));
   }
   function setNota(alumnoId, catId, subId, valor) {
-    const v = Math.max(0, Math.min(escalaMax, parseFloat(valor)||0));
+    const max = usePercent ? 100 : escalaMax;
+    const v = Math.max(0, Math.min(max, parseFloat(valor)||0));
     setNotas(prev => ({
       ...prev,
       [alumnoId]: {
@@ -668,23 +681,27 @@ function App() {
     }));
   }
 
-  // ── CALCULOS ──
+  
   const resultados = useMemo(() => alumnos.map(a => ({
     ...a,
-    notaFinal: calcNotaFinal(catsActivas, subitems, notas[a.id]),
+    notaFinal: calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent),
     detalles: catsActivas.map(cat => {
       const subs = subitems[cat.id]||[];
       const totalSubPeso = subs.reduce((a,s)=>a+s.peso,0)||1;
-      const mediaCat = subs.reduce((acc,s) => acc + (notas?.[a.id]?.[cat.id]?.[s.id]??0)*(s.peso/totalSubPeso), 0);
+      const mediaCat = subs.reduce((acc,s) => {
+        let nota = notas?.[a.id]?.[cat.id]?.[s.id]??0;
+        if (usePercent) nota = nota / 100 * escalaMax;
+        return acc + nota*(s.peso/totalSubPeso);
+      }, 0);
       return { cat: cat.nombre, media: mediaCat };
     })
-  })), [alumnos, catsActivas, subitems, notas]);
+  })), [alumnos, catsActivas, subitems, notas, escalaMax, usePercent]);
 
-  // ── EXPORT EXCEL ──
+  
   function exportExcel() {
     const wb = XLSX.utils.book_new();
 
-    // Hoja resumen
+    
     const headerRow = [t.xlsxStudent(escalaMax), ...catsActivas.map(c => `${c.nombre} (${c.peso}%)`), t.xlsxFinal];
     const rows = resultados.map(r => [
       r.nombre,
@@ -696,7 +713,7 @@ function App() {
     ws["!cols"] = [{ wch: 22 }, ...catsActivas.map(() => ({ wch: 16 })), { wch: 14 }];
     XLSX.utils.book_append_sheet(wb, ws, t.xlsxSheet1);
 
-    // Hoja detallada por sub-items
+    
     const cols2 = [t.colStudent];
     for (const cat of catsActivas) {
       for (const sub of (subitems[cat.id]||[])) {
@@ -711,17 +728,17 @@ function App() {
           row.push(notas?.[a.id]?.[cat.id]?.[sub.id] ?? 0);
         }
       }
-      row.push(+calcNotaFinal(catsActivas, subitems, notas[a.id]).toFixed(2));
+      row.push(+calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent).toFixed(2));
       return row;
     });
     const ws2 = XLSX.utils.aoa_to_sheet([cols2, ...rows2]);
     ws2["!cols"] = cols2.map((_,i) => ({ wch: i===0 ? 22 : 18 }));
     XLSX.utils.book_append_sheet(wb, ws2, t.xlsxSheet2);
 
-    XLSX.writeFile(wb, "notas_clase.xlsx");
+    XLSX.writeFile(wb, `${exportFileName}.xlsx`);
   }
 
-  // ── EXPORT PDF ──
+  
   function exportPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: "landscape" });
@@ -774,7 +791,7 @@ function App() {
       }
     });
 
-    // Sub-items detail table
+    
     const subHeaders = [t.colStudent];
     for (const cat of catsActivas) {
       for (const sub of (subitems[cat.id]||[])) {
@@ -790,7 +807,7 @@ function App() {
           row.push((notas?.[a.id]?.[cat.id]?.[sub.id] ?? 0).toFixed(1));
         }
       }
-      row.push(calcNotaFinal(catsActivas, subitems, notas[a.id]).toFixed(2));
+      row.push(calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent).toFixed(2));
       return row;
     });
 
@@ -809,10 +826,10 @@ function App() {
       alternateRowStyles: { fillColor: [250,248,243] },
     });
 
-    doc.save("notas_clase.pdf");
+    doc.save(`${exportFileName}.pdf`);
   }
 
-  // ── RENDER TABS ──
+  
   const tabs = t.tabs;
 
   return (
@@ -840,7 +857,7 @@ function App() {
 
       <main className="main">
 
-        {/* NAV TABS */}
+        
         <div style={{display:'flex', gap:8, marginBottom:28, borderBottom:'2px solid var(--border)', paddingBottom:0}}>
           {tabs.map((tabLabel,i) => (
             <button key={i} onClick={() => setTab(i)} style={{
@@ -853,16 +870,16 @@ function App() {
           ))}
         </div>
 
-        {/* ══════════ TAB 0: CONFIGURACIÓN ══════════ */}
+        
         {tab===0 && (
           <>
-            {/* ESCALA DE NOTAS */}
+            
             <div className="card" style={{paddingBottom:24}}>
               <div className="section-label"><span className="step">0</span>{t.scaleStep}</div>
               <h2>{t.scaleTitle}</h2>
               <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:18}}>{t.scaleDesc}</p>
 
-              {/* INPUT LIBRE */}
+              
               <div style={{display:'flex',alignItems:'flex-end',gap:12,marginBottom:16,flexWrap:'wrap'}}>
                 <div style={{flex:'0 0 160px'}}>
                   <label>{t.scaleMax}</label>
@@ -902,9 +919,21 @@ function App() {
                 &nbsp;·&nbsp; {t.scaleRange} <strong style={{color:'var(--ink)'}}>0 {lang==='es'?'y':'and'} {escalaMax}</strong>
                 &nbsp;·&nbsp; {t.scaleDisplay}
               </div>
+
+              
+              <div style={{marginTop:14,padding:'14px 16px',background: usePercent ? 'rgba(200,75,49,0.06)' : 'var(--cream)',borderRadius:'var(--radius-sm)',border:`1.5px solid ${usePercent ? 'var(--accent)' : 'var(--border)'}`,display:'flex',alignItems:'flex-start',gap:12,cursor:'pointer'}}
+                onClick={() => { setUsePercent(p => !p); setNotas({}); }}>
+                <div style={{marginTop:2,width:20,height:20,borderRadius:4,border:`2px solid ${usePercent ? 'var(--accent)' : 'var(--border)'}`,background: usePercent ? 'var(--accent)' : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
+                  {usePercent && <span style={{color:'#fff',fontSize:13,fontWeight:700}}>✓</span>}
+                </div>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color: usePercent ? 'var(--accent)' : 'var(--ink)'}}>{t.percentMode}</div>
+                  <div style={{fontSize:12,color:'var(--ink-light)',marginTop:2}}>{t.percentModeDesc}</div>
+                </div>
+              </div>
             </div>
 
-            {/* CATEGORÍAS */}
+            
             <div className="card">
               <div className="section-label"><span className="step">1</span>{t.catStep}</div>
               <h2>{t.catTitle}</h2>
@@ -960,7 +989,7 @@ function App() {
               )}
             </div>
 
-            {/* SUB-ITEMS */}
+            
             {catsActivas.length > 0 && (
               <div className="card">
                 <div className="section-label"><span className="step">2</span>{t.subStep}</div>
@@ -1028,9 +1057,15 @@ function App() {
           <div className="card">
             <div className="section-label"><span className="step">3</span>{t.studentStep}</div>
             <h2>{t.studentTitle}</h2>
-            <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:20}}>{t.studentDesc(escalaMax)}</p>
+            <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:20}}>
+              {usePercent
+                ? (lang==='es' ? 'Notas en porcentaje: 0 a 100%. La nota final se calcula sobre la escala ' : 'Grades as percentage: 0 to 100%. Final grade calculated on scale ') + `0–${escalaMax}.`
+                : t.studentDesc(escalaMax)
+              }
+              {' '}{lang==='es' ? 'Modifica los nombres haciendo clic sobre ellos.' : 'Click any name to rename.'}
+            </p>
 
-            {/* GESTIÓN ALUMNOS */}
+            
             <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:20}}>
               {alumnos.map(a => (
                 <div key={a.id} style={{display:'flex',alignItems:'center',gap:6,background:'var(--cream)',border:'1.5px solid var(--border)',borderRadius:8,padding:'6px 10px'}}>
@@ -1073,13 +1108,15 @@ function App() {
                           <React.Fragment key={a.id}>
                             <div className="sg-cell sg-name">{a.nombre}</div>
                             {subs.map(sub => (
-                              <div key={sub.id} className="sg-cell sg-note">
+                              <div key={sub.id} className="sg-cell sg-note" style={{position:'relative'}}>
                                 <input
-                                  type="number" min="0" max={escalaMax} step={escalaMax > 10 ? 1 : 0.1}
+                                  type="number" min="0" max={usePercent ? 100 : escalaMax} step={usePercent ? 1 : escalaMax > 10 ? 1 : 0.1}
                                   value={notas?.[a.id]?.[cat.id]?.[sub.id] ?? ""}
                                   placeholder="—"
                                   onChange={e => setNota(a.id, cat.id, sub.id, e.target.value)}
+                                  style={{paddingRight: usePercent ? '22px' : '8px'}}
                                 />
+                                {usePercent && <span style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'var(--ink-light)',pointerEvents:'none'}}>%</span>}
                               </div>
                             ))}
                           </React.Fragment>
@@ -1098,7 +1135,7 @@ function App() {
           </div>
         )}
 
-        {/* ══════════ TAB 2: RESULTADOS ══════════ */}
+        
         {tab===2 && (
           <div className="card">
             <div className="section-label"><span className="step">4</span>{t.resultsStep}</div>
@@ -1143,6 +1180,19 @@ function App() {
 
             {/* EXPORT */}
             <div className="export-row">
+              <div style={{width:'100%',marginBottom:12}}>
+                <label>{t.exportFileName}</label>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginTop:4}}>
+                  <input
+                    type="text"
+                    value={exportFileName}
+                    placeholder={t.exportFileNamePlaceholder}
+                    onChange={e => setExportFileName(e.target.value.replace(/[^a-zA-Z0-9_\-]/g,'_'))}
+                    style={{maxWidth:280,fontSize:14}}
+                  />
+                  <span style={{fontSize:12,color:'var(--ink-light)'}}>.pdf / .xlsx</span>
+                </div>
+              </div>
               <span>{t.exportLabel}</span>
               <button className="btn btn-green" onClick={exportExcel} disabled={alumnos.length===0}>
                 {t.btnExcel}
