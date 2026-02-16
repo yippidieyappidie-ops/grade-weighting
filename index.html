@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grade Weighting</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993636752756332" crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1a2e;
+      --ink-light: #4a4a6a;
+      --cream: #faf8f3;
+      --paper: #ffffff;
+      --accent: #c84b31;
+      --accent-light: #f5ede9;
+      --gold: #e8a838;
+      --green: #2d6a4f;
+      --green-light: #d8f3dc;
+      --border: #e2ddd6;
+      --shadow: 0 2px 16px rgba(26,26,46,0.08);
+      --shadow-lg: 0 8px 40px rgba(26,26,46,0.13);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* HEADER */
+    .header {
+      background: var(--ink);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 3px solid var(--accent);
+    }
+    .header-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #fff;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-logo span { color: var(--gold); }
+    .header-tagline {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+
+    /* LAYOUT */
+    .main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* SECTION CARD */
+    .card {
+      background: var(--paper);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .section-label .step {
+      background: var(--accent);
+      color: #fff;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      color: var(--ink);
+    }
+
+    /* FORMS */
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--cream);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,75,49,0.1);
+      background: #fff;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      margin: 8px 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(200,75,49,0.35);
+    }
+
+    /* GRID */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    @media(max-width: 640px) {
+      .grid-2, .grid-3, .grid-auto { grid-template-columns: 1fr; }
+    }
+
+    /* WEIGHT DISPLAY */
+    .weight-display {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .weight-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 48px;
+      text-align: right;
+    }
+
+    /* PROGRESS BAR */
+    .progress-wrap { background: var(--border); border-radius: 4px; height: 8px; overflow: hidden; margin: 12px 0; }
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+    .progress-fill.ok { background: var(--green); }
+    .progress-fill.warn { background: var(--gold); }
+    .progress-fill.error { background: var(--accent); }
+    .progress-label { font-size: 12px; color: var(--ink-light); }
+
+    /* TAGS */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      border: 1.5px solid var(--border);
+      background: var(--cream);
+      color: var(--ink-light);
+      user-select: none;
+    }
+    .tag.selected {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+    .tag:hover:not(.selected) { border-color: var(--ink); color: var(--ink); }
+
+    /* CATEGORY BLOCK */
+    .cat-block {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .cat-block-header {
+      background: var(--ink);
+      color: #fff;
+      padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .cat-block-header .chevron { transition: transform 0.2s; font-size: 12px; }
+    .cat-block-header.open .chevron { transform: rotate(180deg); }
+    .cat-block-body { padding: 20px; background: var(--paper); }
+
+    .subitem-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 36px;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .subitem-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #a83a22; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(200,75,49,0.3); }
+    .btn-secondary { background: var(--ink); color: #fff; }
+    .btn-secondary:hover { background: #2d2d4a; transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--ink); background: var(--cream); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover { background: #1e5038; transform: translateY(-1px); }
+    .btn-gold { background: var(--gold); color: var(--ink); }
+    .btn-gold:hover { background: #d09620; transform: translateY(-1px); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-danger { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+    .btn-danger:hover { background: var(--accent-light); }
+    .btn-icon { padding: 8px; border-radius: 6px; background: var(--cream); color: var(--ink-light); border: 1.5px solid var(--border); cursor: pointer; font-size: 16px; transition: all 0.15s; }
+    .btn-icon:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+
+    /* ALERTS */
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      margin: 12px 0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .alert-warn { background: #fff8e1; color: #8a6600; border-left: 4px solid var(--gold); }
+    .alert-ok   { background: var(--green-light); color: var(--green); border-left: 4px solid var(--green); }
+    .alert-err  { background: var(--accent-light); color: var(--accent); border-left: 4px solid var(--accent); }
+
+    /* STUDENT TABLE */
+    .student-grid {
+      display: grid;
+      grid-template-columns: 180px repeat(auto-fill, minmax(100px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    .sg-cell {
+      background: var(--paper);
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+    .sg-header { background: var(--ink); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+    .sg-name { font-weight: 600; color: var(--ink); }
+    .sg-note input {
+      width: 100%; padding: 4px 8px; border: 1.5px solid var(--border);
+      border-radius: 6px; font-size: 13px; text-align: center;
+      background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans-serif;
+    }
+    .sg-note input:focus { border-color: var(--accent); background: #fff; outline: none; }
+
+    /* RESULTS */
+    .results-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px;
+      font-size: 14px;
+    }
+    .results-table th {
+      background: var(--ink); color: #fff; padding: 11px 16px;
+      text-align: left; font-size: 12px; font-weight: 600;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .results-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+    .results-table th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+    .results-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); color: var(--ink); }
+    .results-table tr:last-child td { border-bottom: none; }
+    .results-table tr:hover td { background: var(--cream); }
+
+    .nota-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 99px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .nota-high { background: var(--green-light); color: var(--green); }
+    .nota-mid  { background: #fff8e1; color: #8a6600; }
+    .nota-low  { background: var(--accent-light); color: var(--accent); }
+
+    .export-row {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      padding: 20px;
+      background: var(--cream);
+      border-radius: var(--radius);
+      border: 1.5px dashed var(--border);
+      margin-top: 20px;
+      align-items: center;
+    }
+    .export-row span { font-size: 13px; color: var(--ink-light); font-weight: 500; }
+
+    /* DIVIDER */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+    /* EMPTY STATE */
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--ink-light);
+      font-size: 14px;
+    }
+    .empty .icon { font-size: 36px; margin-bottom: 10px; }
+
+    /* TOOLTIP */
+    .tooltip-wrap { position: relative; display: inline-block; }
+    .tooltip-icon {
+      width: 16px; height: 16px; background: var(--border); color: var(--ink-light);
+      border-radius: 50%; font-size: 10px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: default; margin-left: 4px;
+    }
+
+    .nota-desc { font-size: 11px; color: var(--ink-light); margin-top: 2px; }
+
+    .scroll-x { overflow-x: auto; }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 32px; color: var(--ink-light); font-size: 12px; }
+
+    @media print {
+      .header, .btn, .btn-row, .export-row { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useCallback, useMemo } = React;
+
+// ─── CONSTANTES ──────────────────────────────────────────────────────
+const CATEGORIAS_DEFAULT = [
+  { id: 1, nombre: "Exámenes",        peso: 40 },
+  { id: 2, nombre: "Proyectos",       peso: 30 },
+  { id: 3, nombre: "Trabajo diario",  peso: 20 },
+  { id: 4, nombre: "Actitud",         peso: 10 },
+];
+const ALL_CATS = ["Exámenes","Proyectos","Trabajo diario","Actitud","Participación","Deberes","Lectura"];
+
+function uid() { return Math.random().toString(36).slice(2,8); }
+
+// ─── HELPERS ─────────────────────────────────────────────────────────
+function calcNotaFinal(categorias, subitems, notas, escalaMax, usePercent) {
+  let total = 0;
+  for (const cat of categorias) {
+    const subs = subitems[cat.id] || [];
+    if (!subs.length) continue;
+    const pesoCat = cat.peso / 100;
+    let mediaCat = 0;
+    const totalSubPeso = subs.reduce((a,s) => a + s.peso, 0) || 1;
+    for (const sub of subs) {
+      let nota = notas?.[cat.id]?.[sub.id] ?? 0;
+      // si el profesor introduce en %, convertimos a la escala real
+      if (usePercent) nota = nota / 100 * escalaMax;
+      mediaCat += nota * (sub.peso / totalSubPeso);
+    }
+    total += mediaCat * pesoCat;
+  }
+  return total;
+}
+
+// Normaliza una nota a escala 0-10 para los colores del badge
+function notaBadge(nota, escalaMax) {
+  const n = parseFloat(nota) / escalaMax * 10;
+  if (n >= 7) return "nota-high";
+  if (n >= 5) return "nota-mid";
+  return "nota-low";
+}
+
+// ─── TRADUCCIONES ────────────────────────────────────────────────────
+const TRANSLATIONS = {
+  es: {
+    tagline: "Calculadora de ponderaciones para profesores",
+    tabs: ["⚙️ Configuración", "📝 Notas", "📊 Resultados"],
+    // Escala
+    scaleStep: "Escala de notas",
+    scaleTitle: "¿Sobre cuánto puntúas?",
+    scaleDesc: "Escribe el valor máximo de tu escala o elige uno rápido. El cálculo y la exportación se adaptan automáticamente.",
+    scaleMax: "Nota máxima",
+    scaleQuick: "Accesos rápidos",
+    scaleActive: "Escala activa",
+    scaleRange: "Las notas se introducirán entre",
+    scaleDisplay: "La nota final se mostrará en la misma escala",
+    // Categorías
+    catStep: "Categorías de evaluación",
+    catTitle: "¿Qué evalúas?",
+    catDesc: "Selecciona las categorías que usarás y ajusta el peso de cada una en la nota final.",
+    catEmpty: "Selecciona al menos una categoría",
+    weightOk: "Pesos correctos — suman 100%",
+    weightWarn: (n) => `¡Los pesos no suman 100%! Suma: ${n}%`,
+    // Sub-items
+    subStep: "Elementos por categoría",
+    subTitle: "Detalla cada categoría",
+    subDesc: "Añade los elementos individuales de cada categoría y su peso relativo dentro de ella.",
+    subLabel: "Nombre del elemento",
+    subWeight: "Peso (%)",
+    subAdd: "+ Añadir elemento",
+    subSum: "Suma",
+    subElements: (n) => `${n} elemento${n!==1?'s':''}`,
+    subOf: "de la nota",
+    // Alumnos
+    studentStep: "Alumnos y notas",
+    studentTitle: "Introduce las notas",
+    studentDesc: (max) => `Notas de 0 a ${max}. Modifica los nombres haciendo clic sobre ellos.`,
+    studentAdd: "+ Alumno",
+    studentEmpty: "Añade alumnos para empezar",
+    studentOf: "% de la nota final",
+    // Resultados
+    resultsStep: "Resultados",
+    resultsTitle: "Notas finales ponderadas",
+    resultsDesc: "Cálculo automático. La nota final siempre la decide el profesor — esta herramienta solo calcula.",
+    resultsEmpty: "No hay alumnos registrados",
+    colStudent: "Alumno",
+    colFinal: "Nota Final",
+    // Botones
+    btnContinue: "Continuar → Introducir notas",
+    btnAdjust: "Ajusta los pesos antes de continuar",
+    btnBack: "← Volver",
+    btnResults: "Ver resultados →",
+    btnEditGrades: "← Editar notas",
+    btnExcel: "📊 Descargar Excel (.xlsx)",
+    btnPDF: "📄 Descargar PDF",
+    exportLabel: "📥 Exportar informe:",
+    exportFileName: "Nombre del archivo",
+    exportFileNamePlaceholder: "ej. clase_3A_trimestre1",
+    percentMode: "Introducir notas en porcentaje (0–100%)",
+    percentModeDesc: "Actívalo para evaluar siempre sobre 100, independientemente de la escala máxima.",
+    // PDF
+    pdfTitle: "Grade Weighting — Informe de Notas",
+    pdfGenerated: (d) => `Generado el ${d}`,
+    pdfCategories: "Categorías",
+    pdfScale: "Escala de notas",
+    pdfDetail: "Detalle por sub-items",
+    pdfFinal: "Nota Final",
+    // Excel sheets
+    xlsxSheet1: "Resumen Notas",
+    xlsxSheet2: "Notas Detalladas",
+    xlsxStudent: (max) => `Alumno (escala 0–${max})`,
+    xlsxFinal: "NOTA FINAL",
+    // Default names
+    defaultStudent: (n) => `Alumno ${n}`,
+    defaultSubitem: (n) => `Elemento ${n}`,
+    defaultCats: ["Exámenes","Proyectos","Trabajo diario","Actitud","Participación","Deberes","Lectura"],
+    defaultSubNames: { 1: ["Examen 1","Examen 2"], 2: ["Proyecto trimestral"], 3: ["Ejercicios diarios"], 4: ["Comportamiento"] },
+    footer: "Grade Weighting · Calculadora de ponderaciones para profesores · La nota siempre la decide el profesor.",
+  },
+  en: {
+    tagline: "Grade weighting calculator for teachers",
+    tabs: ["⚙️ Setup", "📝 Grades", "📊 Results"],
+    scaleStep: "Grade scale",
+    scaleTitle: "What's your maximum score?",
+    scaleDesc: "Type your maximum grade or pick a quick option. The calculation and exports adapt automatically.",
+    scaleMax: "Maximum grade",
+    scaleQuick: "Quick options",
+    scaleActive: "Active scale",
+    scaleRange: "Grades will be entered between",
+    scaleDisplay: "The final grade will be shown in the same scale",
+    catStep: "Assessment categories",
+    catTitle: "What do you assess?",
+    catDesc: "Select the categories you'll use and set each one's weight in the final grade.",
+    catEmpty: "Select at least one category",
+    weightOk: "Weights are correct — they add up to 100%",
+    weightWarn: (n) => `Weights don't add up to 100%! Sum: ${n}%`,
+    subStep: "Items per category",
+    subTitle: "Break down each category",
+    subDesc: "Add the individual items within each category and their relative weight.",
+    subLabel: "Item name",
+    subWeight: "Weight (%)",
+    subAdd: "+ Add item",
+    subSum: "Sum",
+    subElements: (n) => `${n} item${n!==1?'s':''}`,
+    subOf: "of grade",
+    studentStep: "Students & grades",
+    studentTitle: "Enter grades",
+    studentDesc: (max) => `Grades from 0 to ${max}. Click any name to rename.`,
+    studentAdd: "+ Student",
+    studentEmpty: "Add students to get started",
+    studentOf: "% of final grade",
+    resultsStep: "Results",
+    resultsTitle: "Weighted final grades",
+    resultsDesc: "Automatic calculation. The final grade is always the teacher's decision — this tool only calculates.",
+    resultsEmpty: "No students registered",
+    colStudent: "Student",
+    colFinal: "Final Grade",
+    btnContinue: "Continue → Enter grades",
+    btnAdjust: "Fix weights before continuing",
+    btnBack: "← Back",
+    btnResults: "View results →",
+    btnEditGrades: "← Edit grades",
+    btnExcel: "📊 Download Excel (.xlsx)",
+    btnPDF: "📄 Download PDF",
+    exportLabel: "📥 Export report:",
+    exportFileName: "File name",
+    exportFileNamePlaceholder: "e.g. class_3A_term1",
+    percentMode: "Enter grades as percentage (0–100%)",
+    percentModeDesc: "Enable to always grade out of 100, regardless of the maximum scale.",
+    pdfTitle: "Grade Weighting — Grade Report",
+    pdfGenerated: (d) => `Generated on ${d}`,
+    pdfCategories: "Categories",
+    pdfScale: "Grade scale",
+    pdfDetail: "Detail by sub-items",
+    pdfFinal: "Final Grade",
+    xlsxSheet1: "Grade Summary",
+    xlsxSheet2: "Detailed Grades",
+    xlsxStudent: (max) => `Student (scale 0–${max})`,
+    xlsxFinal: "FINAL GRADE",
+    defaultStudent: (n) => `Student ${n}`,
+    defaultSubitem: (n) => `Item ${n}`,
+    defaultCats: ["Exams","Projects","Daily work","Attitude","Participation","Homework","Reading"],
+    defaultSubNames: { 1: ["Exam 1","Exam 2"], 2: ["Term project"], 3: ["Daily exercises"], 4: ["Behaviour"] },
+    footer: "Grade Weighting · Grade calculator for teachers · The final grade is always the teacher's decision.",
+  }
+};
+
+// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────
+function App() {
+  const [tab, setTab] = useState(0);
+  const [lang, setLang] = useState("es");
+  const [escalaMax, setEscalaMax] = useState(10);
+  const [escalaInput, setEscalaInput] = useState("10");
+  const [exportFileName, setExportFileName] = useState("notas_clase");
+  const [usePercent, setUsePercent] = useState(false); // introduce notas en % siempre
+
+  const t = TRANSLATIONS[lang];
+
+  // CATEGORÍAS
+  const [categorias, setCategorias] = useState(CATEGORIAS_DEFAULT);
+  const [catSeleccionadas, setCatSeleccionadas] = useState([1,2]);
+
+  // SUB-ITEMS por categoria
+  const [subitems, setSubitems] = useState({
+    1: [{ id: uid(), nombre: "Examen 1", peso: 50 },{ id: uid(), nombre: "Examen 2", peso: 50 }],
+    2: [{ id: uid(), nombre: "Proyecto trimestral", peso: 100 }],
+    3: [{ id: uid(), nombre: "Ejercicios diarios", peso: 100 }],
+    4: [{ id: uid(), nombre: "Comportamiento", peso: 100 }],
+  });
+
+  // ALUMNOS
+  const [alumnos, setAlumnos] = useState([
+    { id: uid(), nombre: "Alumno 1" },
+    { id: uid(), nombre: "Alumno 2" },
+  ]);
+
+  // NOTAS: { alumnoId: { catId: { subId: nota } } }
+  const [notas, setNotas] = useState({});
+
+  // Categorías activas
+  const catsActivas = categorias.filter(c => catSeleccionadas.includes(c.id));
+  const totalPeso = catsActivas.reduce((a,c) => a + c.peso, 0);
+
+  // ── HANDLERS CATEGORÍAS ──
+  function toggleCat(catId) {
+    setCatSeleccionadas(prev =>
+      prev.includes(catId) ? prev.filter(x => x!==catId) : [...prev, catId]
+    );
+  }
+  function addCat(nombre) {
+    const newCat = { id: uid(), nombre, peso: 0 };
+    setCategorias(prev => [...prev, newCat]);
+    setCatSeleccionadas(prev => [...prev, newCat.id]);
+    setSubitems(prev => ({ ...prev, [newCat.id]: [{ id: uid(), nombre: `${nombre} 1`, peso: 100 }] }));
+  }
+  function updateCatPeso(catId, peso) {
+    setCategorias(prev => prev.map(c => c.id===catId ? {...c, peso} : c));
+  }
+
+  // ── HANDLERS SUBITEMS ──
+  function addSubitem(catId) {
+    const subs = subitems[catId] || [];
+    const newPeso = subs.length ? Math.floor(100/(subs.length+1)) : 100;
+    setSubitems(prev => ({
+      ...prev,
+      [catId]: [...subs, { id: uid(), nombre: t.defaultSubitem(subs.length+1), peso: newPeso }]
+    }));
+  }
+  function removeSubitem(catId, subId) {
+    setSubitems(prev => ({
+      ...prev,
+      [catId]: (prev[catId]||[]).filter(s => s.id !== subId)
+    }));
+  }
+  function updateSubitem(catId, subId, field, value) {
+    setSubitems(prev => ({
+      ...prev,
+      [catId]: (prev[catId]||[]).map(s => s.id===subId ? {...s, [field]: value} : s)
+    }));
+  }
+
+  // ── HANDLERS ALUMNOS ──
+  function addAlumno() {
+    setAlumnos(prev => [...prev, { id: uid(), nombre: t.defaultStudent(prev.length+1) }]);
+  }
+  function removeAlumno(id) {
+    setAlumnos(prev => prev.filter(a => a.id !== id));
+    setNotas(prev => { const n={...prev}; delete n[id]; return n; });
+  }
+  function updateAlumnoNombre(id, nombre) {
+    setAlumnos(prev => prev.map(a => a.id===id ? {...a, nombre} : a));
+  }
+  function setNota(alumnoId, catId, subId, valor) {
+    const max = usePercent ? 100 : escalaMax;
+    const v = Math.max(0, Math.min(max, parseFloat(valor)||0));
+    setNotas(prev => ({
+      ...prev,
+      [alumnoId]: {
+        ...(prev[alumnoId]||{}),
+        [catId]: {
+          ...((prev[alumnoId]||{})[catId]||{}),
+          [subId]: v
+        }
+      }
+    }));
+  }
+
+  // ── CALCULOS ──
+  const resultados = useMemo(() => alumnos.map(a => ({
+    ...a,
+    notaFinal: calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent),
+    detalles: catsActivas.map(cat => {
+      const subs = subitems[cat.id]||[];
+      const totalSubPeso = subs.reduce((a,s)=>a+s.peso,0)||1;
+      const mediaCat = subs.reduce((acc,s) => {
+        let nota = notas?.[a.id]?.[cat.id]?.[s.id]??0;
+        if (usePercent) nota = nota / 100 * escalaMax;
+        return acc + nota*(s.peso/totalSubPeso);
+      }, 0);
+      return { cat: cat.nombre, media: mediaCat };
+    })
+  })), [alumnos, catsActivas, subitems, notas, escalaMax, usePercent]);
+
+  // ── EXPORT EXCEL ──
+  function exportExcel() {
+    const wb = XLSX.utils.book_new();
+
+    // Hoja resumen
+    const headerRow = [t.xlsxStudent(escalaMax), ...catsActivas.map(c => `${c.nombre} (${c.peso}%)`), t.xlsxFinal];
+    const rows = resultados.map(r => [
+      r.nombre,
+      ...r.detalles.map(d => +d.media.toFixed(2)),
+      +r.notaFinal.toFixed(2)
+    ]);
+    const wsData = [headerRow, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws["!cols"] = [{ wch: 22 }, ...catsActivas.map(() => ({ wch: 16 })), { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, ws, t.xlsxSheet1);
+
+    // Hoja detallada por sub-items
+    const cols2 = [t.colStudent];
+    for (const cat of catsActivas) {
+      for (const sub of (subitems[cat.id]||[])) {
+        cols2.push(`${sub.nombre} (${cat.nombre})`);
+      }
+    }
+    cols2.push(t.xlsxFinal);
+    const rows2 = alumnos.map(a => {
+      const row = [a.nombre];
+      for (const cat of catsActivas) {
+        for (const sub of (subitems[cat.id]||[])) {
+          row.push(notas?.[a.id]?.[cat.id]?.[sub.id] ?? 0);
+        }
+      }
+      row.push(+calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent).toFixed(2));
+      return row;
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet([cols2, ...rows2]);
+    ws2["!cols"] = cols2.map((_,i) => ({ wch: i===0 ? 22 : 18 }));
+    XLSX.utils.book_append_sheet(wb, ws2, t.xlsxSheet2);
+
+    XLSX.writeFile(wb, `${exportFileName}.xlsx`);
+  }
+
+  // ── EXPORT PDF ──
+  function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape" });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(26, 26, 46);
+    doc.text(t.pdfTitle, 14, 18);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 120);
+    const dateStr = new Date().toLocaleDateString(lang==='es' ? 'es-ES' : 'en-GB', {day:'2-digit',month:'long',year:'numeric'});
+    doc.text(t.pdfGenerated(dateStr), 14, 26);
+    doc.text(`${t.pdfCategories}: ${catsActivas.map(c=>c.nombre+' '+c.peso+'%').join(' · ')}`, 14, 32);
+    doc.text(`${t.pdfScale}: 0 – ${escalaMax}`, 14, 38);
+
+    const headers = [t.colStudent, ...catsActivas.map(c => `${c.nombre}\n${c.peso}%`), t.pdfFinal];
+    const body = resultados.map(r => [
+      r.nombre,
+      ...r.detalles.map(d => d.media.toFixed(2)),
+      r.notaFinal.toFixed(2)
+    ]);
+
+    doc.autoTable({
+      head: [headers],
+      body,
+      startY: 44,
+      styles: { font: "helvetica", fontSize: 10, cellPadding: 5 },
+      headStyles: { fillColor: [26,26,46], textColor: [255,255,255], fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [250,248,243] },
+      columnStyles: {
+        0: { fontStyle: "bold", cellWidth: 45 },
+        [headers.length-1]: { fontStyle: "bold", fillColor: [214,246,221], textColor: [45,106,79] }
+      },
+      didParseCell(data) {
+        if (data.section === 'body' && data.column.index === headers.length-1) {
+          const n = parseFloat(data.cell.raw) / escalaMax * 10;
+          if (n < 5) {
+            data.cell.styles.fillColor = [245,237,233];
+            data.cell.styles.textColor = [200,75,49];
+          } else if (n < 7) {
+            data.cell.styles.fillColor = [255,248,225];
+            data.cell.styles.textColor = [138,102,0];
+          } else {
+            data.cell.styles.fillColor = [216,243,220];
+            data.cell.styles.textColor = [45,106,79];
+          }
+        }
+      }
+    });
+
+    // Sub-items detail table
+    const subHeaders = [t.colStudent];
+    for (const cat of catsActivas) {
+      for (const sub of (subitems[cat.id]||[])) {
+        subHeaders.push(`${sub.nombre}`);
+      }
+    }
+    subHeaders.push(t.pdfFinal);
+
+    const subBody = alumnos.map(a => {
+      const row = [a.nombre];
+      for (const cat of catsActivas) {
+        for (const sub of (subitems[cat.id]||[])) {
+          row.push((notas?.[a.id]?.[cat.id]?.[sub.id] ?? 0).toFixed(1));
+        }
+      }
+      row.push(calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent).toFixed(2));
+      return row;
+    });
+
+    const y2 = (doc.lastAutoTable?.finalY || 40) + 14;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(26,26,46);
+    doc.text(t.pdfDetail, 14, y2);
+
+    doc.autoTable({
+      head: [subHeaders],
+      body: subBody,
+      startY: y2 + 4,
+      styles: { font: "helvetica", fontSize: 9, cellPadding: 4 },
+      headStyles: { fillColor: [200,75,49], textColor: [255,255,255], fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [250,248,243] },
+    });
+
+    doc.save(`${exportFileName}.pdf`);
+  }
+
+  // ── RENDER TABS ──
+  const tabs = t.tabs;
+
+  return (
+    <div>
+      <header className="header">
+        <div className="header-logo">
+          Grade <span>Weighting</span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:16}}>
+          <div className="header-tagline">{t.tagline}</div>
+          <button
+            onClick={() => setLang(l => l==='es' ? 'en' : 'es')}
+            style={{
+              background:'rgba(255,255,255,0.1)', border:'1.5px solid rgba(255,255,255,0.25)',
+              color:'#fff', borderRadius:8, padding:'5px 14px', cursor:'pointer',
+              font:'600 12px DM Sans, sans-serif', letterSpacing:'0.5px',
+              display:'flex', alignItems:'center', gap:6, transition:'all 0.2s'
+            }}
+            title={lang==='es' ? 'Switch to English' : 'Cambiar a Español'}
+          >
+            {lang==='es' ? '🇬🇧 EN' : '🇪🇸 ES'}
+          </button>
+        </div>
+      </header>
+
+      <main className="main">
+
+        {/* NAV TABS */}
+        <div style={{display:'flex', gap:8, marginBottom:28, borderBottom:'2px solid var(--border)', paddingBottom:0}}>
+          {tabs.map((tabLabel,i) => (
+            <button key={i} onClick={() => setTab(i)} style={{
+              padding:'10px 20px', border:'none', background:'transparent',
+              cursor:'pointer', font:'600 14px DM Sans, sans-serif',
+              color: tab===i ? 'var(--accent)' : 'var(--ink-light)',
+              borderBottom: tab===i ? '2px solid var(--accent)' : '2px solid transparent',
+              marginBottom:'-2px', transition:'all 0.15s'
+            }}>{tabLabel}</button>
+          ))}
+        </div>
+
+        {/* ══════════ TAB 0: CONFIGURACIÓN ══════════ */}
+        {tab===0 && (
+          <>
+            {/* ESCALA DE NOTAS */}
+            <div className="card" style={{paddingBottom:24}}>
+              <div className="section-label"><span className="step">0</span>{t.scaleStep}</div>
+              <h2>{t.scaleTitle}</h2>
+              <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:18}}>{t.scaleDesc}</p>
+
+              {/* INPUT LIBRE */}
+              <div style={{display:'flex',alignItems:'flex-end',gap:12,marginBottom:16,flexWrap:'wrap'}}>
+                <div style={{flex:'0 0 160px'}}>
+                  <label>{t.scaleMax}</label>
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:16,color:'var(--ink-light)',fontWeight:500}}>0 —</span>
+                    <input
+                      type="number"
+                      min="1" max="1000" step="1"
+                      value={escalaInput}
+                      style={{width:80,textAlign:'center',fontSize:20,fontWeight:700,color:'var(--accent)'}}
+                      onChange={e => {
+                        setEscalaInput(e.target.value);
+                        const v = parseInt(e.target.value);
+                        if (v > 0 && v <= 1000) { setEscalaMax(v); setNotas({}); }
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label>{t.scaleQuick}</label>
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                    {[4,5,6,7,9,10,20,100].map(n => (
+                      <span key={n}
+                        className={`tag ${escalaMax===n && escalaInput===String(n) ? 'selected' : ''}`}
+                        style={{padding:'5px 12px',fontSize:13}}
+                        onClick={() => { setEscalaMax(n); setEscalaInput(String(n)); setNotas({}); }}
+                      >
+                        {escalaMax===n && escalaInput===String(n) ? '✓ ' : ''}{n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{padding:'12px 16px',background:'var(--cream)',borderRadius:'var(--radius-sm)',border:'1.5px solid var(--border)',fontSize:13,color:'var(--ink-light)'}}>
+                {t.scaleActive}: <strong style={{color:'var(--ink)'}}>0 — {escalaMax}</strong>
+                &nbsp;·&nbsp; {t.scaleRange} <strong style={{color:'var(--ink)'}}>0 {lang==='es'?'y':'and'} {escalaMax}</strong>
+                &nbsp;·&nbsp; {t.scaleDisplay}
+              </div>
+
+              {/* MODO PORCENTAJE */}
+              <div style={{marginTop:14,padding:'14px 16px',background: usePercent ? 'rgba(200,75,49,0.06)' : 'var(--cream)',borderRadius:'var(--radius-sm)',border:`1.5px solid ${usePercent ? 'var(--accent)' : 'var(--border)'}`,display:'flex',alignItems:'flex-start',gap:12,cursor:'pointer'}}
+                onClick={() => { setUsePercent(p => !p); setNotas({}); }}>
+                <div style={{marginTop:2,width:20,height:20,borderRadius:4,border:`2px solid ${usePercent ? 'var(--accent)' : 'var(--border)'}`,background: usePercent ? 'var(--accent)' : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
+                  {usePercent && <span style={{color:'#fff',fontSize:13,fontWeight:700}}>✓</span>}
+                </div>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color: usePercent ? 'var(--accent)' : 'var(--ink)'}}>{t.percentMode}</div>
+                  <div style={{fontSize:12,color:'var(--ink-light)',marginTop:2}}>{t.percentModeDesc}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* CATEGORÍAS */}
+            <div className="card">
+              <div className="section-label"><span className="step">1</span>{t.catStep}</div>
+              <h2>{t.catTitle}</h2>
+              <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:16}}>{t.catDesc}</p>
+
+              <div className="tag-list" style={{marginBottom:16}}>
+                {t.defaultCats.map((name, idx) => {
+                  const cat = categorias[idx];
+                  const active = cat && catSeleccionadas.includes(cat.id);
+                  return (
+                    <span key={idx} className={`tag ${active ? 'selected':''}`}
+                      onClick={() => {
+                        if (cat) toggleCat(cat.id);
+                        else addCat(name);
+                      }}>
+                      {active ? '✓ ' : ''}{name}
+                    </span>
+                  );
+                })}
+              </div>
+
+              {catsActivas.length === 0 && (
+                <div className="empty"><div className="icon">☝️</div>{t.catEmpty}</div>
+              )}
+
+              {catsActivas.length > 0 && (
+                <>
+                  <div className="grid-auto">
+                    {catsActivas.map(cat => (
+                      <div key={cat.id} style={{padding:'14px',background:'var(--cream)',borderRadius:'var(--radius-sm)',border:'1.5px solid var(--border)'}}>
+                        <label style={{marginBottom:2}}>{cat.nombre}</label>
+                        <div className="weight-display">
+                          <input type="range" min={0} max={100}
+                            value={cat.peso}
+                            onChange={e => updateCatPeso(cat.id, +e.target.value)} />
+                          <span className="weight-value">{cat.peso}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="progress-wrap" style={{marginTop:16}}>
+                    <div className={`progress-fill ${totalPeso===100?'ok':totalPeso>100?'error':'warn'}`}
+                      style={{width:`${Math.min(totalPeso,100)}%`}} />
+                  </div>
+                  {totalPeso !== 100
+                    ? <div className={`alert ${totalPeso>100?'alert-err':'alert-warn'}`}>
+                        ⚠️ {t.weightWarn(totalPeso)}
+                      </div>
+                    : <div className="alert alert-ok">✓ {t.weightOk}</div>
+                  }
+                </>
+              )}
+            </div>
+
+            {/* SUB-ITEMS */}
+            {catsActivas.length > 0 && (
+              <div className="card">
+                <div className="section-label"><span className="step">2</span>{t.subStep}</div>
+                <h2>{t.subTitle}</h2>
+                <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:20}}>{t.subDesc}</p>
+
+                {catsActivas.map(cat => {
+                  const subs = subitems[cat.id]||[];
+                  const totalSubPeso = subs.reduce((a,s)=>a+s.peso,0);
+                  return (
+                    <div key={cat.id} className="cat-block">
+                      <div className="cat-block-header open">
+                        <span>{cat.nombre} <span style={{opacity:0.6,fontWeight:400,fontSize:12}}>— {cat.peso}% {t.subOf}</span></span>
+                        <span style={{display:'flex',gap:8,alignItems:'center'}}>
+                          <span style={{fontSize:11,opacity:0.6}}>{t.subElements(subs.length)}</span>
+                          <span className="chevron">▼</span>
+                        </span>
+                      </div>
+                      <div className="cat-block-body">
+                        {subs.map((sub,idx) => (
+                          <div key={sub.id} className="subitem-row">
+                            <div>
+                              <label>{t.subLabel}</label>
+                              <input type="text" value={sub.nombre}
+                                onChange={e => updateSubitem(cat.id, sub.id, 'nombre', e.target.value)} />
+                            </div>
+                            <div>
+                              <label>{t.subWeight}</label>
+                              <input type="number" min={0} max={100} value={sub.peso}
+                                onChange={e => updateSubitem(cat.id, sub.id, 'peso', +e.target.value)} />
+                            </div>
+                            <div style={{paddingBottom:'2px'}}>
+                              <label style={{visibility:'hidden'}}>x</label>
+                              <button className="btn-icon" onClick={() => removeSubitem(cat.id, sub.id)} title="Delete">🗑</button>
+                            </div>
+                          </div>
+                        ))}
+
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:8}}>
+                          <button className="btn btn-ghost btn-sm" onClick={() => addSubitem(cat.id)}>
+                            {t.subAdd}
+                          </button>
+                          <span style={{fontSize:12, color: totalSubPeso===100?'var(--green)':'var(--gold)', fontWeight:600}}>
+                            {t.subSum}: {totalSubPeso}% {totalSubPeso!==100 && '⚠️'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="btn-row">
+              <button className="btn btn-primary" onClick={() => setTab(1)} disabled={totalPeso!==100}>
+                {t.btnContinue}
+              </button>
+              {totalPeso!==100 && <span style={{fontSize:12,color:'var(--ink-light)'}}>{t.btnAdjust}</span>}
+            </div>
+          </>
+        )}
+
+        {/* ══════════ TAB 1: NOTAS ══════════ */}
+        {tab===1 && (
+          <div className="card">
+            <div className="section-label"><span className="step">3</span>{t.studentStep}</div>
+            <h2>{t.studentTitle}</h2>
+            <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:20}}>
+              {usePercent
+                ? (lang==='es' ? 'Notas en porcentaje: 0 a 100%. La nota final se calcula sobre la escala ' : 'Grades as percentage: 0 to 100%. Final grade calculated on scale ') + `0–${escalaMax}.`
+                : t.studentDesc(escalaMax)
+              }
+              {' '}{lang==='es' ? 'Modifica los nombres haciendo clic sobre ellos.' : 'Click any name to rename.'}
+            </p>
+
+            {/* GESTIÓN ALUMNOS */}
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:20}}>
+              {alumnos.map(a => (
+                <div key={a.id} style={{display:'flex',alignItems:'center',gap:6,background:'var(--cream)',border:'1.5px solid var(--border)',borderRadius:8,padding:'6px 10px'}}>
+                  <input
+                    style={{border:'none',background:'transparent',fontFamily:'DM Sans, sans-serif',fontSize:13,fontWeight:600,color:'var(--ink)',width:120}}
+                    value={a.nombre}
+                    onChange={e => updateAlumnoNombre(a.id, e.target.value)}
+                  />
+                  <button className="btn-icon" style={{padding:'3px 6px',fontSize:12}} onClick={() => removeAlumno(a.id)} title="Remove">✕</button>
+                </div>
+              ))}
+              <button className="btn btn-ghost btn-sm" onClick={addAlumno}>{t.studentAdd}</button>
+            </div>
+
+            <hr className="divider" />
+
+            {/* TABLA DE NOTAS */}
+            {alumnos.length === 0
+              ? <div className="empty"><div className="icon">👤</div>{t.studentEmpty}</div>
+              : catsActivas.map(cat => {
+                const subs = subitems[cat.id]||[];
+                return (
+                  <div key={cat.id} style={{marginBottom:28}}>
+                    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                      <span style={{fontWeight:700,fontSize:15}}>{cat.nombre}</span>
+                      <span style={{fontSize:12,color:'var(--ink-light)',background:'var(--cream)',padding:'2px 10px',borderRadius:99,border:'1px solid var(--border)'}}>{cat.peso}{t.studentOf}</span>
+                    </div>
+                    <div className="scroll-x">
+                      <div className="student-grid" style={{gridTemplateColumns:`160px repeat(${subs.length}, 1fr)`}}>
+                        {/* Header */}
+                        <div className="sg-cell sg-header">{t.colStudent}</div>
+                        {subs.map(sub => (
+                          <div key={sub.id} className="sg-cell sg-header" title={`${sub.peso}% in ${cat.nombre}`}>
+                            {sub.nombre}
+                            <div style={{fontWeight:300,opacity:0.7,fontSize:10}}>{sub.peso}%</div>
+                          </div>
+                        ))}
+                        {/* Rows */}
+                        {alumnos.map(a => (
+                          <React.Fragment key={a.id}>
+                            <div className="sg-cell sg-name">{a.nombre}</div>
+                            {subs.map(sub => (
+                              <div key={sub.id} className="sg-cell sg-note" style={{position:'relative'}}>
+                                <input
+                                  type="number" min="0" max={usePercent ? 100 : escalaMax} step={usePercent ? 1 : escalaMax > 10 ? 1 : 0.1}
+                                  value={notas?.[a.id]?.[cat.id]?.[sub.id] ?? ""}
+                                  placeholder="—"
+                                  onChange={e => setNota(a.id, cat.id, sub.id, e.target.value)}
+                                  style={{paddingRight: usePercent ? '22px' : '8px'}}
+                                />
+                                {usePercent && <span style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'var(--ink-light)',pointerEvents:'none'}}>%</span>}
+                              </div>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            }
+
+            <div className="btn-row">
+              <button className="btn btn-ghost" onClick={() => setTab(0)}>{t.btnBack}</button>
+              <button className="btn btn-primary" onClick={() => setTab(2)}>{t.btnResults}</button>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════ TAB 2: RESULTADOS ══════════ */}
+        {tab===2 && (
+          <div className="card">
+            <div className="section-label"><span className="step">4</span>{t.resultsStep}</div>
+            <h2>{t.resultsTitle}</h2>
+            <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:4}}>
+              {t.resultsDesc}
+            </p>
+
+            {alumnos.length === 0
+              ? <div className="empty"><div className="icon">📋</div>{t.resultsEmpty}</div>
+              : (
+                <div className="scroll-x">
+                  <table className="results-table">
+                    <thead>
+                      <tr>
+                        <th>{t.colStudent}</th>
+                        {catsActivas.map(c => <th key={c.id}>{c.nombre}<br/><span style={{fontWeight:300,opacity:.7,fontSize:11}}>{c.peso}%</span></th>)}
+                        <th>{t.colFinal}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {resultados.map(r => (
+                        <tr key={r.id}>
+                          <td style={{fontWeight:600}}>{r.nombre}</td>
+                          {r.detalles.map((d,i) => (
+                            <td key={i} style={{color:'var(--ink-light)'}}>{d.media.toFixed(2)}</td>
+                          ))}
+                          <td>
+                            <span className={`nota-badge ${notaBadge(r.notaFinal, escalaMax)}`}>
+                              {r.notaFinal.toFixed(2)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            }
+
+            <hr className="divider" />
+
+            {/* EXPORT */}
+            <div className="export-row">
+              <div style={{width:'100%',marginBottom:12}}>
+                <label>{t.exportFileName}</label>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginTop:4}}>
+                  <input
+                    type="text"
+                    value={exportFileName}
+                    placeholder={t.exportFileNamePlaceholder}
+                    onChange={e => setExportFileName(e.target.value.replace(/[^a-zA-Z0-9_\-]/g,'_'))}
+                    style={{maxWidth:280,fontSize:14}}
+                  />
+                  <span style={{fontSize:12,color:'var(--ink-light)'}}>.pdf / .xlsx</span>
+                </div>
+              </div>
+              <span>{t.exportLabel}</span>
+              <button className="btn btn-green" onClick={exportExcel} disabled={alumnos.length===0}>
+                {t.btnExcel}
+              </button>
+              <button className="btn btn-secondary" onClick={exportPDF} disabled={alumnos.length===0}>
+                {t.btnPDF}
+              </button>
+            </div>
+
+            <div className="btn-row" style={{marginTop:16}}>
+              <button className="btn btn-ghost" onClick={() => setTab(1)}>{t.btnEditGrades}</button>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      <footer className="footer">
+        <div>{t.footer}</div>
+        <div style={{marginTop:6, fontSize:11, color:'var(--ink-light)', opacity:0.7}}>
+          © {new Date().getFullYear()} Grade Weighting · {lang==='es' ? 'Todos los derechos reservados' : 'All rights reserved'}
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
