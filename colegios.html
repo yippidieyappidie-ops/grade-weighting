@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grade Weighting para Colegios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --ink: #1a1a2e;
+      --ink-light: #4a4a6a;
+      --cream: #faf8f3;
+      --paper: #ffffff;
+      --accent: #c84b31;
+      --accent-light: #f5ede9;
+      --gold: #e8a838;
+      --green: #2d6a4f;
+      --border: #e2ddd6;
+      --radius: 12px;
+    }
+    
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+    
+    /* BANNER ARRIBA */
+    .top-banner {
+      background: linear-gradient(135deg, var(--green) 0%, #1e5038 100%);
+      padding: 12px 20px;
+      text-align: center;
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    .top-banner a {
+      color: #fff;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    
+    .header {
+      background: var(--ink);
+      padding: 20px 40px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--accent);
+    }
+    
+    .header-content {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    
+    .header h1 span { color: var(--gold); }
+    
+    .header p {
+      color: rgba(255,255,255,0.8);
+      font-size: 16px;
+    }
+    
+    .lang-toggle {
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .lang-toggle:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+    
+    .hero {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    .hero h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 40px;
+      margin-bottom: 16px;
+      color: var(--ink);
+    }
+    
+    .hero p {
+      font-size: 18px;
+      color: var(--ink-light);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+    
+    .feature {
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+    
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    
+    .feature h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .feature p {
+      font-size: 14px;
+      color: var(--ink-light);
+    }
+    
+    .form-card {
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      box-shadow: 0 8px 40px rgba(26,26,46,0.1);
+    }
+    
+    .form-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    
+    .form-card p {
+      color: var(--ink-light);
+      margin-bottom: 28px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    
+    input, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--cream);
+      transition: all 0.2s;
+    }
+    
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,75,49,0.1);
+      background: #fff;
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-submit:hover {
+      background: #a83a22;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(200,75,49,0.3);
+    }
+    
+    .btn-submit:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .success-message {
+      background: var(--green);
+      color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--ink-light);
+      font-size: 14px;
+    }
+    
+    @media(max-width: 768px) {
+      .header {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- BANNER ARRIBA -->
+<div class="top-banner" id="topBanner"></div>
+
+<header class="header">
+  <div style="width: 80px;"></div>
+  <div class="header-content">
+    <h1>Grade <span>Weighting</span></h1>
+    <p id="headerTagline"></p>
+  </div>
+  <button class="lang-toggle" onclick="toggleLang()" id="langBtn"></button>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <h2 id="heroTitle"></h2>
+    <p id="heroDesc"></p>
+  </div>
+  
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">👥</div>
+      <h3 id="feat1Title"></h3>
+      <p id="feat1Desc"></p>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <h3 id="feat2Title"></h3>
+      <p id="feat2Desc"></p>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3 id="feat3Title"></h3>
+      <p id="feat3Desc"></p>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-icon">📄</div>
+      <h3 id="feat4Title"></h3>
+      <p id="feat4Desc"></p>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-icon">🔒</div>
+      <h3 id="feat5Title"></h3>
+      <p id="feat5Desc"></p>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-icon">💬</div>
+      <h3 id="feat6Title"></h3>
+      <p id="feat6Desc"></p>
+    </div>
+  </div>
+  
+  <div class="form-card">
+    <h3 id="formTitle"></h3>
+    <p id="formDesc"></p>
+    
+    <div id="successMessage" class="success-message"></div>
+    
+    <form id="contactForm" onsubmit="handleSubmit(event)">
+      <div class="form-group">
+        <label id="labelCentro"></label>
+        <input type="text" name="centro" required id="inputCentro">
+      </div>
+      
+      <div class="form-group">
+        <label id="labelContacto"></label>
+        <input type="text" name="contacto" required id="inputContacto">
+      </div>
+      
+      <div class="form-group">
+        <label id="labelEmail"></label>
+        <input type="email" name="email" required id="inputEmail">
+      </div>
+      
+      <div class="form-group">
+        <label id="labelTelefono"></label>
+        <input type="tel" name="telefono" id="inputTelefono">
+      </div>
+      
+      <div class="form-group">
+        <label id="labelNumProfes"></label>
+        <input type="number" name="numProfes" min="1" id="inputNumProfes">
+      </div>
+      
+      <div class="form-group">
+        <label id="labelComentarios"></label>
+        <textarea name="comentarios" id="inputComentarios"></textarea>
+      </div>
+      
+      <button type="submit" class="btn-submit" id="submitBtn"></button>
+    </form>
+  </div>
+</div>
+
+<footer class="footer">
+  <p id="footerText"></p>
+  <p style="margin-top: 8px;">
+    <a href="/" style="color: var(--accent); text-decoration: none;" id="backLink"></a>
+  </p>
+</footer>
+
+<script>
+const translations = {
+  es: {
+    topBanner: '📚 ¿Eres profesor individual? Usa la calculadora gratuita sin registro → <a href="/">Ir a la calculadora</a>',
+    headerTagline: 'Gestión de notas profesional para colegios',
+    heroTitle: 'Digitaliza la gestión de notas de tu colegio',
+    heroDesc: 'Todos los profesores en una sola plataforma. Analytics de progresión de alumnos. Exportación automatizada de boletines.',
+    feat1Title: 'Colaboración entre profesores',
+    feat1Desc: 'Todos los profesores del centro acceden a las mismas clases y ven la progresión global de cada alumno.',
+    feat2Title: 'Analytics de progresión',
+    feat2Desc: 'Gráficos de evolución por alumno, trimestre y asignatura. Identifica quién mejora y quién necesita ayuda.',
+    feat3Title: 'Cálculo automático',
+    feat3Desc: 'Configura ponderaciones una vez y olvídate. Las notas finales se calculan automáticamente.',
+    feat4Title: 'Exportación de boletines',
+    feat4Desc: 'Genera boletines completos en PDF y Excel con todas las asignaturas en un solo clic.',
+    feat5Title: 'Seguro y privado',
+    feat5Desc: 'Datos encriptados, acceso solo con Google, cumple con GDPR. Tus datos nunca se comparten.',
+    feat6Title: 'Soporte dedicado',
+    feat6Desc: 'Equipo de soporte por email. Te ayudamos con la configuración inicial y formación del equipo.',
+    formTitle: 'Solicita información',
+    formDesc: 'Déjanos tus datos y te contactamos en menos de 24 horas para una demo personalizada.',
+    successMsg: '✓ ¡Solicitud enviada! Te contactaremos pronto.',
+    labelCentro: 'Nombre del centro *',
+    labelContacto: 'Persona de contacto *',
+    labelEmail: 'Email *',
+    labelTelefono: 'Teléfono',
+    labelNumProfes: 'Número aproximado de profesores',
+    labelComentarios: 'Comentarios adicionales',
+    inputCentro: 'Ej. IES Cervantes',
+    inputContacto: 'Nombre completo',
+    inputEmail: 'direccion@colegio.es',
+    inputTelefono: '912 345 678',
+    inputNumProfes: 'Ej. 30',
+    inputComentarios: 'Cuéntanos qué necesitas...',
+    submitBtn: 'Enviar solicitud',
+    submitting: 'Enviando...',
+    footerText: '© 2025 Grade Weighting · Todos los derechos reservados',
+    backLink: '← Volver a la calculadora gratuita',
+    langBtn: '🇬🇧 EN'
+  },
+  en: {
+    topBanner: '📚 Individual teacher? Use the free calculator without registration → <a href="/">Go to calculator</a>',
+    headerTagline: 'Professional grade management for schools',
+    heroTitle: 'Digitize your school\'s grade management',
+    heroDesc: 'All teachers on one platform. Student progress analytics. Automated report card export.',
+    feat1Title: 'Teacher collaboration',
+    feat1Desc: 'All teachers access the same classes and see each student\'s overall progress.',
+    feat2Title: 'Progress analytics',
+    feat2Desc: 'Evolution charts per student, term, and subject. Identify who improves and who needs help.',
+    feat3Title: 'Automatic calculation',
+    feat3Desc: 'Configure weightings once and forget. Final grades calculate automatically.',
+    feat4Title: 'Report card export',
+    feat4Desc: 'Generate complete report cards in PDF and Excel with all subjects in one click.',
+    feat5Title: 'Secure and private',
+    feat5Desc: 'Encrypted data, Google-only access, GDPR compliant. Your data is never shared.',
+    feat6Title: 'Dedicated support',
+    feat6Desc: 'Email support team. We help with initial setup and staff training.',
+    formTitle: 'Request information',
+    formDesc: 'Leave your details and we\'ll contact you in less than 24 hours for a personalized demo.',
+    successMsg: '✓ Request sent! We\'ll contact you soon.',
+    labelCentro: 'School name *',
+    labelContacto: 'Contact person *',
+    labelEmail: 'Email *',
+    labelTelefono: 'Phone',
+    labelNumProfes: 'Approximate number of teachers',
+    labelComentarios: 'Additional comments',
+    inputCentro: 'E.g. Lincoln High School',
+    inputContacto: 'Full name',
+    inputEmail: 'principal@school.edu',
+    inputTelefono: '+1 555 123 4567',
+    inputNumProfes: 'E.g. 30',
+    inputComentarios: 'Tell us what you need...',
+    submitBtn: 'Submit request',
+    submitting: 'Sending...',
+    footerText: '© 2025 Grade Weighting · All rights reserved',
+    backLink: '← Back to free calculator',
+    langBtn: '🇪🇸 ES'
+  }
+};
+
+let currentLang = 'es';
+
+function updateContent() {
+  const t = translations[currentLang];
+  document.getElementById('topBanner').innerHTML = t.topBanner;
+  document.getElementById('headerTagline').textContent = t.headerTagline;
+  document.getElementById('heroTitle').textContent = t.heroTitle;
+  document.getElementById('heroDesc').textContent = t.heroDesc;
+  document.getElementById('feat1Title').textContent = t.feat1Title;
+  document.getElementById('feat1Desc').textContent = t.feat1Desc;
+  document.getElementById('feat2Title').textContent = t.feat2Title;
+  document.getElementById('feat2Desc').textContent = t.feat2Desc;
+  document.getElementById('feat3Title').textContent = t.feat3Title;
+  document.getElementById('feat3Desc').textContent = t.feat3Desc;
+  document.getElementById('feat4Title').textContent = t.feat4Title;
+  document.getElementById('feat4Desc').textContent = t.feat4Desc;
+  document.getElementById('feat5Title').textContent = t.feat5Title;
+  document.getElementById('feat5Desc').textContent = t.feat5Desc;
+  document.getElementById('feat6Title').textContent = t.feat6Title;
+  document.getElementById('feat6Desc').textContent = t.feat6Desc;
+  document.getElementById('formTitle').textContent = t.formTitle;
+  document.getElementById('formDesc').textContent = t.formDesc;
+  document.getElementById('successMessage').textContent = t.successMsg;
+  document.getElementById('labelCentro').textContent = t.labelCentro;
+  document.getElementById('labelContacto').textContent = t.labelContacto;
+  document.getElementById('labelEmail').textContent = t.labelEmail;
+  document.getElementById('labelTelefono').textContent = t.labelTelefono;
+  document.getElementById('labelNumProfes').textContent = t.labelNumProfes;
+  document.getElementById('labelComentarios').textContent = t.labelComentarios;
+  document.getElementById('inputCentro').placeholder = t.inputCentro;
+  document.getElementById('inputContacto').placeholder = t.inputContacto;
+  document.getElementById('inputEmail').placeholder = t.inputEmail;
+  document.getElementById('inputTelefono').placeholder = t.inputTelefono;
+  document.getElementById('inputNumProfes').placeholder = t.inputNumProfes;
+  document.getElementById('inputComentarios').placeholder = t.inputComentarios;
+  document.getElementById('submitBtn').textContent = t.submitBtn;
+  document.getElementById('footerText').textContent = t.footerText;
+  document.getElementById('backLink').textContent = t.backLink;
+  document.getElementById('langBtn').textContent = t.langBtn;
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'es' ? 'en' : 'es';
+  updateContent();
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  
+  const form = e.target;
+  const submitBtn = document.getElementById('submitBtn');
+  const successMsg = document.getElementById('successMessage');
+  const t = translations[currentLang];
+  
+  const formData = {
+    centro: form.centro.value,
+    contacto: form.contacto.value,
+    email: form.email.value,
+    telefono: form.telefono.value || 'No proporcionado',
+    numProfes: form.numProfes.value || 'No especificado',
+    comentarios: form.comentarios.value || 'Sin comentarios',
+    fecha: new Date().toLocaleString(currentLang === 'es' ? 'es-ES' : 'en-US')
+  };
+  
+  submitBtn.disabled = true;
+  submitBtn.textContent = t.submitting;
+  
+  try {
+    console.log('Solicitud de colegio:', formData);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    successMsg.style.display = 'block';
+    form.reset();
+    submitBtn.textContent = t.submitBtn;
+    submitBtn.disabled = false;
+    
+    setTimeout(() => {
+      successMsg.style.display = 'none';
+    }, 5000);
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al enviar. Por favor intenta de nuevo.');
+    submitBtn.textContent = t.submitBtn;
+    submitBtn.disabled = false;
+  }
+}
+
+// Initialize
+updateContent();
+</script>
+
+</body>
+</html>
