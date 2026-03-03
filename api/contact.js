@@ -12,26 +12,27 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
 
-    // Enviar a Web3Forms usando URLSearchParams en vez de FormData
-    const formData = new URLSearchParams();
-    formData.append('access_key', process.env.WEB3FORMS_ACCESS_KEY);
-    formData.append('subject', `Nueva solicitud de colegio: ${centro}`);
-    formData.append('from_name', contacto);
-    formData.append('Centro', centro);
-    formData.append('Contacto', contacto);
-    formData.append('Email', email);
-    formData.append('Teléfono', telefono || 'No proporcionado');
-    formData.append('Número de profesores', numProfes || 'No especificado');
-    formData.append('Comentarios', comentarios || 'Sin comentarios');
-    formData.append('Idioma', idioma);
-    formData.append('Fecha', fecha);
+    // Preparar datos como objeto plano para Web3Forms
+    const formData = {
+      access_key: process.env.WEB3FORMS_ACCESS_KEY,
+      subject: `Nueva solicitud de colegio: ${centro}`,
+      from_name: contacto,
+      Centro: centro,
+      Contacto: contacto,
+      Email: email,
+      'Teléfono': telefono || 'No proporcionado',
+      'Número de profesores': numProfes || 'No especificado',
+      Comentarios: comentarios || 'Sin comentarios',
+      Idioma: idioma,
+      Fecha: fecha
+    };
 
     const response = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: formData.toString()
+      body: JSON.stringify(formData)
     });
 
     const data = await response.json();
@@ -39,11 +40,12 @@ export default async function handler(req, res) {
     if (data.success) {
       return res.status(200).json({ success: true, message: 'Email enviado correctamente' });
     } else {
-      throw new Error('Error en Web3Forms');
+      console.error('Web3Forms error:', data);
+      throw new Error('Error en Web3Forms: ' + JSON.stringify(data));
     }
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error completo:', error);
     return res.status(500).json({ error: 'Error al enviar el email', details: error.message });
   }
 }
