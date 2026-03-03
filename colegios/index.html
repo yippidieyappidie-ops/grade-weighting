@@ -434,7 +434,7 @@ const translations = {
     inputComentarios: 'Tell us what you need...',
     submitBtn: 'Submit request',
     submitting: 'Sending...',
-    footerText: '© 2025 Grade Weighting · All rights reserved',
+    footerText: '© 2026 Grade Weighting · All rights reserved',
     backLink: '← Back to free calculator',
     langBtn: '🇪🇸 ES'
   }
@@ -494,35 +494,47 @@ async function handleSubmit(e) {
   const successMsg = document.getElementById('successMessage');
   const t = translations[currentLang];
   
-  const formData = {
-    centro: form.centro.value,
-    contacto: form.contacto.value,
-    email: form.email.value,
-    telefono: form.telefono.value || 'No proporcionado',
-    numProfes: form.numProfes.value || 'No especificado',
-    comentarios: form.comentarios.value || 'Sin comentarios',
-    fecha: new Date().toLocaleString(currentLang === 'es' ? 'es-ES' : 'en-US')
-  };
-  
   submitBtn.disabled = true;
   submitBtn.textContent = t.submitting;
   
   try {
-    console.log('Solicitud de colegio:', formData);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        centro: form.centro.value,
+        contacto: form.contacto.value,
+        email: form.email.value,
+        telefono: form.telefono.value || '',
+        numProfes: form.numProfes.value || '',
+        comentarios: form.comentarios.value || '',
+        idioma: currentLang === 'es' ? 'Español' : 'English',
+        fecha: new Date().toLocaleString(currentLang === 'es' ? 'es-ES' : 'en-US')
+      })
+    });
     
-    successMsg.style.display = 'block';
-    form.reset();
-    submitBtn.textContent = t.submitBtn;
-    submitBtn.disabled = false;
+    const data = await response.json();
     
-    setTimeout(() => {
-      successMsg.style.display = 'none';
-    }, 5000);
+    if (response.ok && data.success) {
+      successMsg.style.display = 'block';
+      form.reset();
+      submitBtn.textContent = t.submitBtn;
+      submitBtn.disabled = false;
+      
+      setTimeout(() => {
+        successMsg.style.display = 'none';
+      }, 5000);
+    } else {
+      throw new Error(data.error || 'Error en el envío');
+    }
     
   } catch (error) {
     console.error('Error:', error);
-    alert('Error al enviar. Por favor intenta de nuevo.');
+    alert(currentLang === 'es' 
+      ? 'Error al enviar. Por favor intenta de nuevo o contacta directamente por email.' 
+      : 'Error sending. Please try again or contact directly via email.');
     submitBtn.textContent = t.submitBtn;
     submitBtn.disabled = false;
   }
