@@ -347,7 +347,10 @@
         <label id="labelComentarios"></label>
         <textarea name="comentarios" id="inputComentarios"></textarea>
       </div>
+      
+      <!-- Anti-spam honeypot -->
       <input type="checkbox" name="botcheck" style="display: none;">
+      
       <button type="submit" class="btn-submit" id="submitBtn"></button>
     </form>
   </div>
@@ -434,7 +437,7 @@ const translations = {
     inputComentarios: 'Tell us what you need...',
     submitBtn: 'Submit request',
     submitting: 'Sending...',
-    footerText: '© 2026 Grade Weighting · All rights reserved',
+    footerText: '© 2025 Grade Weighting · All rights reserved',
     backLink: '← Back to free calculator',
     langBtn: '🇪🇸 ES'
   }
@@ -464,86 +467,4 @@ function updateContent() {
   document.getElementById('formDesc').textContent = t.formDesc;
   document.getElementById('successMessage').textContent = t.successMsg;
   document.getElementById('labelCentro').textContent = t.labelCentro;
-  document.getElementById('labelContacto').textContent = t.labelContacto;
-  document.getElementById('labelEmail').textContent = t.labelEmail;
-  document.getElementById('labelTelefono').textContent = t.labelTelefono;
-  document.getElementById('labelNumProfes').textContent = t.labelNumProfes;
-  document.getElementById('labelComentarios').textContent = t.labelComentarios;
-  document.getElementById('inputCentro').placeholder = t.inputCentro;
-  document.getElementById('inputContacto').placeholder = t.inputContacto;
-  document.getElementById('inputEmail').placeholder = t.inputEmail;
-  document.getElementById('inputTelefono').placeholder = t.inputTelefono;
-  document.getElementById('inputNumProfes').placeholder = t.inputNumProfes;
-  document.getElementById('inputComentarios').placeholder = t.inputComentarios;
-  document.getElementById('submitBtn').textContent = t.submitBtn;
-  document.getElementById('footerText').textContent = t.footerText;
-  document.getElementById('backLink').textContent = t.backLink;
-  document.getElementById('langBtn').textContent = t.langBtn;
-}
-
-function toggleLang() {
-  currentLang = currentLang === 'es' ? 'en' : 'es';
-  updateContent();
-}
-
-async function handleSubmit(e) {
-  e.preventDefault();
-  
-  const form = e.target;
-  const submitBtn = document.getElementById('submitBtn');
-  const successMsg = document.getElementById('successMessage');
-  const t = translations[currentLang];
-  
-  submitBtn.disabled = true;
-  submitBtn.textContent = t.submitting;
-  
-  try {
-    // Enviar directamente a Web3Forms (con honeypot anti-spam)
-    const formData = {
-      access_key: 'cc5e5598-8d00-41c7-86cd-01b4bcc4089b',
-      subject: `Nueva solicitud de colegio: ${form.centro.value}`,
-      from_name: form.contacto.value,
-      email: form.email.value,
-      message: `Centro: ${form.centro.value}\nContacto: ${form.contacto.value}\nEmail: ${form.email.value}\nTeléfono: ${form.telefono.value || 'No proporcionado'}\nNúmero de profesores: ${form.numProfes.value || 'No especificado'}\nComentarios: ${form.comentarios.value || 'Sin comentarios'}\nIdioma: ${idioma}\nFecha: ${new Date().toLocaleString(currentLang === 'es' ? 'es-ES' : 'en-US')}`,
-      botcheck: form.botcheck?.value || ''
-    };
-
-    const response = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      successMsg.style.display = 'block';
-      form.reset();
-      submitBtn.textContent = t.submitBtn;
-      submitBtn.disabled = false;
-      
-      setTimeout(() => {
-        successMsg.style.display = 'none';
-      }, 5000);
-    } else {
-      throw new Error(data.message || 'Error en el envío');
-    }
-    
-  } catch (error) {
-    console.error('Error:', error);
-    alert(currentLang === 'es' 
-      ? 'Error al enviar. Por favor intenta de nuevo.' 
-      : 'Error sending. Please try again.');
-    submitBtn.textContent = t.submitBtn;
-    submitBtn.disabled = false;
-  }
-}
-// Initialize
-updateContent();
-</script>
-
-</body>
-</html>
+  document.getElementById('labelContacto').textContent = t.
