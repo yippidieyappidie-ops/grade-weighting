@@ -12,8 +12,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
 
-    // Preparar datos para Web3Forms
-    const formData = new FormData();
+    // Enviar a Web3Forms usando URLSearchParams en vez de FormData
+    const formData = new URLSearchParams();
     formData.append('access_key', process.env.WEB3FORMS_ACCESS_KEY);
     formData.append('subject', `Nueva solicitud de colegio: ${centro}`);
     formData.append('from_name', contacto);
@@ -26,10 +26,12 @@ export default async function handler(req, res) {
     formData.append('Idioma', idioma);
     formData.append('Fecha', fecha);
 
-    // Enviar a Web3Forms
     const response = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
-      body: formData
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString()
     });
 
     const data = await response.json();
@@ -42,6 +44,6 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Error:', error);
-    return res.status(500).json({ error: 'Error al enviar el email' });
+    return res.status(500).json({ error: 'Error al enviar el email', details: error.message });
   }
 }
