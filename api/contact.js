@@ -1,0 +1,47 @@
+export default async function handler(req, res) {
+  // Solo permitir POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { centro, contacto, email, telefono, numProfes, comentarios, idioma, fecha } = req.body;
+
+    // Validación básica
+    if (!centro || !contacto || !email) {
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
+    }
+
+    // Preparar datos para Web3Forms
+    const formData = new FormData();
+    formData.append('access_key', process.env.WEB3FORMS_ACCESS_KEY);
+    formData.append('subject', `Nueva solicitud de colegio: ${centro}`);
+    formData.append('from_name', contacto);
+    formData.append('Centro', centro);
+    formData.append('Contacto', contacto);
+    formData.append('Email', email);
+    formData.append('Teléfono', telefono || 'No proporcionado');
+    formData.append('Número de profesores', numProfes || 'No especificado');
+    formData.append('Comentarios', comentarios || 'Sin comentarios');
+    formData.append('Idioma', idioma);
+    formData.append('Fecha', fecha);
+
+    // Enviar a Web3Forms
+    const response = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      return res.status(200).json({ success: true, message: 'Email enviado correctamente' });
+    } else {
+      throw new Error('Error en Web3Forms');
+    }
+
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ error: 'Error al enviar el email' });
+  }
+}
