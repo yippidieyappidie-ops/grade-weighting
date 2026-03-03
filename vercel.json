@@ -3,4 +3,8 @@
     { "src": "/ads.txt", "dest": "/ads.txt" }
   ]
 }
-
+{
+  "rewrites": [
+    { "source": "/__/auth/(.*)", "destination": "https://your-project-id.firebaseapp.com/__/auth/$1" }
+  ]
+}
