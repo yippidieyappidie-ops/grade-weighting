@@ -95,7 +95,7 @@
       line-height: 1.6;
     }
     
-    /* DASHBOARD */
+    /* HEADER */
     .header {
       background: var(--ink);
       padding: 0 40px;
@@ -132,6 +132,19 @@
       color: rgba(255,255,255,0.5);
     }
     
+    .role-badge {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--ink);
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 8px;
+    }
+    
     .btn-logout {
       background: rgba(255,255,255,0.1);
       border: 1.5px solid rgba(255,255,255,0.25);
@@ -148,50 +161,76 @@
       background: rgba(255,255,255,0.2);
     }
     
+    /* MAIN LAYOUT */
     .main {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 40px 24px;
     }
     
-    .welcome {
-      margin-bottom: 40px;
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
     }
     
-    .welcome h1 {
+    .page-header h1 {
       font-family: 'Playfair Display', serif;
       font-size: 32px;
-      margin-bottom: 8px;
     }
     
-    .welcome p {
-      color: var(--ink-light);
-      font-size: 15px;
-    }
-    
-    .card {
-      background: var(--paper);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 32px;
-      margin-bottom: 24px;
-      box-shadow: 0 2px 16px rgba(26,26,46,0.08);
-    }
-    
-    .card h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    
-    .btn-primary {
-      display: inline-flex;
+    .breadcrumb {
+      display: flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 24px;
+      font-size: 14px;
+      color: var(--ink-light);
+      margin-bottom: 16px;
+    }
+    
+    .breadcrumb a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    
+    /* BUTTONS */
+    .btn-primary {
       background: var(--accent);
       color: #fff;
       border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary:hover {
+      background: #a83a22;
+      transform: translateY(-1px);
+    }
+    
+    .btn-primary:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-secondary {
+      background: var(--border);
+      color: var(--ink);
+      border: none;
+      padding: 12px 24px;
       border-radius: var(--radius-sm);
       font-family: 'DM Sans', sans-serif;
       font-size: 14px;
@@ -200,29 +239,206 @@
       transition: all 0.2s;
     }
     
-    .btn-primary:hover {
-      background: #a83a22;
-      transform: translateY(-1px);
+    .btn-secondary:hover {
+      background: #d0cbc4;
     }
     
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--ink-light);
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    
+    .btn-icon:hover {
+      background: var(--cream);
+      color: var(--ink);
+    }
+    
+    /* CARDS */
+    .card {
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: all 0.2s;
+    }
+    
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(200,75,49,0.15);
+    }
+    
+    .card-clickable {
+      cursor: pointer;
+    }
+    
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+    
+    .card-meta {
+      font-size: 13px;
+      color: var(--ink-light);
+      margin-bottom: 4px;
+    }
+    
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    /* TABLE */
+    .table {
+      width: 100%;
+      background: var(--paper);
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+    }
+    
+    .table thead {
+      background: var(--cream);
+    }
+    
+    .table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       color: var(--ink-light);
     }
     
-    .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.3;
+    .table td {
+      padding: 16px;
+      border-top: 1px solid var(--border);
     }
     
+    .table tr:hover {
+      background: var(--cream);
+    }
+    
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    /* FORM */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--cream);
+      transition: all 0.2s;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,75,49,0.1);
+      background: #fff;
+    }
+    
+    /* STATES */
     .hidden { display: none !important; }
     
     .loading {
       text-align: center;
       padding: 60px;
       color: var(--ink-light);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-light);
+    }
+    
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .alert {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+    }
+    
+    .alert-info {
+      background: #e3f2fd;
+      color: #1565c0;
+      border: 1.5px solid #90caf9;
+    }
+    
+    .alert-success {
+      background: var(--green-light);
+      color: var(--green);
+      border: 1.5px solid var(--green);
     }
   </style>
 </head>
@@ -259,7 +475,10 @@
     </div>
     <div class="header-user">
       <div class="user-info">
-        <div id="userName"></div>
+        <div>
+          <span id="userName"></span>
+          <span id="roleBadge" class="role-badge"></span>
+        </div>
         <div class="user-email" id="userEmail"></div>
       </div>
       <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
@@ -267,33 +486,111 @@
   </header>
   
   <main class="main">
-    <div class="welcome">
-      <h1>Mis clases</h1>
-      <p>Gestiona las evaluaciones de tus alumnos</p>
-    </div>
-    
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0;">Evaluaciones activas</h2>
-        <button class="btn-primary" id="newClassBtn">
-          + Nueva evaluación
-        </button>
+    <!-- DIRECTOR VIEW: Classes List -->
+    <div id="directorView" class="hidden">
+      <div class="page-header">
+        <h1>Mis clases</h1>
+        <button class="btn-primary" id="newClassBtn">+ Crear clase</button>
       </div>
       
       <div id="classesList" class="loading">
-        Cargando tus clases...
+        Cargando clases...
+      </div>
+    </div>
+    
+    <!-- DIRECTOR VIEW: Students in Class -->
+    <div id="studentsView" class="hidden">
+      <div class="breadcrumb">
+        <a href="#" id="backToClasses">← Mis clases</a>
+        <span>/</span>
+        <span id="currentClassName"></span>
+      </div>
+      
+      <div class="page-header">
+        <h1 id="studentsViewTitle">Alumnos</h1>
+        <button class="btn-primary" id="newStudentBtn">+ Añadir alumno</button>
+      </div>
+      
+      <div id="studentsList" class="loading">
+        Cargando alumnos...
+      </div>
+    </div>
+    
+    <!-- PROFESOR VIEW -->
+    <div id="profesorView" class="hidden">
+      <div class="page-header">
+        <h1>Mis asignaturas</h1>
+      </div>
+      
+      <div class="alert alert-info">
+        🚧 Panel de profesor en desarrollo. Próximamente podrás gestionar notas y asistencia.
       </div>
     </div>
   </main>
+</div>
+
+<!-- MODAL: CREATE CLASS -->
+<div id="createClassModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Crear nueva clase</h2>
+    
+    <form id="createClassForm">
+      <div class="form-group">
+        <label>Nombre de la clase *</label>
+        <input type="text" name="nombre" required placeholder="Ej. 1º ESO A">
+      </div>
+      
+      <div class="form-group">
+        <label>Curso *</label>
+        <select name="curso" required>
+          <option value="">Selecciona un curso</option>
+          <option value="1º ESO">1º ESO</option>
+          <option value="2º ESO">2º ESO</option>
+          <option value="3º ESO">3º ESO</option>
+          <option value="4º ESO">4º ESO</option>
+          <option value="1º Bachillerato">1º Bachillerato</option>
+          <option value="2º Bachillerato">2º Bachillerato</option>
+        </select>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelClassBtn">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear clase</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: ADD STUDENT -->
+<div id="addStudentModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Añadir alumno</h2>
+    
+    <form id="addStudentForm">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" required placeholder="Ej. Juan">
+      </div>
+      
+      <div class="form-group">
+        <label>Apellidos *</label>
+        <input type="text" name="apellidos" required placeholder="Ej. Pérez García">
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelStudentBtn">Cancelar</button>
+        <button type="submit" class="btn-primary">Añadir alumno</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-  import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
     authDomain: "grade-weighting.firebaseapp.com",
@@ -308,8 +605,11 @@
   const db = getFirestore(app);
   
   let currentUser = null;
+  let userRole = null;
+  let colegioId = null;
+  let currentClassId = null;
   
-  // Check for redirect result on page load
+  // Check redirect result
   getRedirectResult(auth)
     .then((result) => {
       if (result) {
@@ -317,11 +617,10 @@
       }
     })
     .catch((error) => {
-      console.error('Error en redirect result:', error);
-      alert('Error al iniciar sesión: ' + error.message);
+      console.error('Error en redirect:', error);
     });
   
-  // Login con Google (redirect)
+  // Login
   document.getElementById('loginBtn').addEventListener('click', async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -334,48 +633,333 @@
   
   // Logout
   document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-      await signOut(auth);
-      location.reload();
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
+    await signOut(auth);
+    location.reload();
   });
   
-  // Nueva clase
-  document.getElementById('newClassBtn').addEventListener('click', () => {
-    alert('Próximamente: crear nueva clase');
-  });
-  
-  // Detectar estado de autenticación
-  onAuthStateChanged(auth, (user) => {
+  // Auth state
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('userName').textContent = user.displayName || 'Profesor';
+      document.getElementById('userName').textContent = user.displayName || 'Usuario';
       document.getElementById('userEmail').textContent = user.email;
-      loadClasses();
+      
+      // Detect role
+      await detectUserRole(user.email);
+      
     } else {
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('dashboard').classList.add('hidden');
     }
   });
   
-  // Cargar clases del profesor
-  function loadClasses() {
+  // Detect user role
+  async function detectUserRole(email) {
+    try {
+      const profesorDoc = await getDoc(doc(db, 'profesores', email));
+      
+      if (profesorDoc.exists()) {
+        const data = profesorDoc.data();
+        userRole = data.rol;
+        colegioId = data.colegioId;
+        
+        const roleBadge = document.getElementById('roleBadge');
+        roleBadge.textContent = userRole === 'admin' ? 'Director' : 'Profesor';
+        
+        if (userRole === 'admin') {
+          showDirectorView();
+        } else {
+          showProfesorView();
+        }
+      } else {
+        alert('No tienes acceso a este sistema. Contacta con tu director/a.');
+        await signOut(auth);
+      }
+    } catch (error) {
+      console.error('Error detectando rol:', error);
+      alert('Error al verificar tu cuenta: ' + error.message);
+    }
+  }
+  
+  // Show director view
+  function showDirectorView() {
+    document.getElementById('directorView').classList.remove('hidden');
+    document.getElementById('profesorView').classList.add('hidden');
+    document.getElementById('studentsView').classList.add('hidden');
+    loadClasses();
+  }
+  
+  // Show profesor view
+  function showProfesorView() {
+    document.getElementById('directorView').classList.add('hidden');
+    document.getElementById('profesorView').classList.remove('hidden');
+    document.getElementById('studentsView').classList.add('hidden');
+  }
+  
+  // Load classes
+  async function loadClasses() {
     const classesList = document.getElementById('classesList');
     
-    classesList.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">📚</div>
-        <p><strong>Aún no tienes evaluaciones</strong></p>
-        <p style="font-size: 14px; margin-top: 8px;">
-          Haz clic en "Nueva evaluación" para crear tu primera clase
-        </p>
-      </div>
-    `;
+    try {
+      const q = query(
+        collection(db, `colegios/${colegioId}/clases`),
+        orderBy('nombre')
+      );
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        classesList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📚</div>
+            <p><strong>No hay clases creadas</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Haz clic en "Crear clase" para añadir la primera
+            </p>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = '<div class="cards-grid">';
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        html += `
+          <div class="card card-clickable" data-class-id="${docSnap.id}">
+            <div class="card-title">${data.nombre}</div>
+            <div class="card-meta">📖 ${data.curso}</div>
+            <div class="card-meta" style="margin-top: 8px; opacity: 0.7;">
+              ${data.numAlumnos || 0} alumnos
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      
+      classesList.innerHTML = html;
+      
+      // Add click handlers
+      document.querySelectorAll('.card-clickable').forEach(card => {
+        card.addEventListener('click', () => {
+          const classId = card.dataset.classId;
+          showStudentsView(classId);
+        });
+      });
+      
+    } catch (error) {
+      console.error('Error cargando clases:', error);
+      classesList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar clases</p>';
+    }
   }
+  
+  // Show students view
+  async function showStudentsView(classId) {
+    currentClassId = classId;
+    
+    try {
+      const classDoc = await getDoc(doc(db, `colegios/${colegioId}/clases`, classId));
+      const classData = classDoc.data();
+      
+      document.getElementById('currentClassName').textContent = classData.nombre;
+      document.getElementById('studentsViewTitle').textContent = `Alumnos de ${classData.nombre}`;
+      
+      document.getElementById('directorView').classList.add('hidden');
+      document.getElementById('studentsView').classList.remove('hidden');
+      
+      loadStudents(classId);
+      
+    } catch (error) {
+      console.error('Error cargando clase:', error);
+      alert('Error al cargar la clase');
+    }
+  }
+  
+  // Load students
+  async function loadStudents(classId) {
+    const studentsList = document.getElementById('studentsList');
+    
+    try {
+      const q = query(
+        collection(db, `colegios/${colegioId}/clases/${classId}/alumnos`),
+        orderBy('apellidos')
+      );
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        studentsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <p><strong>No hay alumnos en esta clase</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Haz clic en "Añadir alumno" para añadir el primero
+            </p>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        html += `
+          <tr>
+            <td>
+              <strong>${data.apellidos}, ${data.nombre}</strong>
+            </td>
+            <td>
+              <button class="btn-icon" title="Editar">✏️</button>
+              <button class="btn-icon" title="Eliminar">🗑️</button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      html += '</tbody></table>';
+      studentsList.innerHTML = html;
+      
+    } catch (error) {
+      console.error('Error cargando alumnos:', error);
+      studentsList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar alumnos</p>';
+    }
+  }
+  
+  // Back to classes
+  document.getElementById('backToClasses').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('studentsView').classList.add('hidden');
+    document.getElementById('directorView').classList.remove('hidden');
+    currentClassId = null;
+  });
+  
+  // Modal handlers - Create Class
+  const createClassModal = document.getElementById('createClassModal');
+  const createClassForm = document.getElementById('createClassForm');
+  
+  document.getElementById('newClassBtn').addEventListener('click', () => {
+    createClassModal.classList.add('active');
+  });
+  
+  document.getElementById('cancelClassBtn').addEventListener('click', () => {
+    createClassModal.classList.remove('active');
+    createClassForm.reset();
+  });
+  
+  createClassModal.addEventListener('click', (e) => {
+    if (e.target === createClassModal) {
+      createClassModal.classList.remove('active');
+      createClassForm.reset();
+    }
+  });
+  
+  createClassForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = createClassForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creando...';
+    
+    try {
+      const formData = new FormData(createClassForm);
+      const nombre = formData.get('nombre');
+      const curso = formData.get('curso');
+      
+      await addDoc(collection(db, `colegios/${colegioId}/clases`), {
+        nombre: nombre,
+        curso: curso,
+        numAlumnos: 0,
+        createdAt: serverTimestamp(),
+        createdBy: currentUser.email
+      });
+      
+      createClassModal.classList.remove('active');
+      createClassForm.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear clase';
+      
+      loadClasses();
+      
+    } catch (error) {
+      console.error('Error creando clase:', error);
+      alert('Error al crear la clase: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear clase';
+    }
+  });
+  
+  // Modal handlers - Add Student
+  const addStudentModal = document.getElementById('addStudentModal');
+  const addStudentForm = document.getElementById('addStudentForm');
+  
+  document.getElementById('newStudentBtn').addEventListener('click', () => {
+    addStudentModal.classList.add('active');
+  });
+  
+  document.getElementById('cancelStudentBtn').addEventListener('click', () => {
+    addStudentModal.classList.remove('active');
+    addStudentForm.reset();
+  });
+  
+  addStudentModal.addEventListener('click', (e) => {
+    if (e.target === addStudentModal) {
+      addStudentModal.classList.remove('active');
+      addStudentForm.reset();
+    }
+  });
+  
+  addStudentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = addStudentForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Añadiendo...';
+    
+    try {
+      const formData = new FormData(addStudentForm);
+      const nombre = formData.get('nombre');
+      const apellidos = formData.get('apellidos');
+      
+      // Get current student count
+      const classDoc = await getDoc(doc(db, `colegios/${colegioId}/clases`, currentClassId));
+      const currentCount = classDoc.data().numAlumnos || 0;
+      
+      // Add student
+      await addDoc(collection(db, `colegios/${colegioId}/clases/${currentClassId}/alumnos`), {
+        nombre: nombre,
+        apellidos: apellidos,
+        orden: currentCount + 1,
+        createdAt: serverTimestamp()
+      });
+      
+      // Update class student count
+      await setDoc(doc(db, `colegios/${colegioId}/clases`, currentClassId), {
+        numAlumnos: currentCount + 1
+      }, { merge: true });
+      
+      addStudentModal.classList.remove('active');
+      addStudentForm.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Añadir alumno';
+      
+      loadStudents(currentClassId);
+      
+    } catch (error) {
+      console.error('Error añadiendo alumno:', error);
+      alert('Error al añadir el alumno: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Añadir alumno';
+    }
+  });
 </script>
 
 </body>
