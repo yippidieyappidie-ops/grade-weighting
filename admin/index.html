@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Grade Weighting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --ink: #1a1a2e;
+      --ink-light: #4a4a6a;
+      --cream: #faf8f3;
+      --paper: #ffffff;
+      --accent: #c84b31;
+      --gold: #e8a838;
+      --green: #2d6a4f;
+      --border: #e2ddd6;
+      --radius: 12px;
+      --red: #dc2626;
+    }
+    
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      margin: 0;
+    }
+    
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .login-card {
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 48px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 8px 40px rgba(26,26,46,0.13);
+    }
+    
+    .login-card h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+      color: var(--ink);
+      text-align: center;
+    }
+    
+    .login-card .subtitle {
+      color: var(--ink-light);
+      font-size: 15px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--cream);
+      transition: all 0.2s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,75,49,0.1);
+      background: #fff;
+    }
+    
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-login:hover {
+      background: #2d2d4a;
+      transform: translateY(-2px);
+    }
+    
+    .btn-login:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .error-msg {
+      background: #fee;
+      border: 1.5px solid var(--red);
+      color: var(--red);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-top: 16px;
+      display: none;
+    }
+    
+    .header {
+      background: var(--ink);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--accent);
+    }
+    
+    .header-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #fff;
+    }
+    
+    .header-logo span { color: var(--gold); }
+    
+    .admin-badge {
+      background: var(--red);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .btn-logout {
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-logout:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary:hover {
+      background: #a83a22;
+      transform: translateY(-1px);
+    }
+    
+    .colleges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .college-card {
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all 0.2s;
+    }
+    
+    .college-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(200,75,49,0.15);
+    }
+    
+    .college-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+    
+    .college-meta {
+      font-size: 13px;
+      color: var(--ink-light);
+      margin-bottom: 4px;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .btn-secondary {
+      background: var(--border);
+      color: var(--ink);
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+    }
+    
+    .btn-secondary:hover {
+      background: #d0cbc4;
+    }
+    
+    .hidden { display: none !important; }
+    
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--ink-light);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-light);
+    }
+    
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <h1>🔐 <span style="color: var(--gold);">Admin</span></h1>
+    <p class="subtitle">Panel de super administrador</p>
+    
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Usuario</label>
+        <input type="text" name="username" required autocomplete="username">
+      </div>
+      
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" name="password" required autocomplete="current-password">
+      </div>
+      
+      <button type="submit" class="btn-login">Iniciar sesión</button>
+      
+      <div id="errorMsg" class="error-msg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="dashboard" class="hidden">
+  <header class="header">
+    <div class="header-logo">
+      Grade <span>Weighting</span> <span class="admin-badge">SUPER ADMIN</span>
+    </div>
+    <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
+  </header>
+  
+  <main class="main">
+    <div class="page-header">
+      <h1>Colegios</h1>
+      <button class="btn-primary" id="newCollegeBtn">+ Crear colegio</button>
+    </div>
+    
+    <div id="collegesList" class="loading">
+      Cargando colegios...
+    </div>
+  </main>
+</div>
+
+<!-- MODAL CREAR COLEGIO -->
+<div id="createModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Crear nuevo colegio</h2>
+    
+    <form id="createForm">
+      <div class="form-group">
+        <label>Nombre del colegio *</label>
+        <input type="text" name="nombre" required placeholder="Ej. IES Cervantes">
+      </div>
+      
+      <div class="form-group">
+        <label>Ciudad *</label>
+        <input type="text" name="ciudad" required placeholder="Ej. Madrid">
+      </div>
+      
+      <div class="form-group">
+        <label>Email del director/a *</label>
+        <input type="email" name="adminEmail" required placeholder="directora@colegio.es">
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelBtn">Cancelar</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Crear colegio</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
+    authDomain: "grade-weighting.firebaseapp.com",
+    projectId: "grade-weighting",
+    storageBucket: "grade-weighting.firebasestorage.app",
+    messagingSenderId: "567298019231",
+    appId: "1:567298019231:web:18c435e0a6808b7bd5f7aa"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  
+  let isAuthenticated = false;
+  
+  // Check session
+  if (sessionStorage.getItem('adminAuth') === 'true') {
+    isAuthenticated = true;
+    showDashboard();
+  }
+  
+  // Login form
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const username = formData.get('username');
+    const password = formData.get('password');
+    const errorMsg = document.getElementById('errorMsg');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verificando...';
+    errorMsg.style.display = 'none';
+    
+    try {
+      const response = await fetch('/api/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        sessionStorage.setItem('adminAuth', 'true');
+        isAuthenticated = true;
+        showDashboard();
+      } else {
+        errorMsg.textContent = '❌ Usuario o contraseña incorrectos';
+        errorMsg.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Iniciar sesión';
+      }
+    } catch (error) {
+      console.error('Error en login:', error);
+      errorMsg.textContent = '❌ Error de conexión. Intenta de nuevo.';
+      errorMsg.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Iniciar sesión';
+    }
+  });
+  
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    sessionStorage.removeItem('adminAuth');
+    isAuthenticated = false;
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+  });
+  
+  function showDashboard() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    loadColleges();
+  }
+  
+  // Cargar colegios
+  async function loadColleges() {
+    const collegesList = document.getElementById('collegesList');
+    
+    try {
+      const q = query(collection(db, 'colegios'), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        collegesList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🏫</div>
+            <p><strong>No hay colegios creados</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Haz clic en "Crear colegio" para añadir el primero
+            </p>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = '<div class="colleges-grid">';
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const createdDate = data.createdAt?.toDate().toLocaleDateString('es-ES') || 'Fecha desconocida';
+        
+        html += `
+          <div class="college-card">
+            <div class="college-name">${data.nombre}</div>
+            <div class="college-meta">📍 ${data.ciudad}</div>
+            <div class="college-meta">👤 ${data.adminEmail}</div>
+            <div class="college-meta" style="margin-top: 8px; opacity: 0.7;">Creado: ${createdDate}</div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      
+      collegesList.innerHTML = html;
+      
+    } catch (error) {
+      console.error('Error cargando colegios:', error);
+      collegesList.innerHTML = '<p style="color: var(--red); text-align: center;">Error al cargar colegios</p>';
+    }
+  }
+  
+  // Modal
+  const modal = document.getElementById('createModal');
+  const newCollegeBtn = document.getElementById('newCollegeBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const createForm = document.getElementById('createForm');
+  
+  newCollegeBtn.addEventListener('click', () => {
+    modal.classList.add('active');
+  });
+  
+  cancelBtn.addEventListener('click', () => {
+    modal.classList.remove('active');
+    createForm.reset();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      createForm.reset();
+    }
+  });
+  
+  // Crear colegio
+  createForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creando...';
+    
+    try {
+      const formData = new FormData(createForm);
+      const nombre = formData.get('nombre');
+      const ciudad = formData.get('ciudad');
+      const adminEmail = formData.get('adminEmail');
+      
+      // Crear ID del colegio (slug)
+      const colegioId = nombre.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      
+      // Guardar en Firestore
+      await setDoc(doc(db, 'colegios', colegioId), {
+        nombre: nombre,
+        ciudad: ciudad,
+        adminEmail: adminEmail,
+        createdAt: serverTimestamp()
+      });
+      
+      // Crear registro de profesor/admin
+      await setDoc(doc(db, 'profesores', adminEmail), {
+        nombre: '',
+        colegioId: colegioId,
+        rol: 'admin',
+        asignaturas: [],
+        createdAt: serverTimestamp()
+      });
+      
+      alert(`✅ Colegio "${nombre}" creado correctamente.\n\nAhora puedes enviar este email al director/a:\n\n"Hola, te he dado acceso a Grade Weighting. Entra en gradeweighting.com/app y haz login con tu email (${adminEmail}) para configurar tu colegio."`);
+      
+      modal.classList.remove('active');
+      createForm.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear colegio';
+      
+      loadColleges();
+      
+    } catch (error) {
+      console.error('Error creando colegio:', error);
+      alert('Error al crear el colegio: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear colegio';
+    }
+  });
+</script>
+
+</body>
+</html>
