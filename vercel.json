@@ -1,20 +1,7 @@
 {
-  "rewrites": [
-    {
-      "source": "/app",
-      "destination": "/app.html"
-    },
-    {
-      "source": "/colegios",
-      "destination": "/colegios.html"
-    },
-    {
-      "source": "/ads.txt",
-      "destination": "/ads.txt"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+  "routes": [
+    { "src": "/ads.txt", "dest": "/ads.txt" }
   ]
+}
+```
 }
