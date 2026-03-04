@@ -4,13 +4,593 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Grade Weighting — Dashboard</title>
-  
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  
-  <!-- CSS Modular -->
-  <link rel="stylesheet" href="css/styles.css">
+  <style>
+/* Grade Weighting - Estilos principales */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #1a1a2e; --ink-light: #4a4a6a; --cream: #faf8f3; --paper: #ffffff;
+  --accent: #c84b31; --accent-light: #f5ede9; --gold: #e8a838; --green: #2d6a4f;
+  --green-light: #d8f3dc; --border: #e2ddd6; --radius: 12px; --radius-sm: 8px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* LOGIN SCREEN */
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 48px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 8px 40px rgba(26,26,46,0.13);
+  text-align: center;
+}
+
+.login-card h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.login-card .subtitle {
+  color: var(--ink-light);
+  font-size: 15px;
+  margin-bottom: 32px;
+}
+
+.btn-google {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 28px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-google:hover {
+  background: #2d2d4a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26,26,46,0.2);
+}
+
+.login-note {
+  margin-top: 24px;
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.6;
+}
+
+/* HEADER */
+.header {
+  background: var(--ink);
+  padding: 0 40px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--accent);
+}
+
+.header-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.header-logo span { color: var(--gold); }
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  text-align: right;
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
+}
+
+.user-email {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+.role-badge {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--ink);
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+}
+
+.btn-logout {
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-logout:hover { background: rgba(255,255,255,0.2); }
+
+/* MAIN LAYOUT */
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ink-light);
+  margin-bottom: 16px;
+}
+
+.breadcrumb a {
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.breadcrumb a:hover { text-decoration: underline; }
+
+/* BUTTONS */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: #a83a22;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  background: var(--border);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: var(--border);
+  color: var(--ink);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover { background: #d0cbc4; }
+
+/* NAVIGATION TABS (Director) */
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.nav-tab {
+  background: var(--border);
+  color: var(--ink);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-tab:hover {
+  background: #d0cbc4;
+  transform: translateY(-1px);
+}
+
+.nav-tab.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.nav-tab.active:hover {
+  background: #2d2d4a;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 16px;
+}
+
+.btn-icon:hover {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+/* CARDS */
+.card {
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(200,75,49,0.15);
+}
+
+.card-clickable { cursor: pointer; }
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.card-meta {
+  font-size: 13px;
+  color: var(--ink-light);
+  margin-bottom: 4px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* TABLE */
+.table {
+  width: 100%;
+  background: var(--paper);
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+}
+
+.table thead { background: var(--cream); }
+
+.table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-light);
+}
+
+.table td {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.table tr:hover { background: var(--cream); }
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 40px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  margin-bottom: 24px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* FORM */
+.form-group { margin-bottom: 20px; }
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--cream);
+  transition: all 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,75,49,0.1);
+  background: #fff;
+}
+
+/* CHECKBOX GROUP (para selector de alumnos) */
+.checkbox-group {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: var(--cream);
+}
+
+.clase-group {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--paper);
+  border-radius: var(--radius-sm);
+}
+
+.clase-group-header {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.select-all-btn {
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  margin-bottom: 4px;
+}
+
+.checkbox-item:hover {
+  background: rgba(200,75,49,0.05);
+  border-radius: 4px;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  margin: 0;
+  text-transform: none;
+  font-weight: 400;
+  font-size: 14px;
+  cursor: pointer;
+  flex: 1;
+}
+
+/* STATES */
+.hidden { display: none !important; }
+
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: var(--ink-light);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--ink-light);
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.alert {
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.alert-info {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1.5px solid #90caf9;
+}
+
+.alert-success {
+  background: var(--green-light);
+  color: var(--green);
+  border: 1.5px solid var(--green);
+}
+
+/* SISTEMA DE NOTAS */
+.trimestre-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.trimestre-tab {
+  padding: 10px 20px;
+  background: var(--border);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.trimestre-tab:hover { background: #d0cbc4; }
+
+.trimestre-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.categoria-section {
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.categoria-header {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+.nota-input-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.nota-input-row input { width: 100px; }
+
+.nota-final-display {
+  background: var(--green-light);
+  border: 2px solid var(--green);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.nota-final-display h3 {
+  font-size: 16px;
+  color: var(--green);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nota-final-display .nota {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--green);
+  font-family: 'Playfair Display', serif;
+}
+  </style>
 </head>
 <body>
 
@@ -32,7 +612,6 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
   <header class="header">
     <div class="header-logo">Grade <span>Weighting</span></div>
@@ -46,7 +625,6 @@
   </header>
   
   <main class="main">
-    <!-- DIRECTOR VIEW: Classes -->
     <div id="directorView" class="hidden">
       <div class="nav-tabs">
         <button class="nav-tab active" id="navClases" onclick="showDirectorView()">📚 Clases</button>
@@ -60,7 +638,6 @@
       <div id="classesList" class="loading">Cargando...</div>
     </div>
     
-    <!-- DIRECTOR VIEW: Students -->
     <div id="studentsView" class="hidden">
       <div class="breadcrumb">
         <a onclick="showDirectorView()">← Mis clases</a><span>/</span><span id="currentClassName"></span>
@@ -72,7 +649,6 @@
       <div id="studentsList" class="loading">Cargando...</div>
     </div>
     
-    <!-- DIRECTOR VIEW: Asignaturas -->
     <div id="asignaturasView" class="hidden">
       <div class="nav-tabs">
         <button class="nav-tab" id="navClasesFromAsig" onclick="showDirectorView()">📚 Clases</button>
@@ -86,7 +662,6 @@
       <div id="asignaturasList" class="loading">Cargando...</div>
     </div>
     
-    <!-- DIRECTOR VIEW: Profesores -->
     <div id="profesoresView" class="hidden">
       <div class="nav-tabs">
         <button class="nav-tab" id="navClasesFromProf" onclick="showDirectorView()">📚 Clases</button>
@@ -100,13 +675,11 @@
       <div id="profesoresList" class="loading">Cargando...</div>
     </div>
     
-    <!-- PROFESOR VIEW -->
     <div id="profesorView" class="hidden">
       <div class="page-header"><h1>Mis asignaturas</h1></div>
       <div id="profesorAsignaturasList" class="loading">Cargando...</div>
     </div>
     
-    <!-- PROFESOR VIEW: Asignatura Detail (alumnos) -->
     <div id="asignaturaDetailView" class="hidden">
       <div class="breadcrumb">
         <a onclick="showProfesorView()">← Mis asignaturas</a><span>/</span><span id="currentAsignaturaNombre"></span>
@@ -115,7 +688,6 @@
       <div id="asignaturaAlumnosList" class="loading">Cargando...</div>
     </div>
     
-    <!-- PROFESOR VIEW: Notas -->
     <div id="notasView" class="hidden">
       <div class="breadcrumb">
         <a onclick="backToAsignaturaDetail()">← Alumnos</a><span>/</span><span id="currentAlumnoNombre"></span>
@@ -218,8 +790,563 @@
   </div>
 </div>
 
-<!-- JavaScript Modular -->
-<script type="module" src="js/app.js"></script>
+<!-- JavaScript BUNDLED (todo en uno, sin módulos) -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
+  // ===== CONFIG =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
+    authDomain: "grade-weighting.firebaseapp.com",
+    projectId: "grade-weighting",
+    storageBucket: "grade-weighting.firebasestorage.app",
+    messagingSenderId: "567298019231",
+    appId: "1:567298019231:web:18c435e0a6808b7bd5f7aa"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  
+  // Estado global
+  const state = {
+    currentUser: null,
+    userRole: null,
+    colegioId: null,
+    currentClassId: null,
+    currentAsignaturaId: null,
+    currentAlumnoId: null,
+    currentTrimestre: 'T1',
+    cachedClasses: [],
+    cachedProfesores: []
+  };
+
+  // ===== UTILIDADES =====
+  function hideAllViews() {
+    ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+  }
+
+  function updateNavTabs(activeTab) {
+    document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+    if (activeTab === 'clases') {
+      const tab = document.getElementById('navClases');
+      if (tab) tab.classList.add('active');
+    } else if (activeTab === 'asignaturas') {
+      const tab = document.getElementById('navAsignaturasActive');
+      if (tab) tab.classList.add('active');
+    } else if (activeTab === 'profesores') {
+      const tab = document.getElementById('navProfesoresActive');
+      if (tab) tab.classList.add('active');
+    }
+  }
+
+  // ===== AUTHENTICATION =====
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch (error) {
+      if (error.code !== 'auth/popup-closed-by-user') alert('Error: ' + error.message);
+    }
+  });
+  
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    location.reload();
+  });
+  
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      state.currentUser = user;
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('userName').textContent = user.displayName || 'Usuario';
+      document.getElementById('userEmail').textContent = user.email;
+      await detectUserRole(user.email);
+    } else {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('dashboard').classList.add('hidden');
+    }
+  });
+  
+  async function detectUserRole(email) {
+    try {
+      const profesorDoc = await getDoc(doc(db, 'profesores', email));
+      if (profesorDoc.exists()) {
+        const data = profesorDoc.data();
+        state.userRole = data.rol;
+        state.colegioId = data.colegioId;
+        document.getElementById('roleBadge').textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
+        state.userRole === 'admin' ? showDirectorView() : showProfesorView();
+      } else {
+        alert('No tienes acceso. Contacta con tu director/a.');
+        await signOut(auth);
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  // ===== DIRECTOR FUNCTIONS =====
+  window.showDirectorView = function() {
+    hideAllViews();
+    document.getElementById('directorView').classList.remove('hidden');
+    updateNavTabs('clases');
+    loadClasses();
+  }
+
+  window.showProfesoresView = function() {
+    hideAllViews();
+    document.getElementById('profesoresView').classList.remove('hidden');
+    updateNavTabs('profesores');
+    loadProfesores();
+  }
+
+  window.showAsignaturasView = function() {
+    hideAllViews();
+    document.getElementById('asignaturasView').classList.remove('hidden');
+    updateNavTabs('asignaturas');
+    loadAsignaturas();
+  }
+
+  window.showStudentsView = function(classId) {
+    state.currentClassId = classId;
+    hideAllViews();
+    document.getElementById('studentsView').classList.remove('hidden');
+    getDoc(doc(db, `colegios/${state.colegioId}/clases`, classId)).then(classDoc => {
+      const classData = classDoc.data();
+      document.getElementById('currentClassName').textContent = classData.nombre;
+      document.getElementById('studentsViewTitle').textContent = `Alumnos de ${classData.nombre}`;
+      loadStudents(classId);
+    });
+  }
+
+  async function loadClasses() {
+    const list = document.getElementById('classesList');
+    try {
+      const q = query(collection(db, `colegios/${state.colegioId}/clases`), orderBy('nombre'));
+      const snapshot = await getDocs(q);
+      state.cachedClasses = [];
+      if (snapshot.empty) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><p><strong>No hay clases</strong></p></div>';
+        return;
+      }
+      let html = '<div class="cards-grid">';
+      snapshot.forEach((d) => {
+        const data = d.data();
+        state.cachedClasses.push({ id: d.id, ...data });
+        html += `<div class="card card-clickable" onclick="showStudentsView('${d.id}')"><div class="card-title">${data.nombre}</div><div class="card-meta">📖 ${data.curso}</div><div class="card-meta">${data.numAlumnos || 0} alumnos</div></div>`;
+      });
+      list.innerHTML = html + '</div>';
+    } catch (error) {
+      list.innerHTML = '<p style="color:red;">Error</p>';
+    }
+  }
+
+  async function loadStudents(classId) {
+    const list = document.getElementById('studentsList');
+    try {
+      const q = query(collection(db, `colegios/${state.colegioId}/clases/${classId}/alumnos`), orderBy('apellidos'));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
+        return;
+      }
+      let html = '<table class="table"><thead><tr><th>Alumno</th></tr></thead><tbody>';
+      snapshot.forEach((d) => {
+        const data = d.data();
+        html += `<tr><td><strong>${data.apellidos}, ${data.nombre}</strong></td></tr>`;
+      });
+      list.innerHTML = html + '</tbody></table>';
+    } catch (error) {
+      list.innerHTML = '<p style="color:red;">Error</p>';
+    }
+  }
+
+  async function loadProfesores() {
+    const list = document.getElementById('profesoresList');
+    try {
+      const q = query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId));
+      const snapshot = await getDocs(q);
+      state.cachedProfesores = [];
+      if (snapshot.empty) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">👨‍🏫</div><p><strong>No hay profesores</strong></p></div>';
+        return;
+      }
+      let html = '<table class="table"><thead><tr><th>Email</th><th>Nombre</th><th>Rol</th></tr></thead><tbody>';
+      snapshot.forEach((d) => {
+        const data = d.data();
+        state.cachedProfesores.push({ id: d.id, ...data });
+        html += `<tr><td><strong>${d.id}</strong></td><td>${data.nombre || '—'}</td><td>${data.rol === 'admin' ? 'Director' : 'Profesor'}</td></tr>`;
+      });
+      list.innerHTML = html + '</tbody></table>';
+    } catch (error) {
+      list.innerHTML = '<p style="color:red;">Error</p>';
+    }
+  }
+
+  async function loadAsignaturas() {
+    const list = document.getElementById('asignaturasList');
+    try {
+      const q = query(collection(db, `colegios/${state.colegioId}/asignaturas`), orderBy('nombre'));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No hay asignaturas</strong></p></div>';
+        return;
+      }
+      let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Alumnos</th></tr></thead><tbody>';
+      snapshot.forEach((d) => {
+        const data = d.data();
+        html += `<tr><td><strong>${data.nombre}</strong></td><td>${data.profesorEmail}</td><td>${data.alumnos?.length || 0}</td></tr>`;
+      });
+      list.innerHTML = html + '</tbody></table>';
+    } catch (error) {
+      list.innerHTML = '<p style="color:red;">Error</p>';
+    }
+  }
+
+  // ===== PROFESOR FUNCTIONS =====
+  function showProfesorView() {
+    hideAllViews();
+    document.getElementById('profesorView').classList.remove('hidden');
+    loadProfesorAsignaturas();
+  }
+
+  async function loadProfesorAsignaturas() {
+    const list = document.getElementById('profesorAsignaturasList');
+    try {
+      const q = query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('profesorEmail', '==', state.currentUser.email));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No tienes asignaturas</strong></p></div>';
+        return;
+      }
+      let html = '<div class="cards-grid">';
+      snapshot.forEach((d) => {
+        const data = d.data();
+        html += `<div class="card card-clickable" onclick="showAsignaturaDetail('${d.id}', '${data.nombre}')"><div class="card-title">${data.nombre}</div><div class="card-meta">${data.alumnos?.length || 0} alumnos</div></div>`;
+      });
+      list.innerHTML = html + '</div>';
+    } catch (error) {
+      list.innerHTML = '<p style="color:red;">Error</p>';
+    }
+  }
+
+  window.showAsignaturaDetail = async function(asignaturaId, nombre) {
+    state.currentAsignaturaId = asignaturaId;
+    document.getElementById('currentAsignaturaNombre').textContent = nombre;
+    document.getElementById('asignaturaDetailTitle').textContent = `Alumnos - ${nombre}`;
+    hideAllViews();
+    document.getElementById('asignaturaDetailView').classList.remove('hidden');
+    await loadAsignaturaAlumnos(asignaturaId);
+  }
+
+  async function loadAsignaturaAlumnos(asignaturaId) {
+    const list = document.getElementById('asignaturaAlumnosList');
+    try {
+      const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, asignaturaId));
+      const alumnosIds = asigDoc.data().alumnos || [];
+      if (alumnosIds.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
+        return;
+      }
+      let alumnos = [];
+      for (const ref of alumnosIds) {
+        const [claseId, alumnoId] = ref.split('/');
+        const alumnoDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${claseId}/alumnos`, alumnoId));
+        if (alumnoDoc.exists()) {
+          alumnos.push({ id: ref, ...alumnoDoc.data() });
+        }
+      }
+      alumnos.sort((a, b) => a.apellidos.localeCompare(b.apellidos));
+      let html = '<div class="cards-grid">';
+      alumnos.forEach(a => {
+        html += `<div class="card card-clickable" onclick="showNotasView('${a.id}', '${a.nombre} ${a.apellidos}')"><div class="card-title">${a.apellidos}, ${a.nombre}</div><div class="card-meta">Ver notas →</div></div>`;
+      });
+      list.innerHTML = html + '</div>';
+    } catch (error) {
+      list.innerHTML = '<p style="color:red;">Error</p>';
+    }
+  }
+
+  window.showProfesorView = showProfesorView;
+  window.backToAsignaturaDetail = function() {
+    showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent);
+  }
+
+  // ===== NOTAS SYSTEM =====
+  window.showNotasView = function(alumnoId, nombre) {
+    state.currentAlumnoId = alumnoId;
+    document.getElementById('currentAlumnoNombre').textContent = nombre;
+    document.getElementById('notasViewTitle').textContent = `Notas - ${nombre}`;
+    hideAllViews();
+    document.getElementById('notasView').classList.remove('hidden');
+    loadNotas();
+  }
+
+  window.switchTrimestre = function(trimestre) {
+    state.currentTrimestre = trimestre;
+    document.querySelectorAll('.trimestre-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    loadNotas();
+  }
+
+  async function loadNotas() {
+    const content = document.getElementById('notasContent');
+    content.innerHTML = '<div class="loading">Cargando...</div>';
+    try {
+      const notasDocRef = doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas`, state.currentAlumnoId.replace('/', '-'), state.currentTrimestre);
+      const notasDoc = await getDoc(notasDocRef);
+      const categorias = [
+        { nombre: 'Exámenes', peso: 70 },
+        { nombre: 'Tareas', peso: 20 },
+        { nombre: 'Participación', peso: 10 }
+      ];
+      const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
+      let html = '';
+      categorias.forEach(cat => {
+        const catNotas = notasData.categorias?.[cat.nombre] || [];
+        html += `<div class="categoria-section"><div class="categoria-header">${cat.nombre} (${cat.peso}%)</div><div>`;
+        catNotas.forEach((nota, idx) => {
+          html += `<div class="nota-input-row"><input type="number" min="0" max="10" step="0.1" value="${nota}" onchange="updateNota('${cat.nombre}', ${idx}, this.value)"><button class="btn-icon" onclick="deleteNota('${cat.nombre}', ${idx})">🗑️</button></div>`;
+        });
+        html += `</div><button class="btn-secondary" onclick="addNota('${cat.nombre}')" style="margin-top:8px;">+ Añadir nota</button></div>`;
+      });
+      const notaFinal = calcularNotaFinal(notasData, categorias);
+      html += `<div class="nota-final-display"><h3>Nota Final ${state.currentTrimestre}</h3><div class="nota">${notaFinal.toFixed(2)}</div></div>`;
+      content.innerHTML = html;
+    } catch (error) {
+      content.innerHTML = '<p style="color:red;">Error</p>';
+    }
+  }
+
+  function calcularNotaFinal(notasData, categorias) {
+    let notaFinal = 0, pesoTotal = 0;
+    categorias.forEach(cat => {
+      const catNotas = notasData.categorias?.[cat.nombre] || [];
+      if (catNotas.length > 0) {
+        const promedio = catNotas.reduce((a, b) => a + b, 0) / catNotas.length;
+        notaFinal += promedio * (cat.peso / 100);
+        pesoTotal += cat.peso;
+      }
+    });
+    return pesoTotal > 0 ? notaFinal : 0;
+  }
+
+  window.addNota = async function(categoria) {
+    try {
+      const notasDocRef = doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas`, state.currentAlumnoId.replace('/', '-'), state.currentTrimestre);
+      const notasDoc = await getDoc(notasDocRef);
+      const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
+      if (!notasData.categorias[categoria]) notasData.categorias[categoria] = [];
+      notasData.categorias[categoria].push(5);
+      await setDoc(notasDocRef, notasData);
+      loadNotas();
+    } catch (error) {
+      alert('Error');
+    }
+  }
+
+  window.updateNota = async function(categoria, index, valor) {
+    try {
+      const notasDocRef = doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas`, state.currentAlumnoId.replace('/', '-'), state.currentTrimestre);
+      const notasDoc = await getDoc(notasDocRef);
+      const notasData = notasDoc.data();
+      notasData.categorias[categoria][index] = parseFloat(valor);
+      await setDoc(notasDocRef, notasData);
+      loadNotas();
+    } catch (error) {
+      alert('Error');
+    }
+  }
+
+  window.deleteNota = async function(categoria, index) {
+    try {
+      const notasDocRef = doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas`, state.currentAlumnoId.replace('/', '-'), state.currentTrimestre);
+      const notasDoc = await getDoc(notasDocRef);
+      const notasData = notasDoc.data();
+      notasData.categorias[categoria].splice(index, 1);
+      await setDoc(notasDocRef, notasData);
+      loadNotas();
+    } catch (error) {
+      alert('Error');
+    }
+  }
+
+  // ===== MODAL HANDLERS =====
+  // Create Class Modal
+  const createClassModal = document.getElementById('createClassModal');
+  const createClassForm = document.getElementById('createClassForm');
+  document.getElementById('newClassBtn').addEventListener('click', () => createClassModal.classList.add('active'));
+  document.getElementById('cancelClassBtn').addEventListener('click', () => { createClassModal.classList.remove('active'); createClassForm.reset(); });
+  createClassModal.addEventListener('click', (e) => { if (e.target === createClassModal) { createClassModal.classList.remove('active'); createClassForm.reset(); } });
+  createClassForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = createClassForm.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Creando...';
+    try {
+      const fd = new FormData(createClassForm);
+      await addDoc(collection(db, `colegios/${state.colegioId}/clases`), {
+        nombre: fd.get('nombre'),
+        curso: fd.get('curso'),
+        numAlumnos: 0,
+        createdAt: serverTimestamp(),
+        createdBy: state.currentUser.email
+      });
+      createClassModal.classList.remove('active');
+      createClassForm.reset();
+      btn.disabled = false; btn.textContent = 'Crear clase';
+      loadClasses();
+    } catch (error) {
+      alert('Error');
+      btn.disabled = false; btn.textContent = 'Crear clase';
+    }
+  });
+
+  // Add Student Modal
+  const addStudentModal = document.getElementById('addStudentModal');
+  const addStudentForm = document.getElementById('addStudentForm');
+  document.getElementById('newStudentBtn').addEventListener('click', () => addStudentModal.classList.add('active'));
+  document.getElementById('cancelStudentBtn').addEventListener('click', () => { addStudentModal.classList.remove('active'); addStudentForm.reset(); });
+  addStudentModal.addEventListener('click', (e) => { if (e.target === addStudentModal) { addStudentModal.classList.remove('active'); addStudentForm.reset(); } });
+  addStudentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = addStudentForm.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Añadiendo...';
+    try {
+      const fd = new FormData(addStudentForm);
+      const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId));
+      const currentCount = classDoc.data().numAlumnos || 0;
+      await addDoc(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), {
+        nombre: fd.get('nombre'),
+        apellidos: fd.get('apellidos'),
+        orden: currentCount + 1,
+        createdAt: serverTimestamp()
+      });
+      await setDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId), { numAlumnos: currentCount + 1 }, { merge: true });
+      addStudentModal.classList.remove('active');
+      addStudentForm.reset();
+      btn.disabled = false; btn.textContent = 'Añadir alumno';
+      loadStudents(state.currentClassId);
+    } catch (error) {
+      alert('Error');
+      btn.disabled = false; btn.textContent = 'Añadir alumno';
+    }
+  });
+
+  // Create Asignatura Modal (con selector multi-clase)
+  const createAsignaturaModal = document.getElementById('createAsignaturaModal');
+  const createAsignaturaForm = document.getElementById('createAsignaturaForm');
+  document.getElementById('newAsignaturaBtn').addEventListener('click', async () => {
+    const profesorSelect = document.getElementById('asignaturaProfesorSelect');
+    profesorSelect.innerHTML = '<option value="">Selecciona un profesor</option>';
+    state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(prof => {
+      profesorSelect.innerHTML += `<option value="${prof.id}">${prof.nombre || prof.id}</option>`;
+    });
+    await loadAlumnosForSelection();
+    createAsignaturaModal.classList.add('active');
+  });
+  
+  async function loadAlumnosForSelection() {
+    const sel = document.getElementById('alumnosSelection');
+    sel.innerHTML = '<div class="loading" style="padding:20px;">Cargando...</div>';
+    let html = '';
+    for (const clase of state.cachedClasses) {
+      const q = query(collection(db, `colegios/${state.colegioId}/clases/${clase.id}/alumnos`), orderBy('apellidos'));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        html += `<div class="clase-group"><div class="clase-group-header"><span>${clase.nombre} (${clase.curso})</span><span class="select-all-btn" onclick="selectAllFromClase('${clase.id}')">Seleccionar todos</span></div>`;
+        snapshot.forEach(d => {
+          const a = d.data();
+          const ref = `${clase.id}/${d.id}`;
+          html += `<div class="checkbox-item"><input type="checkbox" id="alumno-${ref.replace('/', '-')}" value="${ref}" name="alumnos"><label for="alumno-${ref.replace('/', '-')}">${a.apellidos}, ${a.nombre}</label></div>`;
+        });
+        html += '</div>';
+      }
+    }
+    sel.innerHTML = html || '<div class="empty-state" style="padding:40px;"><p>No hay alumnos</p></div>';
+  }
+  
+  window.selectAllFromClase = function(claseId) {
+    const boxes = document.querySelectorAll(`input[value^="${claseId}/"]`);
+    const allChecked = Array.from(boxes).every(cb => cb.checked);
+    boxes.forEach(cb => cb.checked = !allChecked);
+  }
+  
+  document.getElementById('cancelAsignaturaBtn').addEventListener('click', () => { createAsignaturaModal.classList.remove('active'); createAsignaturaForm.reset(); });
+  createAsignaturaModal.addEventListener('click', (e) => { if (e.target === createAsignaturaModal) { createAsignaturaModal.classList.remove('active'); createAsignaturaForm.reset(); } });
+  createAsignaturaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = createAsignaturaForm.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Creando...';
+    try {
+      const fd = new FormData(createAsignaturaForm);
+      const alumnos = Array.from(document.querySelectorAll('input[name="alumnos"]:checked')).map(cb => cb.value);
+      if (alumnos.length === 0) {
+        alert('Selecciona al menos un alumno');
+        btn.disabled = false; btn.textContent = 'Crear asignatura';
+        return;
+      }
+      const ref = await addDoc(collection(db, `colegios/${state.colegioId}/asignaturas`), {
+        nombre: fd.get('nombre'),
+        profesorEmail: fd.get('profesorEmail'),
+        alumnos: alumnos,
+        trimestres: ['T1', 'T2', 'T3'],
+        createdAt: serverTimestamp(),
+        createdBy: state.currentUser.email
+      });
+      await updateDoc(doc(db, 'profesores', fd.get('profesorEmail')), { asignaturas: arrayUnion(ref.id) });
+      alert(`✅ Asignatura creada con ${alumnos.length} alumnos`);
+      createAsignaturaModal.classList.remove('active');
+      createAsignaturaForm.reset();
+      btn.disabled = false; btn.textContent = 'Crear asignatura';
+      loadAsignaturas();
+    } catch (error) {
+      alert('Error');
+      btn.disabled = false; btn.textContent = 'Crear asignatura';
+    }
+  });
+
+  // Invite Profesor Modal
+  const inviteProfesorModal = document.getElementById('inviteProfesorModal');
+  const inviteProfesorForm = document.getElementById('inviteProfesorForm');
+  document.getElementById('inviteProfesorBtn').addEventListener('click', () => inviteProfesorModal.classList.add('active'));
+  document.getElementById('cancelProfesorBtn').addEventListener('click', () => { inviteProfesorModal.classList.remove('active'); inviteProfesorForm.reset(); });
+  inviteProfesorModal.addEventListener('click', (e) => { if (e.target === inviteProfesorModal) { inviteProfesorModal.classList.remove('active'); inviteProfesorForm.reset(); } });
+  inviteProfesorForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = inviteProfesorForm.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Invitando...';
+    try {
+      const fd = new FormData(inviteProfesorForm);
+      const email = fd.get('email');
+      const profesorDoc = await getDoc(doc(db, 'profesores', email));
+      if (profesorDoc.exists()) {
+        alert('Este profesor ya existe');
+        btn.disabled = false; btn.textContent = 'Enviar invitación';
+        return;
+      }
+      await setDoc(doc(db, 'profesores', email), {
+        nombre: fd.get('nombre') || '',
+        colegioId: state.colegioId,
+        rol: 'profesor',
+        asignaturas: [],
+        createdAt: serverTimestamp(),
+        invitedBy: state.currentUser.email
+      });
+      alert(`✅ Invitación enviada a ${email}`);
+      inviteProfesorModal.classList.remove('active');
+      inviteProfesorForm.reset();
+      btn.disabled = false; btn.textContent = 'Enviar invitación';
+      loadProfesores();
+    } catch (error) {
+      alert('Error');
+      btn.disabled = false; btn.textContent = 'Enviar invitación';
+    }
+  });
+</script>
 </body>
 </html>
