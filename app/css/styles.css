@@ -509,6 +509,45 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* SISTEMA DE NOTAS */
+.ponderacion-config {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ponderacion-item label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ponderacion-item input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--cream);
+  text-align: center;
+}
+
+.ponderacion-total {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 16px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  font-size: 20px;
+}
+
 .trimestre-tabs {
   display: flex;
   gap: 8px;
