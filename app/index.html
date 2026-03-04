@@ -4,98 +4,452 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Grade Weighting — Dashboard</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --ink: #1a1a2e; --ink-light: #4a4a6a; --cream: #faf8f3; --paper: #ffffff;
-      --accent: #c84b31; --accent-light: #f5ede9; --gold: #e8a838; --green: #2d6a4f;
-      --green-light: #d8f3dc; --border: #e2ddd6; --radius: 12px; --radius-sm: 8px;
+      --ink: #1a1a2e;
+      --ink-light: #4a4a6a;
+      --cream: #faf8f3;
+      --paper: #ffffff;
+      --accent: #c84b31;
+      --accent-light: #f5ede9;
+      --gold: #e8a838;
+      --green: #2d6a4f;
+      --green-light: #d8f3dc;
+      --border: #e2ddd6;
+      --radius: 12px;
+      --radius-sm: 8px;
     }
-    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; margin: 0; }
-    .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .login-card { background: var(--paper); border-radius: var(--radius); padding: 48px; max-width: 440px; width: 100%; box-shadow: 0 8px 40px rgba(26,26,46,0.13); text-align: center; }
-    .login-card h1 { font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 8px; }
-    .login-card .subtitle { color: var(--ink-light); font-size: 15px; margin-bottom: 32px; }
-    .btn-google { display: inline-flex; align-items: center; gap: 12px; padding: 14px 28px; background: var(--ink); color: #fff; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .btn-google:hover { background: #2d2d4a; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,26,46,0.2); }
-    .login-note { margin-top: 24px; font-size: 13px; color: var(--ink-light); line-height: 1.6; }
-    .header { background: var(--ink); padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--accent); }
-    .header-logo { font-family: 'Playfair Display', serif; font-size: 22px; color: #fff; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* LOGIN SCREEN */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 48px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 8px 40px rgba(26,26,46,0.13);
+      text-align: center;
+    }
+
+    .login-card h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .login-card .subtitle {
+      color: var(--ink-light);
+      font-size: 15px;
+      margin-bottom: 32px;
+    }
+
+    .btn-google {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 28px;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-google:hover {
+      background: #2d2d4a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(26,26,46,0.2);
+    }
+
+    .login-note {
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--ink-light);
+      line-height: 1.6;
+    }
+
+    /* HEADER */
+    .header {
+      background: var(--ink);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    .header-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
     .header-logo span { color: var(--gold); }
-    .header-user { display: flex; align-items: center; gap: 16px; }
-    .user-info { text-align: right; font-size: 14px; color: rgba(255,255,255,0.9); }
-    .user-email { font-size: 12px; color: rgba(255,255,255,0.5); }
-    .role-badge { display: inline-block; background: var(--gold); color: var(--ink); padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 8px; }
-    .btn-logout { background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.25); color: #fff; padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .btn-logout:hover { background: rgba(255,255,255,0.2); }
-    .main { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-    .page-header h1 { font-family: 'Playfair Display', serif; font-size: 32px; }
-    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-light); margin-bottom: 16px; }
-    .breadcrumb a { color: var(--accent); text-decoration: none; cursor: pointer; }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .btn-primary { background: var(--accent); color: #fff; border: none; padding: 12px 24px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
-    .btn-primary:hover { background: #a83a22; transform: translateY(-1px); }
-    .btn-primary:disabled { background: var(--border); cursor: not-allowed; transform: none; }
-    .btn-secondary { background: var(--border); color: var(--ink); border: none; padding: 12px 24px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .btn-secondary:hover { background: #d0cbc4; }
-    .btn-icon { background: none; border: none; color: var(--ink-light); padding: 8px; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
-    .btn-icon:hover { background: var(--cream); color: var(--ink); }
-    .card { background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; transition: all 0.2s; }
-    .card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(200,75,49,0.15); }
-    .card-clickable { cursor: pointer; }
-    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-    .card-meta { font-size: 13px; color: var(--ink-light); margin-bottom: 4px; }
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .table { width: 100%; background: var(--paper); border-radius: var(--radius); border: 1.5px solid var(--border); overflow: hidden; }
-    .table thead { background: var(--cream); }
-    .table th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-light); }
-    .table td { padding: 16px; border-top: 1px solid var(--border); }
-    .table tr:hover { background: var(--cream); }
-    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-    .modal.active { display: flex; }
-    .modal-content { background: var(--paper); border-radius: var(--radius); padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
-    .modal-header { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 24px; }
-    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    input, select, textarea { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink); background: var(--cream); transition: all 0.2s; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(200,75,49,0.1); background: #fff; }
-    .checkbox-group { max-height: 250px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--cream); }
-    .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 8px; margin-bottom: 4px; }
-    .checkbox-item:hover { background: rgba(200,75,49,0.05); border-radius: 4px; }
-    .checkbox-item input[type="checkbox"] { width: auto; margin: 0; cursor: pointer; }
-    .checkbox-item label { margin: 0; text-transform: none; font-weight: 400; font-size: 14px; cursor: pointer; flex: 1; }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-info {
+      text-align: right;
+      font-size: 14px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .user-email {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .role-badge {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--ink);
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 8px;
+    }
+
+    .btn-logout {
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--ink-light);
+      margin-bottom: 16px;
+    }
+
+    .breadcrumb a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    /* BUTTONS */
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: #a83a22;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--ink);
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: #d0cbc4;
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--ink-light);
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: all 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(200,75,49,0.15);
+    }
+
+    .card-clickable {
+      cursor: pointer;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .card-meta {
+      font-size: 13px;
+      color: var(--ink-light);
+      margin-bottom: 4px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    /* TABLE */
+    .table {
+      width: 100%;
+      background: var(--paper);
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+    }
+
+    .table thead {
+      background: var(--cream);
+    }
+
+    .table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--ink-light);
+    }
+
+    .table td {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .table tr:hover {
+      background: var(--cream);
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* FORM */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--cream);
+      transition: all 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,75,49,0.1);
+      background: #fff;
+    }
+
+    /* STATES */
     .hidden { display: none !important; }
-    .loading { text-align: center; padding: 60px; color: var(--ink-light); }
-    .empty-state { text-align: center; padding: 80px 20px; color: var(--ink-light); }
-    .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
-    .alert { padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px; }
-    .alert-info { background: #e3f2fd; color: #1565c0; border: 1.5px solid #90caf9; }
-    .trimestre-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-    .trimestre-tab { padding: 10px 20px; background: var(--border); border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; }
-    .trimestre-tab:hover { background: #d0cbc4; }
-    .trimestre-tab.active { background: var(--accent); color: #fff; }
-    .categoria-section { background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
-    .categoria-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--ink); }
-    .nota-input-row { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
-    .nota-input-row input { width: 100px; }
-    .nota-final-display { background: var(--green-light); border: 2px solid var(--green); border-radius: var(--radius); padding: 24px; text-align: center; margin-top: 24px; }
-    .nota-final-display h3 { font-size: 16px; color: var(--green); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-    .nota-final-display .nota { font-size: 56px; font-weight: 700; color: var(--green); font-family: 'Playfair Display', serif; }
-    .clase-group { margin-bottom: 20px; padding: 16px; background: var(--cream); border-radius: var(--radius-sm); }
-    .clase-group-header { font-weight: 600; margin-bottom: 12px; color: var(--ink); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-    .clase-group-header:hover { color: var(--accent); }
-    .select-all-btn { font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--ink-light);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-light);
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    .alert {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+    }
+
+    .alert-info {
+      background: #e3f2fd;
+      color: #1565c0;
+      border: 1.5px solid #90caf9;
+    }
+
+    .alert-success {
+      background: var(--green-light);
+      color: var(--green);
+      border: 1.5px solid var(--green);
+    }
   </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="login-screen">
   <div class="login-card">
     <h1>Grade <span style="color: var(--gold);">Weighting</span></h1>
     <p class="subtitle">Sistema de gestión de notas para colegios</p>
+
     <button class="btn-google" id="loginBtn">
       <svg width="20" height="20" viewBox="0 0 48 48">
         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -105,117 +459,138 @@
       </svg>
       Iniciar sesión con Google
     </button>
-    <p class="login-note">Solo para colegios con cuenta activa.<br>¿Eres profesor? <a href="/" style="color: var(--accent);">Usa la calculadora gratis</a></p>
+
+    <p class="login-note">
+      Solo para colegios con cuenta activa.<br>
+      ¿Eres profesor? <a href="/" style="color: var(--accent);">Usa la calculadora gratis</a>
+    </p>
   </div>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
   <header class="header">
-    <div class="header-logo">Grade <span>Weighting</span></div>
+    <div class="header-logo">
+      Grade <span>Weighting</span>
+    </div>
     <div class="header-user">
       <div class="user-info">
-        <div><span id="userName"></span><span id="roleBadge" class="role-badge"></span></div>
+        <div>
+          <span id="userName"></span>
+          <span id="roleBadge" class="role-badge"></span>
+        </div>
         <div class="user-email" id="userEmail"></div>
       </div>
       <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
     </div>
   </header>
-  
+
   <main class="main">
+    <!-- DIRECTOR VIEW: Classes List -->
     <div id="directorView" class="hidden">
       <div class="page-header">
         <div>
           <h1>Mis clases</h1>
           <div style="display: flex; gap: 12px; margin-top: 12px;">
-            <button class="btn-secondary" onclick="showAsignaturasView()">📖 Asignaturas</button>
-            <button class="btn-secondary" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+            <button class="btn-secondary" onclick="showAsignaturasView()">📖 Ver asignaturas</button>
+            <button class="btn-secondary" onclick="showProfesoresView()">👨‍🏫 Ver profesores</button>
           </div>
         </div>
         <button class="btn-primary" id="newClassBtn">+ Crear clase</button>
       </div>
-      <div id="classesList" class="loading">Cargando...</div>
+
+      <div id="classesList" class="loading">
+        Cargando clases...
+      </div>
     </div>
-    
+
+    <!-- DIRECTOR VIEW: Students in Class -->
     <div id="studentsView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="showDirectorView()">← Mis clases</a><span>/</span><span id="currentClassName"></span>
+        <a href="#" id="backToClasses">← Mis clases</a>
+        <span>/</span>
+        <span id="currentClassName"></span>
       </div>
+
       <div class="page-header">
         <h1 id="studentsViewTitle">Alumnos</h1>
         <button class="btn-primary" id="newStudentBtn">+ Añadir alumno</button>
       </div>
-      <div id="studentsList" class="loading">Cargando...</div>
+
+      <div id="studentsList" class="loading">
+        Cargando alumnos...
+      </div>
     </div>
-    
+
+    <!-- DIRECTOR VIEW: Asignaturas -->
     <div id="asignaturasView" class="hidden">
       <div class="page-header">
         <div>
           <h1>Asignaturas</h1>
           <div style="display: flex; gap: 12px; margin-top: 12px;">
-            <button class="btn-secondary" onclick="showDirectorView()">📚 Clases</button>
-            <button class="btn-secondary" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+            <button class="btn-secondary" onclick="showDirectorView()">📚 Ver clases</button>
+            <button class="btn-secondary" onclick="showProfesoresView()">👨‍🏫 Ver profesores</button>
           </div>
         </div>
         <button class="btn-primary" id="newAsignaturaBtn">+ Crear asignatura</button>
       </div>
-      <div id="asignaturasList" class="loading">Cargando...</div>
+      
+      <div id="asignaturasList" class="loading">
+        Cargando asignaturas...
+      </div>
     </div>
     
+    <!-- DIRECTOR VIEW: Profesores -->
     <div id="profesoresView" class="hidden">
       <div class="page-header">
         <div>
           <h1>Profesores</h1>
           <div style="display: flex; gap: 12px; margin-top: 12px;">
-            <button class="btn-secondary" onclick="showDirectorView()">📚 Clases</button>
-            <button class="btn-secondary" onclick="showAsignaturasView()">📖 Asignaturas</button>
+            <button class="btn-secondary" onclick="showDirectorView()">📚 Ver clases</button>
+            <button class="btn-secondary" onclick="showAsignaturasView()">📖 Ver asignaturas</button>
           </div>
         </div>
         <button class="btn-primary" id="inviteProfesorBtn">+ Invitar profesor</button>
       </div>
-      <div id="profesoresList" class="loading">Cargando...</div>
+
+      <div id="profesoresList" class="loading">
+        Cargando profesores...
+      </div>
     </div>
-    
+
+    <!-- PROFESOR VIEW -->
     <div id="profesorView" class="hidden">
-      <div class="page-header"><h1>Mis asignaturas</h1></div>
-      <div id="profesorAsignaturasList" class="loading">Cargando...</div>
-    </div>
-    
-    <div id="asignaturaDetailView" class="hidden">
-      <div class="breadcrumb">
-        <a onclick="showProfesorView()">← Mis asignaturas</a><span>/</span><span id="currentAsignaturaNombre"></span>
+      <div class="page-header">
+        <h1>Mis asignaturas</h1>
       </div>
-      <div class="page-header"><h1 id="asignaturaDetailTitle">Alumnos</h1></div>
-      <div id="asignaturaAlumnosList" class="loading">Cargando...</div>
-    </div>
-    
-    <div id="notasView" class="hidden">
-      <div class="breadcrumb">
-        <a onclick="backToAsignaturaDetail()">← Alumnos</a><span>/</span><span id="currentAlumnoNombre"></span>
+
+      <div class="alert alert-info">
+        🚧 Panel de profesor en desarrollo. Próximamente podrás gestionar notas y asistencia.
       </div>
-      <div class="page-header"><h1 id="notasViewTitle">Notas</h1></div>
-      <div class="trimestre-tabs">
-        <button class="trimestre-tab active" onclick="switchTrimestre('T1')">1º Trimestre</button>
-        <button class="trimestre-tab" onclick="switchTrimestre('T2')">2º Trimestre</button>
-        <button class="trimestre-tab" onclick="switchTrimestre('T3')">3º Trimestre</button>
+      
+      <div id="profesorAsignaturasList" class="loading">
+        Cargando asignaturas...
       </div>
-      <div id="notasContent" class="loading">Cargando...</div>
     </div>
   </main>
 </div>
 
-
+<!-- MODAL: CREATE CLASS -->
 <div id="createClassModal" class="modal">
   <div class="modal-content">
     <h2 class="modal-header">Crear nueva clase</h2>
+
     <form id="createClassForm">
       <div class="form-group">
         <label>Nombre de la clase *</label>
         <input type="text" name="nombre" required placeholder="Ej. 1º ESO A">
       </div>
+
       <div class="form-group">
         <label>Curso *</label>
         <input type="text" name="curso" required placeholder="Ej. 1º ESO">
       </div>
+
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="cancelClassBtn">Cancelar</button>
         <button type="submit" class="btn-primary">Crear clase</button>
@@ -224,18 +599,22 @@
   </div>
 </div>
 
+<!-- MODAL: ADD STUDENT -->
 <div id="addStudentModal" class="modal">
   <div class="modal-content">
     <h2 class="modal-header">Añadir alumno</h2>
+
     <form id="addStudentForm">
       <div class="form-group">
         <label>Nombre *</label>
         <input type="text" name="nombre" required placeholder="Ej. Juan">
       </div>
+
       <div class="form-group">
         <label>Apellidos *</label>
         <input type="text" name="apellidos" required placeholder="Ej. Pérez García">
       </div>
+
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="cancelStudentBtn">Cancelar</button>
         <button type="submit" class="btn-primary">Añadir alumno</button>
@@ -244,24 +623,31 @@
   </div>
 </div>
 
+<!-- MODAL: CREATE ASIGNATURA -->
 <div id="createAsignaturaModal" class="modal">
   <div class="modal-content">
     <h2 class="modal-header">Crear nueva asignatura</h2>
+    
     <form id="createAsignaturaForm">
       <div class="form-group">
         <label>Nombre de la asignatura *</label>
         <input type="text" name="nombre" required placeholder="Ej. Matemáticas">
       </div>
+      
+      <div class="form-group">
+        <label>Clase *</label>
+        <select name="claseId" required id="asignaturaClaseSelect">
+          <option value="">Selecciona una clase</option>
+        </select>
+      </div>
+      
       <div class="form-group">
         <label>Profesor *</label>
         <select name="profesorEmail" required id="asignaturaProfesorSelect">
           <option value="">Selecciona un profesor</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Seleccionar alumnos *</label>
-        <div id="alumnosSelection"></div>
-      </div>
+      
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="cancelAsignaturaBtn">Cancelar</button>
         <button type="submit" class="btn-primary">Crear asignatura</button>
@@ -270,18 +656,22 @@
   </div>
 </div>
 
+<!-- MODAL: INVITE PROFESOR -->
 <div id="inviteProfesorModal" class="modal">
   <div class="modal-content">
     <h2 class="modal-header">Invitar profesor</h2>
+
     <form id="inviteProfesorForm">
       <div class="form-group">
         <label>Email del profesor *</label>
         <input type="email" name="email" required placeholder="profesor@email.com">
       </div>
+
       <div class="form-group">
         <label>Nombre (opcional)</label>
         <input type="text" name="nombre" placeholder="Nombre del profesor">
       </div>
+
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="cancelProfesorBtn">Cancelar</button>
         <button type="submit" class="btn-primary">Enviar invitación</button>
@@ -290,6 +680,7 @@
   </div>
 </div>
 
+<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -307,551 +698,592 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  
-  let currentUser = null, userRole = null, colegioId = null, currentClassId = null;
-  let currentAsignaturaId = null, currentAlumnoId = null, currentTrimestre = 'T1';
-  let cachedClasses = [], cachedProfesores = [], cachedAlumnos = {};
-  
+
+  let currentUser = null;
+  let userRole = null;
+  let colegioId = null;
+  let currentClassId = null;
+  let cachedClasses = [];
+  let cachedProfesores = [];
+
+  // Login with POPUP
   document.getElementById('loginBtn').addEventListener('click', async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      console.log('🔄 Iniciando login con Google (popup)...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('✅ Login exitoso:', result.user.email);
     } catch (error) {
+      console.error('❌ Error al hacer login:', error);
       if (error.code !== 'auth/popup-closed-by-user') {
         alert('Error al iniciar sesión: ' + error.message);
       }
     }
   });
-  
+
+  // Logout
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await signOut(auth);
     location.reload();
   });
-  
+
+  // Auth state
   onAuthStateChanged(auth, async (user) => {
+    console.log('🔍 Auth state changed. User:', user?.email || 'null');
+
     if (user) {
       currentUser = user;
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
       document.getElementById('userName').textContent = user.displayName || 'Usuario';
       document.getElementById('userEmail').textContent = user.email;
+
+      // Detect role
       await detectUserRole(user.email);
+
     } else {
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('dashboard').classList.add('hidden');
     }
   });
-  
+
+  // Detect user role
   async function detectUserRole(email) {
     try {
+      console.log('🔍 Detectando rol para email:', email);
       const profesorDoc = await getDoc(doc(db, 'profesores', email));
+      console.log('📄 Documento existe:', profesorDoc.exists());
+
       if (profesorDoc.exists()) {
         const data = profesorDoc.data();
+        console.log('✅ Datos del profesor:', data);
         userRole = data.rol;
         colegioId = data.colegioId;
-        document.getElementById('roleBadge').textContent = userRole === 'admin' ? 'Director' : 'Profesor';
+
+        const roleBadge = document.getElementById('roleBadge');
+        roleBadge.textContent = userRole === 'admin' ? 'Director' : 'Profesor';
+
+        console.log('👤 Rol detectado:', userRole, '| Colegio:', colegioId);
+
         if (userRole === 'admin') {
+          console.log('📊 Mostrando vista de director');
           showDirectorView();
         } else {
+          console.log('📚 Mostrando vista de profesor');
           showProfesorView();
         }
       } else {
+        console.error('❌ Documento del profesor NO existe para:', email);
         alert('No tienes acceso a este sistema. Contacta con tu director/a.');
         await signOut(auth);
       }
     } catch (error) {
+      console.error('❌ Error detectando rol:', error);
+      console.error('💥 Error completo:', error.message, error.code);
       alert('Error al verificar tu cuenta: ' + error.message);
     }
   }
-  
+
+  // Show director view
   window.showDirectorView = function() {
-    hideAllViews();
     document.getElementById('directorView').classList.remove('hidden');
+    document.getElementById('profesorView').classList.add('hidden');
+    document.getElementById('studentsView').classList.add('hidden');
+    document.getElementById('profesoresView').classList.add('hidden');
+    document.getElementById('asignaturasView').classList.add('hidden');
     loadClasses();
   }
-  
+
+  // Show profesor view
   function showProfesorView() {
-    hideAllViews();
+    document.getElementById('directorView').classList.add('hidden');
     document.getElementById('profesorView').classList.remove('hidden');
+    document.getElementById('studentsView').classList.add('hidden');
+    document.getElementById('profesoresView').classList.add('hidden');
+    document.getElementById('asignaturasView').classList.add('hidden');
     loadProfesorAsignaturas();
   }
-  
+
+  // Show profesores view
   window.showProfesoresView = function() {
-    hideAllViews();
+    document.getElementById('directorView').classList.add('hidden');
+    document.getElementById('studentsView').classList.add('hidden');
+    document.getElementById('profesorView').classList.add('hidden');
     document.getElementById('profesoresView').classList.remove('hidden');
+    document.getElementById('asignaturasView').classList.add('hidden');
     loadProfesores();
   }
-  
+
+  // Show asignaturas view
   window.showAsignaturasView = function() {
-    hideAllViews();
+    document.getElementById('directorView').classList.add('hidden');
+    document.getElementById('studentsView').classList.add('hidden');
+    document.getElementById('profesorView').classList.add('hidden');
+    document.getElementById('profesoresView').classList.add('hidden');
     document.getElementById('asignaturasView').classList.remove('hidden');
     loadAsignaturas();
   }
   
-  function hideAllViews() {
-    ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView'].forEach(id => {
-      document.getElementById(id).classList.add('hidden');
-    });
-  }
-  
+  // Load classes
   async function loadClasses() {
     const classesList = document.getElementById('classesList');
+
     try {
-      const q = query(collection(db, `colegios/${colegioId}/clases`), orderBy('nombre'));
+      const q = query(
+        collection(db, `colegios/${colegioId}/clases`),
+        orderBy('nombre')
+      );
       const snapshot = await getDocs(q);
+
       cachedClasses = [];
+      
       if (snapshot.empty) {
-        classesList.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><p><strong>No hay clases creadas</strong></p></div>';
+        classesList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📚</div>
+            <p><strong>No hay clases creadas</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Haz clic en "Crear clase" para añadir la primera
+            </p>
+          </div>
+        `;
         return;
       }
+
       let html = '<div class="cards-grid">';
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
         cachedClasses.push({ id: docSnap.id, ...data });
-        html += `<div class="card card-clickable" onclick="showStudentsView('${docSnap.id}')">
-          <div class="card-title">${data.nombre}</div>
-          <div class="card-meta">📖 ${data.curso}</div>
-          <div class="card-meta">${data.numAlumnos || 0} alumnos</div>
-        </div>`;
+        html += `
+          <div class="card card-clickable" data-class-id="${docSnap.id}">
+            <div class="card-title">${data.nombre}</div>
+            <div class="card-meta">📖 ${data.curso}</div>
+            <div class="card-meta" style="margin-top: 8px; opacity: 0.7;">
+              ${data.numAlumnos || 0} alumnos
+            </div>
+          </div>
+        `;
       });
       html += '</div>';
+
       classesList.innerHTML = html;
+
+      // Add click handlers
+      document.querySelectorAll('.card-clickable').forEach(card => {
+        card.addEventListener('click', () => {
+          const classId = card.dataset.classId;
+          showStudentsView(classId);
+        });
+      });
+
     } catch (error) {
+      console.error('Error cargando clases:', error);
       classesList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar clases</p>';
     }
   }
-  
-  window.showStudentsView = async function(classId) {
+
+  // Show students view
+  async function showStudentsView(classId) {
     currentClassId = classId;
+
     try {
       const classDoc = await getDoc(doc(db, `colegios/${colegioId}/clases`, classId));
       const classData = classDoc.data();
+
       document.getElementById('currentClassName').textContent = classData.nombre;
       document.getElementById('studentsViewTitle').textContent = `Alumnos de ${classData.nombre}`;
-      hideAllViews();
+
+      document.getElementById('directorView').classList.add('hidden');
       document.getElementById('studentsView').classList.remove('hidden');
+      document.getElementById('profesoresView').classList.add('hidden');
+      document.getElementById('asignaturasView').classList.add('hidden');
+
       loadStudents(classId);
+
     } catch (error) {
+      console.error('Error cargando clase:', error);
       alert('Error al cargar la clase');
     }
   }
-  
+
+  // Load students
   async function loadStudents(classId) {
     const studentsList = document.getElementById('studentsList');
+
     try {
-      const q = query(collection(db, `colegios/${colegioId}/clases/${classId}/alumnos`), orderBy('apellidos'));
+      const q = query(
+        collection(db, `colegios/${colegioId}/clases/${classId}/alumnos`),
+        orderBy('apellidos')
+      );
       const snapshot = await getDocs(q);
+
       if (snapshot.empty) {
-        studentsList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
+        studentsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <p><strong>No hay alumnos en esta clase</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Haz clic en "Añadir alumno" para añadir el primero
+            </p>
+          </div>
+        `;
         return;
       }
-      let html = '<table class="table"><thead><tr><th>Alumno</th></tr></thead><tbody>';
+
+      let html = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        html += `<tr><td><strong>${data.apellidos}, ${data.nombre}</strong></td></tr>`;
+        html += `
+          <tr>
+            <td>
+              <strong>${data.apellidos}, ${data.nombre}</strong>
+            </td>
+            <td>
+              <button class="btn-icon" title="Editar">✏️</button>
+              <button class="btn-icon" title="Eliminar">🗑️</button>
+            </td>
+          </tr>
+        `;
       });
+
       html += '</tbody></table>';
       studentsList.innerHTML = html;
+
     } catch (error) {
-      studentsList.innerHTML = '<p style="color: red;">Error al cargar alumnos</p>';
+      console.error('Error cargando alumnos:', error);
+      studentsList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar alumnos</p>';
     }
   }
-  
+
+  // Load profesores
   async function loadProfesores() {
     const profesoresList = document.getElementById('profesoresList');
+
     try {
-      const q = query(collection(db, 'profesores'), where('colegioId', '==', colegioId));
+      const q = query(
+        collection(db, 'profesores'),
+        where('colegioId', '==', colegioId)
+      );
       const snapshot = await getDocs(q);
+
       cachedProfesores = [];
+      
       if (snapshot.empty) {
-        profesoresList.innerHTML = '<div class="empty-state"><div class="empty-icon">👨‍🏫</div><p><strong>No hay profesores</strong></p></div>';
+        profesoresList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">👨‍🏫</div>
+            <p><strong>No hay profesores invitados</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Haz clic en "Invitar profesor" para añadir el primero
+            </p>
+          </div>
+        `;
         return;
       }
-      let html = '<table class="table"><thead><tr><th>Email</th><th>Nombre</th><th>Rol</th></tr></thead><tbody>';
+
+      let html = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Asignaturas</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
         cachedProfesores.push({ id: docSnap.id, ...data });
         const rolText = data.rol === 'admin' ? 'Director' : 'Profesor';
-        html += `<tr><td><strong>${docSnap.id}</strong></td><td>${data.nombre || '—'}</td><td>${rolText}</td></tr>`;
+        const numAsignaturas = data.asignaturas?.length || 0;
+
+        html += `
+          <tr>
+            <td><strong>${docSnap.id}</strong></td>
+            <td>${data.nombre || '—'}</td>
+            <td><span style="color: ${data.rol === 'admin' ? 'var(--gold)' : 'var(--ink)'};">${rolText}</span></td>
+            <td>${numAsignaturas} asignaturas</td>
+          </tr>
+        `;
       });
+
       html += '</tbody></table>';
       profesoresList.innerHTML = html;
+
     } catch (error) {
-      profesoresList.innerHTML = '<p style="color: red;">Error al cargar profesores</p>';
+      console.error('Error cargando profesores:', error);
+      profesoresList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar profesores</p>';
     }
   }
-  
+
+  // Load asignaturas
   async function loadAsignaturas() {
     const asignaturasList = document.getElementById('asignaturasList');
+    
     try {
-      const q = query(collection(db, `colegios/${colegioId}/asignaturas`), orderBy('nombre'));
+      const q = query(
+        collection(db, `colegios/${colegioId}/asignaturas`),
+        orderBy('nombre')
+      );
       const snapshot = await getDocs(q);
+      
       if (snapshot.empty) {
-        asignaturasList.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No hay asignaturas</strong></p></div>';
+        asignaturasList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📖</div>
+            <p><strong>No hay asignaturas creadas</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Haz clic en "Crear asignatura" para añadir la primera
+            </p>
+          </div>
+        `;
         return;
       }
-      let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Alumnos</th></tr></thead><tbody>';
+      
+      let html = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Asignatura</th>
+              <th>Clase</th>
+              <th>Profesor</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        html += `<tr><td><strong>${data.nombre}</strong></td><td>${data.profesorEmail}</td><td>${data.alumnos?.length || 0} alumnos</td></tr>`;
+        html += `
+          <tr>
+            <td><strong>${data.nombre}</strong></td>
+            <td>${data.claseNombre || '—'}</td>
+            <td>${data.profesorEmail}</td>
+          </tr>
+        `;
       });
+      
       html += '</tbody></table>';
       asignaturasList.innerHTML = html;
+      
     } catch (error) {
-      asignaturasList.innerHTML = '<p style="color: red;">Error</p>';
+      console.error('Error cargando asignaturas:', error);
+      asignaturasList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar asignaturas</p>';
     }
   }
   
+  // Load profesor asignaturas
   async function loadProfesorAsignaturas() {
     const profesorAsignaturasList = document.getElementById('profesorAsignaturasList');
+    
     try {
-      const q = query(collection(db, `colegios/${colegioId}/asignaturas`), where('profesorEmail', '==', currentUser.email));
+      const q = query(
+        collection(db, `colegios/${colegioId}/asignaturas`),
+        where('profesorEmail', '==', currentUser.email)
+      );
       const snapshot = await getDocs(q);
+      
       if (snapshot.empty) {
-        profesorAsignaturasList.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No tienes asignaturas asignadas</strong></p></div>';
+        profesorAsignaturasList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📖</div>
+            <p><strong>No tienes asignaturas asignadas</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Contacta con tu director/a para que te asigne asignaturas
+            </p>
+          </div>
+        `;
         return;
       }
+      
       let html = '<div class="cards-grid">';
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        html += `<div class="card card-clickable" onclick="showAsignaturaDetail('${docSnap.id}', '${data.nombre}')">
-          <div class="card-title">${data.nombre}</div>
-          <div class="card-meta">${data.alumnos?.length || 0} alumnos</div>
-        </div>`;
+        html += `
+          <div class="card">
+            <div class="card-title">${data.nombre}</div>
+            <div class="card-meta">📖 ${data.claseNombre || 'Sin clase'}</div>
+            <div class="card-meta" style="margin-top: 8px;">
+              🚧 Próximamente: gestión de notas
+            </div>
+          </div>
+        `;
       });
       html += '</div>';
+      
       profesorAsignaturasList.innerHTML = html;
+      
     } catch (error) {
-      profesorAsignaturasList.innerHTML = '<p style="color: red;">Error</p>';
+      console.error('Error cargando asignaturas:', error);
+      profesorAsignaturasList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar asignaturas</p>';
     }
   }
   
-  window.showAsignaturaDetail = async function(asignaturaId, nombre) {
-    currentAsignaturaId = asignaturaId;
-    document.getElementById('currentAsignaturaNombre').textContent = nombre;
-    document.getElementById('asignaturaDetailTitle').textContent = `Alumnos - ${nombre}`;
-    hideAllViews();
-    document.getElementById('asignaturaDetailView').classList.remove('hidden');
-    await loadAsignaturaAlumnos(asignaturaId);
-  }
-  
-  async function loadAsignaturaAlumnos(asignaturaId) {
-    const alumnosList = document.getElementById('asignaturaAlumnosList');
-    try {
-      const asigDoc = await getDoc(doc(db, `colegios/${colegioId}/asignaturas`, asignaturaId));
-      const asigData = asigDoc.data();
-      const alumnosIds = asigData.alumnos || [];
-      
-      if (alumnosIds.length === 0) {
-        alumnosList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
-        return;
-      }
-      
-      let alumnos = [];
-      for (const alumnoRef of alumnosIds) {
-        const parts = alumnoRef.split('/');
-        const claseId = parts[0];
-        const alumnoId = parts[1];
-        const alumnoDoc = await getDoc(doc(db, `colegios/${colegioId}/clases/${claseId}/alumnos`, alumnoId));
-        if (alumnoDoc.exists()) {
-          alumnos.push({ id: `${claseId}/${alumnoId}`, ...alumnoDoc.data() });
-        }
-      }
-      
-      alumnos.sort((a, b) => a.apellidos.localeCompare(b.apellidos));
-      
-      let html = '<div class="cards-grid">';
-      alumnos.forEach(alumno => {
-        html += `<div class="card card-clickable" onclick="showNotasView('${alumno.id}', '${alumno.nombre} ${alumno.apellidos}')">
-          <div class="card-title">${alumno.apellidos}, ${alumno.nombre}</div>
-          <div class="card-meta">Ver notas →</div>
-        </div>`;
-      });
-      html += '</div>';
-      alumnosList.innerHTML = html;
-    } catch (error) {
-      alumnosList.innerHTML = '<p style="color: red;">Error</p>';
-    }
-  }
-  
-  window.showNotasView = function(alumnoId, nombre) {
-    currentAlumnoId = alumnoId;
-    document.getElementById('currentAlumnoNombre').textContent = nombre;
-    document.getElementById('notasViewTitle').textContent = `Notas - ${nombre}`;
-    hideAllViews();
-    document.getElementById('notasView').classList.remove('hidden');
-    loadNotas();
-  }
-  
-  window.backToAsignaturaDetail = function() {
-    const asigNombre = document.getElementById('currentAsignaturaNombre').textContent;
-    showAsignaturaDetail(currentAsignaturaId, asigNombre);
-  }
-  
-  window.switchTrimestre = function(trimestre) {
-    currentTrimestre = trimestre;
-    document.querySelectorAll('.trimestre-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    loadNotas();
-  }
-  
-  async function loadNotas() {
-    const notasContent = document.getElementById('notasContent');
-    notasContent.innerHTML = '<div class="loading">Cargando notas...</div>';
-    
-    try {
-      const notasDocRef = doc(db, `colegios/${colegioId}/asignaturas/${currentAsignaturaId}/notas/${currentAlumnoId}/${currentTrimestre}`);
-      const notasDoc = await getDoc(notasDocRef);
-      
-      const categorias = [
-        { nombre: 'Exámenes', peso: 70 },
-        { nombre: 'Tareas', peso: 20 },
-        { nombre: 'Participación', peso: 10 }
-      ];
-      
-      const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
-      
-      let html = '';
-      categorias.forEach(cat => {
-        const catNotas = notasData.categorias?.[cat.nombre] || [];
-        html += `<div class="categoria-section">
-          <div class="categoria-header">${cat.nombre} (${cat.peso}%)</div>
-          <div id="notas-${cat.nombre.replace(/\s/g, '')}">`;
-        
-        catNotas.forEach((nota, idx) => {
-          html += `<div class="nota-input-row">
-            <input type="number" min="0" max="10" step="0.1" value="${nota}" 
-              onchange="updateNota('${cat.nombre}', ${idx}, this.value)">
-            <button class="btn-icon" onclick="deleteNota('${cat.nombre}', ${idx})">🗑️</button>
-          </div>`;
-        });
-        
-        html += `</div>
-          <button class="btn-secondary" onclick="addNota('${cat.nombre}')" style="margin-top: 8px;">+ Añadir nota</button>
-        </div>`;
-      });
-      
-      const notaFinal = calcularNotaFinal(notasData, categorias);
-      html += `<div class="nota-final-display">
-        <h3>Nota Final ${currentTrimestre}</h3>
-        <div class="nota">${notaFinal.toFixed(2)}</div>
-      </div>`;
-      
-      notasContent.innerHTML = html;
-    } catch (error) {
-      notasContent.innerHTML = '<p style="color: red;">Error al cargar notas</p>';
-    }
-  }
-  
-  function calcularNotaFinal(notasData, categorias) {
-    let notaFinal = 0;
-    let pesoTotal = 0;
-    
-    categorias.forEach(cat => {
-      const catNotas = notasData.categorias?.[cat.nombre] || [];
-      if (catNotas.length > 0) {
-        const promedio = catNotas.reduce((a, b) => a + b, 0) / catNotas.length;
-        notaFinal += promedio * (cat.peso / 100);
-        pesoTotal += cat.peso;
-      }
-    });
-    
-    return pesoTotal > 0 ? notaFinal : 0;
-  }
-  
-  window.addNota = async function(categoria) {
-    try {
-      const notasDocRef = doc(db, `colegios/${colegioId}/asignaturas/${currentAsignaturaId}/notas/${currentAlumnoId}/${currentTrimestre}`);
-      const notasDoc = await getDoc(notasDocRef);
-      const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
-      
-      if (!notasData.categorias[categoria]) {
-        notasData.categorias[categoria] = [];
-      }
-      notasData.categorias[categoria].push(5);
-      
-      await setDoc(notasDocRef, notasData);
-      loadNotas();
-    } catch (error) {
-      alert('Error al añadir nota');
-    }
-  }
-  
-  window.updateNota = async function(categoria, index, valor) {
-    try {
-      const notasDocRef = doc(db, `colegios/${colegioId}/asignaturas/${currentAsignaturaId}/notas/${currentAlumnoId}/${currentTrimestre}`);
-      const notasDoc = await getDoc(notasDocRef);
-      const notasData = notasDoc.data();
-      
-      notasData.categorias[categoria][index] = parseFloat(valor);
-      await setDoc(notasDocRef, notasData);
-      loadNotas();
-    } catch (error) {
-      alert('Error al actualizar nota');
-    }
-  }
-  
-  window.deleteNota = async function(categoria, index) {
-    try {
-      const notasDocRef = doc(db, `colegios/${colegioId}/asignaturas/${currentAsignaturaId}/notas/${currentAlumnoId}/${currentTrimestre}`);
-      const notasDoc = await getDoc(notasDocRef);
-      const notasData = notasDoc.data();
-      
-      notasData.categorias[categoria].splice(index, 1);
-      await setDoc(notasDocRef, notasData);
-      loadNotas();
-    } catch (error) {
-      alert('Error al eliminar nota');
-    }
-  }
-  
-  // Modal handlers
+  // Back to classes
+  document.getElementById('backToClasses').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('studentsView').classList.add('hidden');
+    document.getElementById('directorView').classList.remove('hidden');
+    currentClassId = null;
+  });
+
+  // Modal handlers - Create Class
   const createClassModal = document.getElementById('createClassModal');
   const createClassForm = document.getElementById('createClassForm');
-  document.getElementById('newClassBtn').addEventListener('click', () => createClassModal.classList.add('active'));
+
+  document.getElementById('newClassBtn').addEventListener('click', () => {
+    createClassModal.classList.add('active');
+  });
+
   document.getElementById('cancelClassBtn').addEventListener('click', () => {
     createClassModal.classList.remove('active');
     createClassForm.reset();
   });
+
   createClassModal.addEventListener('click', (e) => {
     if (e.target === createClassModal) {
       createClassModal.classList.remove('active');
       createClassForm.reset();
     }
   });
-  
+
   createClassForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
     const submitBtn = createClassForm.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Creando...';
+
     try {
       const formData = new FormData(createClassForm);
+      const nombre = formData.get('nombre');
+      const curso = formData.get('curso');
+
       await addDoc(collection(db, `colegios/${colegioId}/clases`), {
-        nombre: formData.get('nombre'),
-        curso: formData.get('curso'),
+        nombre: nombre,
+        curso: curso,
         numAlumnos: 0,
         createdAt: serverTimestamp(),
         createdBy: currentUser.email
       });
+
       createClassModal.classList.remove('active');
       createClassForm.reset();
       submitBtn.disabled = false;
       submitBtn.textContent = 'Crear clase';
+
       loadClasses();
+
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error creando clase:', error);
+      alert('Error al crear la clase: ' + error.message);
       submitBtn.disabled = false;
       submitBtn.textContent = 'Crear clase';
     }
   });
-  
+
+  // Modal handlers - Add Student
   const addStudentModal = document.getElementById('addStudentModal');
   const addStudentForm = document.getElementById('addStudentForm');
-  document.getElementById('newStudentBtn').addEventListener('click', () => addStudentModal.classList.add('active'));
+
+  document.getElementById('newStudentBtn').addEventListener('click', () => {
+    addStudentModal.classList.add('active');
+  });
+
   document.getElementById('cancelStudentBtn').addEventListener('click', () => {
     addStudentModal.classList.remove('active');
     addStudentForm.reset();
   });
+
   addStudentModal.addEventListener('click', (e) => {
     if (e.target === addStudentModal) {
       addStudentModal.classList.remove('active');
       addStudentForm.reset();
     }
   });
-  
+
   addStudentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
     const submitBtn = addStudentForm.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Añadiendo...';
+
     try {
       const formData = new FormData(addStudentForm);
+      const nombre = formData.get('nombre');
+      const apellidos = formData.get('apellidos');
+
+      // Get current student count
       const classDoc = await getDoc(doc(db, `colegios/${colegioId}/clases`, currentClassId));
       const currentCount = classDoc.data().numAlumnos || 0;
-      
+
+      // Add student
       await addDoc(collection(db, `colegios/${colegioId}/clases/${currentClassId}/alumnos`), {
-        nombre: formData.get('nombre'),
-        apellidos: formData.get('apellidos'),
+        nombre: nombre,
+        apellidos: apellidos,
         orden: currentCount + 1,
         createdAt: serverTimestamp()
       });
-      
+
+      // Update class student count
       await setDoc(doc(db, `colegios/${colegioId}/clases`, currentClassId), {
         numAlumnos: currentCount + 1
       }, { merge: true });
-      
+
       addStudentModal.classList.remove('active');
       addStudentForm.reset();
       submitBtn.disabled = false;
       submitBtn.textContent = 'Añadir alumno';
+
       loadStudents(currentClassId);
+
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error añadiendo alumno:', error);
+      alert('Error al añadir el alumno: ' + error.message);
       submitBtn.disabled = false;
       submitBtn.textContent = 'Añadir alumno';
     }
   });
-  
+
+  // Modal handlers - Create Asignatura
   const createAsignaturaModal = document.getElementById('createAsignaturaModal');
   const createAsignaturaForm = document.getElementById('createAsignaturaForm');
   
   document.getElementById('newAsignaturaBtn').addEventListener('click', async () => {
+    // Load classes and profesores for select options
     if (cachedClasses.length === 0) await loadClasses();
     if (cachedProfesores.length === 0) await loadProfesores();
     
+    // Populate clase select
+    const claseSelect = document.getElementById('asignaturaClaseSelect');
+    claseSelect.innerHTML = '<option value="">Selecciona una clase</option>';
+    cachedClasses.forEach(clase => {
+      claseSelect.innerHTML += `<option value="${clase.id}">${clase.nombre} (${clase.curso})</option>`;
+    });
+    
+    // Populate profesor select (only profesores, not admins)
     const profesorSelect = document.getElementById('asignaturaProfesorSelect');
     profesorSelect.innerHTML = '<option value="">Selecciona un profesor</option>';
     cachedProfesores.filter(p => p.rol === 'profesor').forEach(prof => {
       profesorSelect.innerHTML += `<option value="${prof.id}">${prof.nombre || prof.id}</option>`;
     });
     
-    await loadAlumnosForSelection();
     createAsignaturaModal.classList.add('active');
   });
-  
-  async function loadAlumnosForSelection() {
-    const alumnosSelection = document.getElementById('alumnosSelection');
-    alumnosSelection.innerHTML = '<div class="loading" style="padding: 20px;">Cargando alumnos...</div>';
-    
-    let html = '';
-    for (const clase of cachedClasses) {
-      const q = query(collection(db, `colegios/${colegioId}/clases/${clase.id}/alumnos`), orderBy('apellidos'));
-      const snapshot = await getDocs(q);
-      
-      if (!snapshot.empty) {
-        html += `<div class="clase-group">
-          <div class="clase-group-header">
-            <span>${clase.nombre} (${clase.curso})</span>
-            <span class="select-all-btn" onclick="selectAllFromClase('${clase.id}')">Seleccionar todos</span>
-          </div>
-          <div class="checkbox-group" id="clase-${clase.id}-alumnos">`;
-        
-        snapshot.forEach(alumnoDoc => {
-          const alumno = alumnoDoc.data();
-          const alumnoRef = `${clase.id}/${alumnoDoc.id}`;
-          html += `<div class="checkbox-item">
-            <input type="checkbox" id="alumno-${alumnoRef.replace('/', '-')}" value="${alumnoRef}" name="alumnos">
-            <label for="alumno-${alumnoRef.replace('/', '-')}">${alumno.apellidos}, ${alumno.nombre}</label>
-          </div>`;
-        });
-        
-        html += '</div></div>';
-      }
-    }
-    
-    if (html === '') {
-      html = '<div class="empty-state" style="padding: 40px;"><p>No hay alumnos disponibles. Crea clases y añade alumnos primero.</p></div>';
-    }
-    
-    alumnosSelection.innerHTML = html;
-  }
-  
-  window.selectAllFromClase = function(claseId) {
-    const checkboxes = document.querySelectorAll(`#clase-${claseId}-alumnos input[type="checkbox"]`);
-    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-    checkboxes.forEach(cb => cb.checked = !allChecked);
-  }
   
   document.getElementById('cancelAsignaturaBtn').addEventListener('click', () => {
     createAsignaturaModal.classList.remove('active');
@@ -867,6 +1299,7 @@
   
   createAsignaturaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
     const submitBtn = createAsignaturaForm.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Creando...';
@@ -874,77 +1307,88 @@
     try {
       const formData = new FormData(createAsignaturaForm);
       const nombre = formData.get('nombre');
+      const claseId = formData.get('claseId');
       const profesorEmail = formData.get('profesorEmail');
       
-      const selectedAlumnos = Array.from(document.querySelectorAll('input[name="alumnos"]:checked'))
-        .map(cb => cb.value);
+      // Get clase data
+      const selectedClase = cachedClasses.find(c => c.id === claseId);
       
-      if (selectedAlumnos.length === 0) {
-        alert('Debes seleccionar al menos un alumno');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Crear asignatura';
-        return;
-      }
-      
+      // Create asignatura
       const asignaturaRef = await addDoc(collection(db, `colegios/${colegioId}/asignaturas`), {
         nombre: nombre,
+        claseId: claseId,
+        claseNombre: selectedClase?.nombre || '',
         profesorEmail: profesorEmail,
-        alumnos: selectedAlumnos,
         trimestres: ['T1', 'T2', 'T3'],
         createdAt: serverTimestamp(),
         createdBy: currentUser.email
       });
       
+      // Update profesor's asignaturas array
       await updateDoc(doc(db, 'profesores', profesorEmail), {
         asignaturas: arrayUnion(asignaturaRef.id)
       });
       
-      alert(`✅ Asignatura "${nombre}" creada con ${selectedAlumnos.length} alumnos`);
+      alert(`✅ Asignatura "${nombre}" creada y asignada a ${profesorEmail}`);
       
       createAsignaturaModal.classList.remove('active');
       createAsignaturaForm.reset();
       submitBtn.disabled = false;
       submitBtn.textContent = 'Crear asignatura';
+      
       loadAsignaturas();
+      
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error creando asignatura:', error);
+      alert('Error al crear la asignatura: ' + error.message);
       submitBtn.disabled = false;
       submitBtn.textContent = 'Crear asignatura';
     }
   });
   
+  // Modal handlers - Invite Profesor
   const inviteProfesorModal = document.getElementById('inviteProfesorModal');
   const inviteProfesorForm = document.getElementById('inviteProfesorForm');
-  document.getElementById('inviteProfesorBtn').addEventListener('click', () => inviteProfesorModal.classList.add('active'));
+
+  document.getElementById('inviteProfesorBtn').addEventListener('click', () => {
+    inviteProfesorModal.classList.add('active');
+  });
+
   document.getElementById('cancelProfesorBtn').addEventListener('click', () => {
     inviteProfesorModal.classList.remove('active');
     inviteProfesorForm.reset();
   });
+
   inviteProfesorModal.addEventListener('click', (e) => {
     if (e.target === inviteProfesorModal) {
       inviteProfesorModal.classList.remove('active');
       inviteProfesorForm.reset();
     }
   });
-  
+
   inviteProfesorForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
     const submitBtn = inviteProfesorForm.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Invitando...';
+
     try {
       const formData = new FormData(inviteProfesorForm);
       const email = formData.get('email');
       const nombre = formData.get('nombre');
-      
+
+      // Check if profesor already exists
       const profesorDoc = await getDoc(doc(db, 'profesores', email));
+
       if (profesorDoc.exists()) {
         alert('Este profesor ya tiene acceso al sistema.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Enviar invitación';
         return;
       }
-      
+
+      // Create profesor document
       await setDoc(doc(db, 'profesores', email), {
         nombre: nombre || '',
         colegioId: colegioId,
@@ -953,19 +1397,24 @@
         createdAt: serverTimestamp(),
         invitedBy: currentUser.email
       });
-      
-      alert(`✅ Invitación enviada a ${email}`);
+
+      alert(`✅ Invitación enviada a ${email}.\n\nAhora puede hacer login en gradeweighting.com/app con su cuenta de Google.`);
+
       inviteProfesorModal.classList.remove('active');
       inviteProfesorForm.reset();
       submitBtn.disabled = false;
       submitBtn.textContent = 'Enviar invitación';
+
       loadProfesores();
+
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error invitando profesor:', error);
+      alert('Error al invitar profesor: ' + error.message);
       submitBtn.disabled = false;
       submitBtn.textContent = 'Enviar invitación';
     }
   });
 </script>
+
 </body>
 </html>
