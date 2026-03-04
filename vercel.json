@@ -1,5 +1,12 @@
 {
-  "routes": [
-    { "src": "/ads.txt", "dest": "/ads.txt" }
+  "rewrites": [
+    {
+      "source": "/ads.txt",
+      "destination": "/ads.txt"
+    },
+    {
+      "source": "/__/auth/:path*",
+      "destination": "/app"
+    }
   ]
 }
