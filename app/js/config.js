@@ -26,6 +26,7 @@ export const state = {
   currentAsignaturaId: null,
   currentAlumnoId: null,
   currentTrimestre: 'T1',
+  currentContext: null, // 'clase' o 'asignatura'
   cachedClasses: [],
   cachedProfesores: []
 };
