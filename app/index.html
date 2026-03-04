@@ -542,15 +542,7 @@
       
       <div class="form-group">
         <label>Curso *</label>
-        <select name="curso" required>
-          <option value="">Selecciona un curso</option>
-          <option value="1º ESO">1º ESO</option>
-          <option value="2º ESO">2º ESO</option>
-          <option value="3º ESO">3º ESO</option>
-          <option value="4º ESO">4º ESO</option>
-          <option value="1º Bachillerato">1º Bachillerato</option>
-          <option value="2º Bachillerato">2º Bachillerato</option>
-        </select>
+        <input type="text" name="curso" required placeholder="Ej. 1º ESO">
       </div>
       
       <div class="modal-actions">
@@ -613,20 +605,21 @@
   getRedirectResult(auth)
     .then((result) => {
       if (result) {
-        console.log('Login exitoso:', result.user.email);
+        console.log('✅ Login exitoso:', result.user.email);
       }
     })
     .catch((error) => {
-      console.error('Error en redirect:', error);
+      console.error('❌ Error en redirect:', error);
     });
   
   // Login
   document.getElementById('loginBtn').addEventListener('click', async () => {
     const provider = new GoogleAuthProvider();
     try {
+      console.log('🔄 Iniciando login con Google...');
       await signInWithRedirect(auth, provider);
     } catch (error) {
-      console.error('Error al hacer login:', error);
+      console.error('❌ Error al hacer login:', error);
       alert('Error al iniciar sesión: ' + error.message);
     }
   });
@@ -639,6 +632,8 @@
   
   // Auth state
   onAuthStateChanged(auth, async (user) => {
+    console.log('🔍 Auth state changed. User:', user?.email || 'null');
+    
     if (user) {
       currentUser = user;
       document.getElementById('loginScreen').classList.add('hidden');
@@ -658,27 +653,36 @@
   // Detect user role
   async function detectUserRole(email) {
     try {
+      console.log('🔍 Detectando rol para email:', email);
       const profesorDoc = await getDoc(doc(db, 'profesores', email));
+      console.log('📄 Documento existe:', profesorDoc.exists());
       
       if (profesorDoc.exists()) {
         const data = profesorDoc.data();
+        console.log('✅ Datos del profesor:', data);
         userRole = data.rol;
         colegioId = data.colegioId;
         
         const roleBadge = document.getElementById('roleBadge');
         roleBadge.textContent = userRole === 'admin' ? 'Director' : 'Profesor';
         
+        console.log('👤 Rol detectado:', userRole, '| Colegio:', colegioId);
+        
         if (userRole === 'admin') {
+          console.log('📊 Mostrando vista de director');
           showDirectorView();
         } else {
+          console.log('📚 Mostrando vista de profesor');
           showProfesorView();
         }
       } else {
+        console.error('❌ Documento del profesor NO existe para:', email);
         alert('No tienes acceso a este sistema. Contacta con tu director/a.');
         await signOut(auth);
       }
     } catch (error) {
-      console.error('Error detectando rol:', error);
+      console.error('❌ Error detectando rol:', error);
+      console.error('💥 Error completo:', error.message, error.code);
       alert('Error al verificar tu cuenta: ' + error.message);
     }
   }
