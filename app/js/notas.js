@@ -32,8 +32,9 @@ async function loadNotas() {
   notasContent.innerHTML = '<div class="loading">Cargando notas...</div>';
   
   try {
-    const notasDocRef = doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas`, state.currentAlumnoId.replace('/', '-'), state.currentTrimestre);
-    const notasDoc = await getDoc(notasDocRef);
+    const alumnoRef = state.currentAlumnoId.replace('/', '-');
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+    const notasDoc = await getDoc(doc(db, notasDocPath));
     
     const categorias = [
       { nombre: 'Exámenes', peso: 70 },
@@ -96,8 +97,9 @@ function calcularNotaFinal(notasData, categorias) {
 // Add nota
 export async function addNota(categoria) {
   try {
-    const notasDocRef = doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas`, state.currentAlumnoId.replace('/', '-'), state.currentTrimestre);
-    const notasDoc = await getDoc(notasDocRef);
+    const alumnoRef = state.currentAlumnoId.replace('/', '-');
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+    const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
     
     if (!notasData.categorias[categoria]) {
@@ -105,7 +107,7 @@ export async function addNota(categoria) {
     }
     notasData.categorias[categoria].push(5);
     
-    await setDoc(notasDocRef, notasData);
+    await setDoc(doc(db, notasDocPath), notasData);
     loadNotas();
   } catch (error) {
     console.error('Error añadiendo nota:', error);
@@ -116,12 +118,13 @@ export async function addNota(categoria) {
 // Update nota
 export async function updateNota(categoria, index, valor) {
   try {
-    const notasDocRef = doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas`, state.currentAlumnoId.replace('/', '-'), state.currentTrimestre);
-    const notasDoc = await getDoc(notasDocRef);
+    const alumnoRef = state.currentAlumnoId.replace('/', '-');
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+    const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.data();
     
     notasData.categorias[categoria][index] = parseFloat(valor);
-    await setDoc(notasDocRef, notasData);
+    await setDoc(doc(db, notasDocPath), notasData);
     loadNotas();
   } catch (error) {
     console.error('Error actualizando nota:', error);
@@ -132,12 +135,13 @@ export async function updateNota(categoria, index, valor) {
 // Delete nota
 export async function deleteNota(categoria, index) {
   try {
-    const notasDocRef = doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas`, state.currentAlumnoId.replace('/', '-'), state.currentTrimestre);
-    const notasDoc = await getDoc(notasDocRef);
+    const alumnoRef = state.currentAlumnoId.replace('/', '-');
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+    const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.data();
     
     notasData.categorias[categoria].splice(index, 1);
-    await setDoc(notasDocRef, notasData);
+    await setDoc(doc(db, notasDocPath), notasData);
     loadNotas();
   } catch (error) {
     console.error('Error eliminando nota:', error);
