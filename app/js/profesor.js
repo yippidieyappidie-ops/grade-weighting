@@ -1,9 +1,9 @@
-// Profesor Module - Vista de asignaturas y alumnos
+// Profesor Module - Vista de asignaturas y trimestres
 import { db, state } from './config.js';
-import { collection, getDocs, getDoc, doc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 function hideAllViews() {
-  ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView'].forEach(id => {
+  ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'].forEach(id => {
     document.getElementById(id).classList.add('hidden');
   });
 }
@@ -45,54 +45,32 @@ async function loadProfesorAsignaturas() {
   }
 }
 
-// Show asignatura detail (lista de alumnos)
-export async function showAsignaturaDetail(asignaturaId, nombre) {
+// Show asignatura detail (trimestres cards)
+export function showAsignaturaDetail(asignaturaId, nombre) {
   state.currentAsignaturaId = asignaturaId;
+  state.currentContext = 'asignatura';
   document.getElementById('currentAsignaturaNombre').textContent = nombre;
-  document.getElementById('asignaturaDetailTitle').textContent = `Alumnos - ${nombre}`;
+  document.getElementById('asignaturaDetailTitle').textContent = `Trimestres - ${nombre}`;
   hideAllViews();
   document.getElementById('asignaturaDetailView').classList.remove('hidden');
-  await loadAsignaturaAlumnos(asignaturaId);
-}
-
-// Load asignatura alumnos
-async function loadAsignaturaAlumnos(asignaturaId) {
-  const alumnosList = document.getElementById('asignaturaAlumnosList');
   
-  try {
-    const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, asignaturaId));
-    const asigData = asigDoc.data();
-    const alumnosIds = asigData.alumnos || [];
-    
-    if (alumnosIds.length === 0) {
-      alumnosList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
-      return;
-    }
-    
-    let alumnos = [];
-    for (const alumnoRef of alumnosIds) {
-      const [claseId, alumnoId] = alumnoRef.split('/');
-      const alumnoDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${claseId}/alumnos`, alumnoId));
-      if (alumnoDoc.exists()) {
-        alumnos.push({ id: alumnoRef, ...alumnoDoc.data() });
-      }
-    }
-    
-    alumnos.sort((a, b) => a.apellidos.localeCompare(b.apellidos));
-    
-    let html = '<div class="cards-grid">';
-    alumnos.forEach(alumno => {
-      html += `<div class="card card-clickable" onclick="window.showNotasView('${alumno.id}', '${alumno.nombre} ${alumno.apellidos}')">
-        <div class="card-title">${alumno.apellidos}, ${alumno.nombre}</div>
-        <div class="card-meta">Ver notas →</div>
-      </div>`;
-    });
-    html += '</div>';
-    alumnosList.innerHTML = html;
-  } catch (error) {
-    console.error('Error cargando alumnos:', error);
-    alumnosList.innerHTML = '<p style="color: red;">Error</p>';
-  }
+  const alumnosList = document.getElementById('asignaturaAlumnosList');
+  alumnosList.innerHTML = `
+    <div class="cards-grid">
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T1')">
+        <div class="card-title">1º Trimestre</div>
+        <div class="card-meta">Configurar ponderación y notas →</div>
+      </div>
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T2')">
+        <div class="card-title">2º Trimestre</div>
+        <div class="card-meta">Configurar ponderación y notas →</div>
+      </div>
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T3')">
+        <div class="card-title">3º Trimestre</div>
+        <div class="card-meta">Configurar ponderación y notas →</div>
+      </div>
+    </div>
+  `;
 }
 
 // Back to asignatura detail
