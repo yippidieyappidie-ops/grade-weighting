@@ -7,6 +7,14 @@
     {
       "source": "/__/auth/:path*",
       "destination": "/app"
+    },
+    {
+      "source": "/app",
+      "destination": "/app/index-bundled.html"
+    },
+    {
+      "source": "/app/",
+      "destination": "/app/index-bundled.html"
     }
   ]
 }
