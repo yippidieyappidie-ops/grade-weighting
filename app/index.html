@@ -1099,7 +1099,8 @@ input:focus, select:focus, textarea:focus {
     content.innerHTML = '<div class="loading">Cargando...</div>';
     try {
       const alumnoRef = state.currentAlumnoId.replace('/', '-');
-      const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+      const docId = `${alumnoRef}-${state.currentTrimestre}`;
+      const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
       const notasDoc = await getDoc(doc(db, notasDocPath));
       const categorias = [
         { nombre: 'Exámenes', peso: 70 },
@@ -1141,7 +1142,8 @@ input:focus, select:focus, textarea:focus {
   window.addNota = async function(categoria) {
     try {
       const alumnoRef = state.currentAlumnoId.replace('/', '-');
-      const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+      const docId = `${alumnoRef}-${state.currentTrimestre}`;
+      const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
       const notasDoc = await getDoc(doc(db, notasDocPath));
       const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
       if (!notasData.categorias[categoria]) notasData.categorias[categoria] = [];
@@ -1156,7 +1158,8 @@ input:focus, select:focus, textarea:focus {
   window.updateNota = async function(categoria, index, valor) {
     try {
       const alumnoRef = state.currentAlumnoId.replace('/', '-');
-      const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+      const docId = `${alumnoRef}-${state.currentTrimestre}`;
+      const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
       const notasDoc = await getDoc(doc(db, notasDocPath));
       const notasData = notasDoc.data();
       notasData.categorias[categoria][index] = parseFloat(valor);
@@ -1170,7 +1173,8 @@ input:focus, select:focus, textarea:focus {
   window.deleteNota = async function(categoria, index) {
     try {
       const alumnoRef = state.currentAlumnoId.replace('/', '-');
-      const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+      const docId = `${alumnoRef}-${state.currentTrimestre}`;
+      const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
       const notasDoc = await getDoc(doc(db, notasDocPath));
       const notasData = notasDoc.data();
       notasData.categorias[categoria].splice(index, 1);
