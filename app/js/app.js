@@ -1,13 +1,13 @@
 // Main App - Punto de entrada principal
 import { initLogin, initLogout, initAuthListener } from './auth.js';
-import { showDirectorView, showProfesoresView, showAsignaturasView, showStudentsView, selectAllFromClase } from './director.js';
+import { showDirectorView, showProfesoresView, showAsignaturasView, showStudentsView, selectAllFromClase, showTrimestreDetail, guardarPonderacion, backToClassOrAsignatura } from './director.js';
 import { showProfesorView, showAsignaturaDetail, backToAsignaturaDetail } from './profesor.js';
 import { showNotasView, switchTrimestre, addNota, updateNota, deleteNota } from './notas.js';
 import { initModals } from './modals.js';
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🚀 Inicializando Grade Weighting Dashboard...');
+  console.log(' Inicializando Grade Weighting Dashboard...');
   
   // Initialize authentication
   initLogin();
@@ -33,6 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
   window.updateNota = updateNota;
   window.deleteNota = deleteNota;
   window.selectAllFromClase = selectAllFromClase;
+  
+  // NEW: Trimestre functions
+  window.showTrimestreDetail = showTrimestreDetail;
+  window.guardarPonderacion = guardarPonderacion;
+  window.backToClassOrAsignatura = backToClassOrAsignatura;
   
   console.log('✅ App inicializada correctamente');
 });
