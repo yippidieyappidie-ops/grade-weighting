@@ -37,11 +37,26 @@ async function loadNotas() {
     const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     
-    const categorias = [
-      { nombre: 'Exámenes', peso: 70 },
-      { nombre: 'Tareas', peso: 20 },
-      { nombre: 'Participación', peso: 10 }
-    ];
+    // Cargar ponderación dinámica
+    const ponderacionPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`;
+    const ponderacionDoc = await getDoc(doc(db, ponderacionPath));
+    
+    let categorias;
+    if (ponderacionDoc.exists()) {
+      const pond = ponderacionDoc.data();
+      categorias = [
+        { nombre: 'Exámenes', peso: pond.Exámenes || 70 },
+        { nombre: 'Tareas', peso: pond.Tareas || 20 },
+        { nombre: 'Participación', peso: pond.Participación || 10 }
+      ];
+    } else {
+      // Valores por defecto
+      categorias = [
+        { nombre: 'Exámenes', peso: 70 },
+        { nombre: 'Tareas', peso: 20 },
+        { nombre: 'Participación', peso: 10 }
+      ];
+    }
     
     const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
     
