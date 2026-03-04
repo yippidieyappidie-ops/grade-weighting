@@ -4,7 +4,7 @@ import { collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, quer
 
 // Navigation
 function hideAllViews() {
-  ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView'].forEach(id => {
+  ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'].forEach(id => {
     document.getElementById(id).classList.add('hidden');
   });
 }
@@ -59,14 +59,15 @@ function updateNavTabs(activeTab) {
 
 export function showStudentsView(classId) {
   state.currentClassId = classId;
+  state.currentContext = 'clase'; // Para saber desde dónde vinimos
   hideAllViews();
   document.getElementById('studentsView').classList.remove('hidden');
   
   getDoc(doc(db, `colegios/${state.colegioId}/clases`, classId)).then(classDoc => {
     const classData = classDoc.data();
     document.getElementById('currentClassName').textContent = classData.nombre;
-    document.getElementById('studentsViewTitle').textContent = `Alumnos de ${classData.nombre}`;
-    loadStudents(classId);
+    document.getElementById('studentsViewTitle').textContent = `Trimestres - ${classData.nombre}`;
+    // Ya no cargamos estudiantes aquí, se mostrarán los cards de trimestres desde el HTML
   });
 }
 
@@ -290,4 +291,186 @@ export function selectAllFromClase(claseId) {
   const checkboxes = document.querySelectorAll(`input[value^="${claseId}/"]`);
   const allChecked = Array.from(checkboxes).every(cb => cb.checked);
   checkboxes.forEach(cb => cb.checked = !allChecked);
+}
+
+// Show trimestre detail (ponderación + alumnos)
+export async function showTrimestreDetail(trimestre) {
+  state.currentTrimestre = trimestre;
+  hideAllViews();
+  document.getElementById('trimestreDetailView').classList.remove('hidden');
+  
+  // Cargar ponderación guardada
+  await loadPonderacion(trimestre);
+  
+  // Cargar lista de alumnos
+  await loadAlumnosForTrimestre(trimestre);
+  
+  // Actualizar títulos
+  const trimestreNames = { 'T1': '1º Trimestre', 'T2': '2º Trimestre', 'T3': '3º Trimestre' };
+  document.getElementById('currentTrimestre').textContent = trimestreNames[trimestre];
+  document.getElementById('trimestreDetailTitle').textContent = trimestreNames[trimestre];
+  
+  // Actualizar breadcrumb context
+  if (state.currentContext === 'clase') {
+    const className = document.getElementById('currentClassName').textContent;
+    document.getElementById('trimestreDetailContext').textContent = className;
+  } else {
+    const asignaturaName = document.getElementById('currentAsignaturaNombre').textContent;
+    document.getElementById('trimestreDetailContext').textContent = asignaturaName;
+  }
+}
+
+// Load ponderación for trimestre
+async function loadPonderacion(trimestre) {
+  try {
+    let ponderacionDocPath;
+    if (state.currentContext === 'clase') {
+      ponderacionDocPath = `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderaciones/${trimestre}`;
+    } else {
+      ponderacionDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${trimestre}`;
+    }
+    
+    const ponderacionDoc = await getDoc(doc(db, ponderacionDocPath));
+    
+    if (ponderacionDoc.exists()) {
+      const data = ponderacionDoc.data();
+      document.getElementById('pesoExamenes').value = data.Exámenes || 70;
+      document.getElementById('pesoTareas').value = data.Tareas || 20;
+      document.getElementById('pesoParticipacion').value = data.Participación || 10;
+    } else {
+      // Valores por defecto
+      document.getElementById('pesoExamenes').value = 70;
+      document.getElementById('pesoTareas').value = 20;
+      document.getElementById('pesoParticipacion').value = 10;
+    }
+    
+    updatePesoTotal();
+  } catch (error) {
+    console.error('Error cargando ponderación:', error);
+  }
+}
+
+// Update peso total display
+function updatePesoTotal() {
+  const examenes = parseInt(document.getElementById('pesoExamenes').value) || 0;
+  const tareas = parseInt(document.getElementById('pesoTareas').value) || 0;
+  const participacion = parseInt(document.getElementById('pesoParticipacion').value) || 0;
+  const total = examenes + tareas + participacion;
+  
+  document.getElementById('pesoTotal').textContent = total;
+  document.getElementById('pesoTotal').style.color = total === 100 ? 'var(--green)' : 'var(--accent)';
+}
+
+// Auto-update total when inputs change
+['pesoExamenes', 'pesoTareas', 'pesoParticipacion'].forEach(id => {
+  const input = document.getElementById(id);
+  if (input) {
+    input.addEventListener('input', updatePesoTotal);
+  }
+});
+
+// Save ponderación
+export async function guardarPonderacion() {
+  try {
+    const examenes = parseInt(document.getElementById('pesoExamenes').value) || 0;
+    const tareas = parseInt(document.getElementById('pesoTareas').value) || 0;
+    const participacion = parseInt(document.getElementById('pesoParticipacion').value) || 0;
+    const total = examenes + tareas + participacion;
+    
+    if (total !== 100) {
+      alert('La suma de los porcentajes debe ser 100%');
+      return;
+    }
+    
+    let ponderacionDocPath;
+    if (state.currentContext === 'clase') {
+      ponderacionDocPath = `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderaciones/${state.currentTrimestre}`;
+    } else {
+      ponderacionDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`;
+    }
+    
+    await setDoc(doc(db, ponderacionDocPath), {
+      'Exámenes': examenes,
+      'Tareas': tareas,
+      'Participación': participacion,
+      updatedAt: serverTimestamp()
+    });
+    
+    alert('✅ Ponderación guardada correctamente');
+  } catch (error) {
+    console.error('Error guardando ponderación:', error);
+    alert('Error al guardar la ponderación');
+  }
+}
+
+// Load alumnos for trimestre
+async function loadAlumnosForTrimestre(trimestre) {
+  const alumnosList = document.getElementById('trimestreAlumnosList');
+  
+  try {
+    let alumnos = [];
+    
+    if (state.currentContext === 'clase') {
+      // Cargar alumnos de la clase
+      const q = query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), orderBy('apellidos'));
+      const snapshot = await getDocs(q);
+      
+      snapshot.forEach(alumnoDoc => {
+        const alumno = alumnoDoc.data();
+        alumnos.push({
+          id: `${state.currentClassId}/${alumnoDoc.id}`,
+          nombre: alumno.nombre,
+          apellidos: alumno.apellidos
+        });
+      });
+    } else {
+      // Cargar alumnos de la asignatura
+      const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, state.currentAsignaturaId));
+      const alumnosIds = asigDoc.data().alumnos || [];
+      
+      for (const alumnoRef of alumnosIds) {
+        const [claseId, alumnoId] = alumnoRef.split('/');
+        const alumnoDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${claseId}/alumnos`, alumnoId));
+        if (alumnoDoc.exists()) {
+          const alumno = alumnoDoc.data();
+          alumnos.push({
+            id: alumnoRef,
+            nombre: alumno.nombre,
+            apellidos: alumno.apellidos
+          });
+        }
+      }
+    }
+    
+    if (alumnos.length === 0) {
+      alumnosList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
+      return;
+    }
+    
+    alumnos.sort((a, b) => a.apellidos.localeCompare(b.apellidos));
+    
+    let html = '<div class="cards-grid">';
+    alumnos.forEach(alumno => {
+      html += `<div class="card card-clickable" onclick="window.showNotasView('${alumno.id}', '${alumno.nombre} ${alumno.apellidos}')">
+        <div class="card-title">${alumno.apellidos}, ${alumno.nombre}</div>
+        <div class="card-meta">Ver notas →</div>
+      </div>`;
+    });
+    html += '</div>';
+    
+    alumnosList.innerHTML = html;
+  } catch (error) {
+    console.error('Error cargando alumnos:', error);
+    alumnosList.innerHTML = '<p style="color:red;">Error al cargar alumnos</p>';
+  }
+}
+
+// Back to class or asignatura
+export function backToClassOrAsignatura() {
+  if (state.currentContext === 'clase') {
+    showStudentsView(state.currentClassId);
+  } else {
+    // Implementar en profesor.js
+    window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent);
+  }
 }
