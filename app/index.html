@@ -1120,7 +1120,8 @@ input:focus, select:focus, textarea:focus {
       html += `<div class="nota-final-display"><h3>Nota Final ${state.currentTrimestre}</h3><div class="nota">${notaFinal.toFixed(2)}</div></div>`;
       content.innerHTML = html;
     } catch (error) {
-      content.innerHTML = '<p style="color:red;">Error</p>';
+      console.error('Error cargando notas:', error);
+      content.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
     }
   }
 
