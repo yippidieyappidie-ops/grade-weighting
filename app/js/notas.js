@@ -33,7 +33,8 @@ async function loadNotas() {
   
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
-    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     
     const categorias = [
@@ -73,7 +74,7 @@ async function loadNotas() {
     notasContent.innerHTML = html;
   } catch (error) {
     console.error('Error cargando notas:', error);
-    notasContent.innerHTML = '<p style="color: red;">Error al cargar notas</p>';
+    notasContent.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
   }
 }
 
@@ -98,7 +99,8 @@ function calcularNotaFinal(notasData, categorias) {
 export async function addNota(categoria) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
-    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
     
@@ -119,7 +121,8 @@ export async function addNota(categoria) {
 export async function updateNota(categoria, index, valor) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
-    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.data();
     
@@ -136,7 +139,8 @@ export async function updateNota(categoria, index, valor) {
 export async function deleteNota(categoria, index) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
-    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${alumnoRef}/${state.currentTrimestre}`;
+    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.data();
     
