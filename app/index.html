@@ -48,14 +48,13 @@
   <main class="main">
     <!-- DIRECTOR VIEW: Classes -->
     <div id="directorView" class="hidden">
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="navClases" onclick="showDirectorView()">📚 Clases</button>
+        <button class="nav-tab" id="navAsignaturas" onclick="showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab" id="navProfesores" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+      </div>
       <div class="page-header">
-        <div>
-          <h1>Mis clases</h1>
-          <div style="display:flex;gap:12px;margin-top:12px;">
-            <button class="btn-secondary" onclick="showAsignaturasView()">📖 Asignaturas</button>
-            <button class="btn-secondary" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
-          </div>
-        </div>
+        <h1>Mis clases</h1>
         <button class="btn-primary" id="newClassBtn">+ Crear clase</button>
       </div>
       <div id="classesList" class="loading">Cargando...</div>
@@ -75,14 +74,13 @@
     
     <!-- DIRECTOR VIEW: Asignaturas -->
     <div id="asignaturasView" class="hidden">
+      <div class="nav-tabs">
+        <button class="nav-tab" id="navClasesFromAsig" onclick="showDirectorView()">📚 Clases</button>
+        <button class="nav-tab active" id="navAsignaturasActive" onclick="showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab" id="navProfesoresFromAsig" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+      </div>
       <div class="page-header">
-        <div>
-          <h1>Asignaturas</h1>
-          <div style="display:flex;gap:12px;margin-top:12px;">
-            <button class="btn-secondary" onclick="showDirectorView()">📚 Clases</button>
-            <button class="btn-secondary" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
-          </div>
-        </div>
+        <h1>Asignaturas</h1>
         <button class="btn-primary" id="newAsignaturaBtn">+ Crear asignatura</button>
       </div>
       <div id="asignaturasList" class="loading">Cargando...</div>
@@ -90,14 +88,13 @@
     
     <!-- DIRECTOR VIEW: Profesores -->
     <div id="profesoresView" class="hidden">
+      <div class="nav-tabs">
+        <button class="nav-tab" id="navClasesFromProf" onclick="showDirectorView()">📚 Clases</button>
+        <button class="nav-tab" id="navAsignaturasFromProf" onclick="showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab active" id="navProfesoresActive" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+      </div>
       <div class="page-header">
-        <div>
-          <h1>Profesores</h1>
-          <div style="display:flex;gap:12px;margin-top:12px;">
-            <button class="btn-secondary" onclick="showDirectorView()">📚 Clases</button>
-            <button class="btn-secondary" onclick="showAsignaturasView()">📖 Asignaturas</button>
-          </div>
-        </div>
+        <h1>Profesores</h1>
         <button class="btn-primary" id="inviteProfesorBtn">+ Invitar profesor</button>
       </div>
       <div id="profesoresList" class="loading">Cargando...</div>
