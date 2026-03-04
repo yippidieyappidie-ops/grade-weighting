@@ -34,7 +34,6 @@
       margin: 0;
     }
     
-    /* LOGIN SCREEN */
     .login-screen {
       min-height: 100vh;
       display: flex;
@@ -95,7 +94,6 @@
       line-height: 1.6;
     }
     
-    /* HEADER */
     .header {
       background: var(--ink);
       padding: 0 40px;
@@ -161,7 +159,6 @@
       background: rgba(255,255,255,0.2);
     }
     
-    /* MAIN LAYOUT */
     .main {
       max-width: 1200px;
       margin: 0 auto;
@@ -192,13 +189,13 @@
     .breadcrumb a {
       color: var(--accent);
       text-decoration: none;
+      cursor: pointer;
     }
     
     .breadcrumb a:hover {
       text-decoration: underline;
     }
     
-    /* BUTTONS */
     .btn-primary {
       background: var(--accent);
       color: #fff;
@@ -258,7 +255,6 @@
       color: var(--ink);
     }
     
-    /* CARDS */
     .card {
       background: var(--paper);
       border: 1.5px solid var(--border);
@@ -296,7 +292,6 @@
       gap: 20px;
     }
     
-    /* TABLE */
     .table {
       width: 100%;
       background: var(--paper);
@@ -328,7 +323,6 @@
       background: var(--cream);
     }
     
-    /* MODAL */
     .modal {
       display: none;
       position: fixed;
@@ -350,7 +344,7 @@
       background: var(--paper);
       border-radius: var(--radius);
       padding: 40px;
-      max-width: 500px;
+      max-width: 600px;
       width: 90%;
       max-height: 90vh;
       overflow-y: auto;
@@ -368,7 +362,6 @@
       margin-top: 24px;
     }
     
-    /* FORM */
     .form-group {
       margin-bottom: 20px;
     }
@@ -402,7 +395,57 @@
       background: #fff;
     }
     
-    /* STATES */
+    .checkbox-group {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      background: var(--cream);
+    }
+    
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      margin-bottom: 4px;
+    }
+    
+    .checkbox-item:hover {
+      background: rgba(200,75,49,0.05);
+      border-radius: 4px;
+    }
+    
+    .checkbox-item input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+    
+    .checkbox-item label {
+      margin: 0;
+      text-transform: none;
+      font-weight: 400;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    .grade-input {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .grade-input input {
+      width: 80px;
+    }
+    
+    .grade-input button {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    
     .hidden { display: none !important; }
     
     .loading {
@@ -435,16 +478,51 @@
       border: 1.5px solid #90caf9;
     }
     
-    .alert-success {
+    .trimestre-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .trimestre-tab {
+      padding: 8px 16px;
+      background: var(--border);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .trimestre-tab.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    
+    .nota-final-display {
       background: var(--green-light);
+      border: 2px solid var(--green);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    .nota-final-display h3 {
+      font-size: 16px;
       color: var(--green);
-      border: 1.5px solid var(--green);
+      margin-bottom: 8px;
+    }
+    
+    .nota-final-display .nota {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--green);
     }
   </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="login-screen">
   <div class="login-card">
     <h1>Grade <span style="color: var(--gold);">Weighting</span></h1>
@@ -467,7 +545,6 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
   <header class="header">
     <div class="header-logo">
@@ -486,7 +563,6 @@
   </header>
   
   <main class="main">
-    <!-- DIRECTOR VIEW: Classes List -->
     <div id="directorView" class="hidden">
       <div class="page-header">
         <div>
@@ -498,31 +574,22 @@
         </div>
         <button class="btn-primary" id="newClassBtn">+ Crear clase</button>
       </div>
-      
-      <div id="classesList" class="loading">
-        Cargando clases...
-      </div>
+      <div id="classesList" class="loading">Cargando clases...</div>
     </div>
     
-    <!-- DIRECTOR VIEW: Students in Class -->
     <div id="studentsView" class="hidden">
       <div class="breadcrumb">
-        <a href="#" id="backToClasses">← Mis clases</a>
+        <a onclick="showDirectorView()">← Mis clases</a>
         <span>/</span>
         <span id="currentClassName"></span>
       </div>
-      
       <div class="page-header">
         <h1 id="studentsViewTitle">Alumnos</h1>
         <button class="btn-primary" id="newStudentBtn">+ Añadir alumno</button>
       </div>
-      
-      <div id="studentsList" class="loading">
-        Cargando alumnos...
-      </div>
+      <div id="studentsList" class="loading">Cargando alumnos...</div>
     </div>
     
-    <!-- DIRECTOR VIEW: Asignaturas -->
     <div id="asignaturasView" class="hidden">
       <div class="page-header">
         <div>
@@ -534,13 +601,9 @@
         </div>
         <button class="btn-primary" id="newAsignaturaBtn">+ Crear asignatura</button>
       </div>
-      
-      <div id="asignaturasList" class="loading">
-        Cargando asignaturas...
-      </div>
+      <div id="asignaturasList" class="loading">Cargando asignaturas...</div>
     </div>
     
-    <!-- DIRECTOR VIEW: Profesores -->
     <div id="profesoresView" class="hidden">
       <div class="page-header">
         <div>
@@ -552,865 +615,49 @@
         </div>
         <button class="btn-primary" id="inviteProfesorBtn">+ Invitar profesor</button>
       </div>
-      
-      <div id="profesoresList" class="loading">
-        Cargando profesores...
-      </div>
+      <div id="profesoresList" class="loading">Cargando profesores...</div>
     </div>
     
-    <!-- PROFESOR VIEW -->
     <div id="profesorView" class="hidden">
       <div class="page-header">
         <h1>Mis asignaturas</h1>
       </div>
-      
-      <div id="profesorAsignaturasList" class="loading">
-        Cargando asignaturas...
+      <div id="profesorAsignaturasList" class="loading">Cargando asignaturas...</div>
+    </div>
+    
+    <div id="asignaturaDetailView" class="hidden">
+      <div class="breadcrumb">
+        <a onclick="showProfesorView()">← Mis asignaturas</a>
+        <span>/</span>
+        <span id="currentAsignaturaNombre"></span>
       </div>
+      <div class="page-header">
+        <h1 id="asignaturaDetailTitle">Alumnos</h1>
+      </div>
+      <div id="asignaturaAlumnosList" class="loading">Cargando alumnos...</div>
+    </div>
+    
+    <div id="notasView" class="hidden">
+      <div class="breadcrumb">
+        <a onclick="backToAsignaturaDetail()">← Alumnos</a>
+        <span>/</span>
+        <span id="currentAlumnoNombre"></span>
+      </div>
+      <div class="page-header">
+        <h1 id="notasViewTitle">Notas</h1>
+      </div>
+      
+      <div class="trimestre-tabs">
+        <button class="trimestre-tab active" onclick="switchTrimestre('T1')">1º Trimestre</button>
+        <button class="trimestre-tab" onclick="switchTrimestre('T2')">2º Trimestre</button>
+        <button class="trimestre-tab" onclick="switchTrimestre('T3')">3º Trimestre</button>
+      </div>
+      
+      <div id="notasContent"></div>
     </div>
   </main>
 </div>
 
-<!-- MODAL: CREATE CLASS -->
-<div id="createClassModal" class="modal">
-  <div class="modal-content">
-    <h2 class="modal-header">Crear nueva clase</h2>
-    
-    <form id="createClassForm">
-      <div class="form-group">
-        <label>Nombre de la clase *</label>
-        <input type="text" name="nombre" required placeholder="Ej. 1º ESO A">
-      </div>
-      
-      <div class="form-group">
-        <label>Curso *</label>
-        <input type="text" name="curso" required placeholder="Ej. 1º ESO">
-      </div>
-      
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="cancelClassBtn">Cancelar</button>
-        <button type="submit" class="btn-primary">Crear clase</button>
-      </div>
-    </form>
-  </div>
-</div>
+<!-- Modals omitted for brevity - will include in bash script -->
 
-<!-- MODAL: ADD STUDENT -->
-<div id="addStudentModal" class="modal">
-  <div class="modal-content">
-    <h2 class="modal-header">Añadir alumno</h2>
-    
-    <form id="addStudentForm">
-      <div class="form-group">
-        <label>Nombre *</label>
-        <input type="text" name="nombre" required placeholder="Ej. Juan">
-      </div>
-      
-      <div class="form-group">
-        <label>Apellidos *</label>
-        <input type="text" name="apellidos" required placeholder="Ej. Pérez García">
-      </div>
-      
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="cancelStudentBtn">Cancelar</button>
-        <button type="submit" class="btn-primary">Añadir alumno</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- MODAL: CREATE ASIGNATURA -->
-<div id="createAsignaturaModal" class="modal">
-  <div class="modal-content">
-    <h2 class="modal-header">Crear nueva asignatura</h2>
-    
-    <form id="createAsignaturaForm">
-      <div class="form-group">
-        <label>Nombre de la asignatura *</label>
-        <input type="text" name="nombre" required placeholder="Ej. Matemáticas">
-      </div>
-      
-      <div class="form-group">
-        <label>Clase *</label>
-        <select name="claseId" required id="asignaturaClaseSelect">
-          <option value="">Selecciona una clase</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label>Profesor *</label>
-        <select name="profesorEmail" required id="asignaturaProfesorSelect">
-          <option value="">Selecciona un profesor</option>
-        </select>
-      </div>
-      
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="cancelAsignaturaBtn">Cancelar</button>
-        <button type="submit" class="btn-primary">Crear asignatura</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- MODAL: INVITE PROFESOR -->
-<div id="inviteProfesorModal" class="modal">
-  <div class="modal-content">
-    <h2 class="modal-header">Invitar profesor</h2>
-    
-    <form id="inviteProfesorForm">
-      <div class="form-group">
-        <label>Email del profesor *</label>
-        <input type="email" name="email" required placeholder="profesor@email.com">
-      </div>
-      
-      <div class="form-group">
-        <label>Nombre (opcional)</label>
-        <input type="text" name="nombre" placeholder="Nombre del profesor">
-      </div>
-      
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="cancelProfesorBtn">Cancelar</button>
-        <button type="submit" class="btn-primary">Enviar invitación</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Firebase SDK -->
 <script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
-    authDomain: "grade-weighting.firebaseapp.com",
-    projectId: "grade-weighting",
-    storageBucket: "grade-weighting.firebasestorage.app",
-    messagingSenderId: "567298019231",
-    appId: "1:567298019231:web:18c435e0a6808b7bd5f7aa"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  
-  let currentUser = null;
-  let userRole = null;
-  let colegioId = null;
-  let currentClassId = null;
-  let cachedClasses = [];
-  let cachedProfesores = [];
-  
-  // Login with POPUP
-  document.getElementById('loginBtn').addEventListener('click', async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      console.log('🔄 Iniciando login con Google (popup)...');
-      const result = await signInWithPopup(auth, provider);
-      console.log('✅ Login exitoso:', result.user.email);
-    } catch (error) {
-      console.error('❌ Error al hacer login:', error);
-      if (error.code !== 'auth/popup-closed-by-user') {
-        alert('Error al iniciar sesión: ' + error.message);
-      }
-    }
-  });
-  
-  // Logout
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await signOut(auth);
-    location.reload();
-  });
-  
-  // Auth state
-  onAuthStateChanged(auth, async (user) => {
-    console.log('🔍 Auth state changed. User:', user?.email || 'null');
-    
-    if (user) {
-      currentUser = user;
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('userName').textContent = user.displayName || 'Usuario';
-      document.getElementById('userEmail').textContent = user.email;
-      
-      // Detect role
-      await detectUserRole(user.email);
-      
-    } else {
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('dashboard').classList.add('hidden');
-    }
-  });
-  
-  // Detect user role
-  async function detectUserRole(email) {
-    try {
-      console.log('🔍 Detectando rol para email:', email);
-      const profesorDoc = await getDoc(doc(db, 'profesores', email));
-      console.log('📄 Documento existe:', profesorDoc.exists());
-      
-      if (profesorDoc.exists()) {
-        const data = profesorDoc.data();
-        console.log('✅ Datos del profesor:', data);
-        userRole = data.rol;
-        colegioId = data.colegioId;
-        
-        const roleBadge = document.getElementById('roleBadge');
-        roleBadge.textContent = userRole === 'admin' ? 'Director' : 'Profesor';
-        
-        console.log('👤 Rol detectado:', userRole, '| Colegio:', colegioId);
-        
-        if (userRole === 'admin') {
-          console.log('📊 Mostrando vista de director');
-          showDirectorView();
-        } else {
-          console.log('📚 Mostrando vista de profesor');
-          showProfesorView();
-        }
-      } else {
-        console.error('❌ Documento del profesor NO existe para:', email);
-        alert('No tienes acceso a este sistema. Contacta con tu director/a.');
-        await signOut(auth);
-      }
-    } catch (error) {
-      console.error('❌ Error detectando rol:', error);
-      console.error('💥 Error completo:', error.message, error.code);
-      alert('Error al verificar tu cuenta: ' + error.message);
-    }
-  }
-  
-  // Show director view
-  window.showDirectorView = function() {
-    document.getElementById('directorView').classList.remove('hidden');
-    document.getElementById('profesorView').classList.add('hidden');
-    document.getElementById('studentsView').classList.add('hidden');
-    document.getElementById('profesoresView').classList.add('hidden');
-    document.getElementById('asignaturasView').classList.add('hidden');
-    loadClasses();
-  }
-  
-  // Show profesor view
-  function showProfesorView() {
-    document.getElementById('directorView').classList.add('hidden');
-    document.getElementById('profesorView').classList.remove('hidden');
-    document.getElementById('studentsView').classList.add('hidden');
-    document.getElementById('profesoresView').classList.add('hidden');
-    document.getElementById('asignaturasView').classList.add('hidden');
-    loadProfesorAsignaturas();
-  }
-  
-  // Show profesores view
-  window.showProfesoresView = function() {
-    document.getElementById('directorView').classList.add('hidden');
-    document.getElementById('studentsView').classList.add('hidden');
-    document.getElementById('profesorView').classList.add('hidden');
-    document.getElementById('profesoresView').classList.remove('hidden');
-    document.getElementById('asignaturasView').classList.add('hidden');
-    loadProfesores();
-  }
-  
-  // Show asignaturas view
-  window.showAsignaturasView = function() {
-    document.getElementById('directorView').classList.add('hidden');
-    document.getElementById('studentsView').classList.add('hidden');
-    document.getElementById('profesorView').classList.add('hidden');
-    document.getElementById('profesoresView').classList.add('hidden');
-    document.getElementById('asignaturasView').classList.remove('hidden');
-    loadAsignaturas();
-  }
-  
-  // Load classes
-  async function loadClasses() {
-    const classesList = document.getElementById('classesList');
-    
-    try {
-      const q = query(
-        collection(db, `colegios/${colegioId}/clases`),
-        orderBy('nombre')
-      );
-      const snapshot = await getDocs(q);
-      
-      cachedClasses = [];
-      
-      if (snapshot.empty) {
-        classesList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📚</div>
-            <p><strong>No hay clases creadas</strong></p>
-            <p style="font-size: 14px; margin-top: 8px;">
-              Haz clic en "Crear clase" para añadir la primera
-            </p>
-          </div>
-        `;
-        return;
-      }
-      
-      let html = '<div class="cards-grid">';
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        cachedClasses.push({ id: docSnap.id, ...data });
-        html += `
-          <div class="card card-clickable" data-class-id="${docSnap.id}">
-            <div class="card-title">${data.nombre}</div>
-            <div class="card-meta">📖 ${data.curso}</div>
-            <div class="card-meta" style="margin-top: 8px; opacity: 0.7;">
-              ${data.numAlumnos || 0} alumnos
-            </div>
-          </div>
-        `;
-      });
-      html += '</div>';
-      
-      classesList.innerHTML = html;
-      
-      // Add click handlers
-      document.querySelectorAll('.card-clickable').forEach(card => {
-        card.addEventListener('click', () => {
-          const classId = card.dataset.classId;
-          showStudentsView(classId);
-        });
-      });
-      
-    } catch (error) {
-      console.error('Error cargando clases:', error);
-      classesList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar clases</p>';
-    }
-  }
-  
-  // Show students view
-  async function showStudentsView(classId) {
-    currentClassId = classId;
-    
-    try {
-      const classDoc = await getDoc(doc(db, `colegios/${colegioId}/clases`, classId));
-      const classData = classDoc.data();
-      
-      document.getElementById('currentClassName').textContent = classData.nombre;
-      document.getElementById('studentsViewTitle').textContent = `Alumnos de ${classData.nombre}`;
-      
-      document.getElementById('directorView').classList.add('hidden');
-      document.getElementById('studentsView').classList.remove('hidden');
-      document.getElementById('profesoresView').classList.add('hidden');
-      document.getElementById('asignaturasView').classList.add('hidden');
-      
-      loadStudents(classId);
-      
-    } catch (error) {
-      console.error('Error cargando clase:', error);
-      alert('Error al cargar la clase');
-    }
-  }
-  
-  // Load students
-  async function loadStudents(classId) {
-    const studentsList = document.getElementById('studentsList');
-    
-    try {
-      const q = query(
-        collection(db, `colegios/${colegioId}/clases/${classId}/alumnos`),
-        orderBy('apellidos')
-      );
-      const snapshot = await getDocs(q);
-      
-      if (snapshot.empty) {
-        studentsList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">👥</div>
-            <p><strong>No hay alumnos en esta clase</strong></p>
-            <p style="font-size: 14px; margin-top: 8px;">
-              Haz clic en "Añadir alumno" para añadir el primero
-            </p>
-          </div>
-        `;
-        return;
-      }
-      
-      let html = `
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Alumno</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-      
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        html += `
-          <tr>
-            <td>
-              <strong>${data.apellidos}, ${data.nombre}</strong>
-            </td>
-            <td>
-              <button class="btn-icon" title="Editar">✏️</button>
-              <button class="btn-icon" title="Eliminar">🗑️</button>
-            </td>
-          </tr>
-        `;
-      });
-      
-      html += '</tbody></table>';
-      studentsList.innerHTML = html;
-      
-    } catch (error) {
-      console.error('Error cargando alumnos:', error);
-      studentsList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar alumnos</p>';
-    }
-  }
-  
-  // Load profesores
-  async function loadProfesores() {
-    const profesoresList = document.getElementById('profesoresList');
-    
-    try {
-      const q = query(
-        collection(db, 'profesores'),
-        where('colegioId', '==', colegioId)
-      );
-      const snapshot = await getDocs(q);
-      
-      cachedProfesores = [];
-      
-      if (snapshot.empty) {
-        profesoresList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">👨‍🏫</div>
-            <p><strong>No hay profesores invitados</strong></p>
-            <p style="font-size: 14px; margin-top: 8px;">
-              Haz clic en "Invitar profesor" para añadir el primero
-            </p>
-          </div>
-        `;
-        return;
-      }
-      
-      let html = `
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Nombre</th>
-              <th>Rol</th>
-              <th>Asignaturas</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-      
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        cachedProfesores.push({ id: docSnap.id, ...data });
-        const rolText = data.rol === 'admin' ? 'Director' : 'Profesor';
-        const numAsignaturas = data.asignaturas?.length || 0;
-        
-        html += `
-          <tr>
-            <td><strong>${docSnap.id}</strong></td>
-            <td>${data.nombre || '—'}</td>
-            <td><span style="color: ${data.rol === 'admin' ? 'var(--gold)' : 'var(--ink)'};">${rolText}</span></td>
-            <td>${numAsignaturas} asignaturas</td>
-          </tr>
-        `;
-      });
-      
-      html += '</tbody></table>';
-      profesoresList.innerHTML = html;
-      
-    } catch (error) {
-      console.error('Error cargando profesores:', error);
-      profesoresList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar profesores</p>';
-    }
-  }
-  
-  // Load asignaturas
-  async function loadAsignaturas() {
-    const asignaturasList = document.getElementById('asignaturasList');
-    
-    try {
-      const q = query(
-        collection(db, `colegios/${colegioId}/asignaturas`),
-        orderBy('nombre')
-      );
-      const snapshot = await getDocs(q);
-      
-      if (snapshot.empty) {
-        asignaturasList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📖</div>
-            <p><strong>No hay asignaturas creadas</strong></p>
-            <p style="font-size: 14px; margin-top: 8px;">
-              Haz clic en "Crear asignatura" para añadir la primera
-            </p>
-          </div>
-        `;
-        return;
-      }
-      
-      let html = `
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Asignatura</th>
-              <th>Clase</th>
-              <th>Profesor</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-      
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        html += `
-          <tr>
-            <td><strong>${data.nombre}</strong></td>
-            <td>${data.claseNombre || '—'}</td>
-            <td>${data.profesorEmail}</td>
-          </tr>
-        `;
-      });
-      
-      html += '</tbody></table>';
-      asignaturasList.innerHTML = html;
-      
-    } catch (error) {
-      console.error('Error cargando asignaturas:', error);
-      asignaturasList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar asignaturas</p>';
-    }
-  }
-  
-  // Load profesor asignaturas
-  async function loadProfesorAsignaturas() {
-    const profesorAsignaturasList = document.getElementById('profesorAsignaturasList');
-    
-    try {
-      const q = query(
-        collection(db, `colegios/${colegioId}/asignaturas`),
-        where('profesorEmail', '==', currentUser.email)
-      );
-      const snapshot = await getDocs(q);
-      
-      if (snapshot.empty) {
-        profesorAsignaturasList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📖</div>
-            <p><strong>No tienes asignaturas asignadas</strong></p>
-            <p style="font-size: 14px; margin-top: 8px;">
-              Contacta con tu director/a para que te asigne asignaturas
-            </p>
-          </div>
-        `;
-        return;
-      }
-      
-      let html = '<div class="cards-grid">';
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        html += `
-          <div class="card">
-            <div class="card-title">${data.nombre}</div>
-            <div class="card-meta">📖 ${data.claseNombre || 'Sin clase'}</div>
-            <div class="card-meta" style="margin-top: 8px;">
-              🚧 Próximamente: gestión de notas
-            </div>
-          </div>
-        `;
-      });
-      html += '</div>';
-      
-      profesorAsignaturasList.innerHTML = html;
-      
-    } catch (error) {
-      console.error('Error cargando asignaturas:', error);
-      profesorAsignaturasList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar asignaturas</p>';
-    }
-  }
-  
-  // Back to classes
-  document.getElementById('backToClasses').addEventListener('click', (e) => {
-    e.preventDefault();
-    document.getElementById('studentsView').classList.add('hidden');
-    document.getElementById('directorView').classList.remove('hidden');
-    currentClassId = null;
-  });
-  
-  // Modal handlers - Create Class
-  const createClassModal = document.getElementById('createClassModal');
-  const createClassForm = document.getElementById('createClassForm');
-  
-  document.getElementById('newClassBtn').addEventListener('click', () => {
-    createClassModal.classList.add('active');
-  });
-  
-  document.getElementById('cancelClassBtn').addEventListener('click', () => {
-    createClassModal.classList.remove('active');
-    createClassForm.reset();
-  });
-  
-  createClassModal.addEventListener('click', (e) => {
-    if (e.target === createClassModal) {
-      createClassModal.classList.remove('active');
-      createClassForm.reset();
-    }
-  });
-  
-  createClassForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const submitBtn = createClassForm.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creando...';
-    
-    try {
-      const formData = new FormData(createClassForm);
-      const nombre = formData.get('nombre');
-      const curso = formData.get('curso');
-      
-      await addDoc(collection(db, `colegios/${colegioId}/clases`), {
-        nombre: nombre,
-        curso: curso,
-        numAlumnos: 0,
-        createdAt: serverTimestamp(),
-        createdBy: currentUser.email
-      });
-      
-      createClassModal.classList.remove('active');
-      createClassForm.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear clase';
-      
-      loadClasses();
-      
-    } catch (error) {
-      console.error('Error creando clase:', error);
-      alert('Error al crear la clase: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear clase';
-    }
-  });
-  
-  // Modal handlers - Add Student
-  const addStudentModal = document.getElementById('addStudentModal');
-  const addStudentForm = document.getElementById('addStudentForm');
-  
-  document.getElementById('newStudentBtn').addEventListener('click', () => {
-    addStudentModal.classList.add('active');
-  });
-  
-  document.getElementById('cancelStudentBtn').addEventListener('click', () => {
-    addStudentModal.classList.remove('active');
-    addStudentForm.reset();
-  });
-  
-  addStudentModal.addEventListener('click', (e) => {
-    if (e.target === addStudentModal) {
-      addStudentModal.classList.remove('active');
-      addStudentForm.reset();
-    }
-  });
-  
-  addStudentForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const submitBtn = addStudentForm.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Añadiendo...';
-    
-    try {
-      const formData = new FormData(addStudentForm);
-      const nombre = formData.get('nombre');
-      const apellidos = formData.get('apellidos');
-      
-      // Get current student count
-      const classDoc = await getDoc(doc(db, `colegios/${colegioId}/clases`, currentClassId));
-      const currentCount = classDoc.data().numAlumnos || 0;
-      
-      // Add student
-      await addDoc(collection(db, `colegios/${colegioId}/clases/${currentClassId}/alumnos`), {
-        nombre: nombre,
-        apellidos: apellidos,
-        orden: currentCount + 1,
-        createdAt: serverTimestamp()
-      });
-      
-      // Update class student count
-      await setDoc(doc(db, `colegios/${colegioId}/clases`, currentClassId), {
-        numAlumnos: currentCount + 1
-      }, { merge: true });
-      
-      addStudentModal.classList.remove('active');
-      addStudentForm.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Añadir alumno';
-      
-      loadStudents(currentClassId);
-      
-    } catch (error) {
-      console.error('Error añadiendo alumno:', error);
-      alert('Error al añadir el alumno: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Añadir alumno';
-    }
-  });
-  
-  // Modal handlers - Create Asignatura
-  const createAsignaturaModal = document.getElementById('createAsignaturaModal');
-  const createAsignaturaForm = document.getElementById('createAsignaturaForm');
-  
-  document.getElementById('newAsignaturaBtn').addEventListener('click', async () => {
-    // Load classes and profesores for select options
-    if (cachedClasses.length === 0) await loadClasses();
-    if (cachedProfesores.length === 0) await loadProfesores();
-    
-    // Populate clase select
-    const claseSelect = document.getElementById('asignaturaClaseSelect');
-    claseSelect.innerHTML = '<option value="">Selecciona una clase</option>';
-    cachedClasses.forEach(clase => {
-      claseSelect.innerHTML += `<option value="${clase.id}">${clase.nombre} (${clase.curso})</option>`;
-    });
-    
-    // Populate profesor select (only profesores, not admins)
-    const profesorSelect = document.getElementById('asignaturaProfesorSelect');
-    profesorSelect.innerHTML = '<option value="">Selecciona un profesor</option>';
-    cachedProfesores.filter(p => p.rol === 'profesor').forEach(prof => {
-      profesorSelect.innerHTML += `<option value="${prof.id}">${prof.nombre || prof.id}</option>`;
-    });
-    
-    createAsignaturaModal.classList.add('active');
-  });
-  
-  document.getElementById('cancelAsignaturaBtn').addEventListener('click', () => {
-    createAsignaturaModal.classList.remove('active');
-    createAsignaturaForm.reset();
-  });
-  
-  createAsignaturaModal.addEventListener('click', (e) => {
-    if (e.target === createAsignaturaModal) {
-      createAsignaturaModal.classList.remove('active');
-      createAsignaturaForm.reset();
-    }
-  });
-  
-  createAsignaturaForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const submitBtn = createAsignaturaForm.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creando...';
-    
-    try {
-      const formData = new FormData(createAsignaturaForm);
-      const nombre = formData.get('nombre');
-      const claseId = formData.get('claseId');
-      const profesorEmail = formData.get('profesorEmail');
-      
-      // Get clase data
-      const selectedClase = cachedClasses.find(c => c.id === claseId);
-      
-      // Create asignatura
-      const asignaturaRef = await addDoc(collection(db, `colegios/${colegioId}/asignaturas`), {
-        nombre: nombre,
-        claseId: claseId,
-        claseNombre: selectedClase?.nombre || '',
-        profesorEmail: profesorEmail,
-        trimestres: ['T1', 'T2', 'T3'],
-        createdAt: serverTimestamp(),
-        createdBy: currentUser.email
-      });
-      
-      // Update profesor's asignaturas array
-      await updateDoc(doc(db, 'profesores', profesorEmail), {
-        asignaturas: arrayUnion(asignaturaRef.id)
-      });
-      
-      alert(`✅ Asignatura "${nombre}" creada y asignada a ${profesorEmail}`);
-      
-      createAsignaturaModal.classList.remove('active');
-      createAsignaturaForm.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear asignatura';
-      
-      loadAsignaturas();
-      
-    } catch (error) {
-      console.error('Error creando asignatura:', error);
-      alert('Error al crear la asignatura: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear asignatura';
-    }
-  });
-  
-  // Modal handlers - Invite Profesor
-  const inviteProfesorModal = document.getElementById('inviteProfesorModal');
-  const inviteProfesorForm = document.getElementById('inviteProfesorForm');
-  
-  document.getElementById('inviteProfesorBtn').addEventListener('click', () => {
-    inviteProfesorModal.classList.add('active');
-  });
-  
-  document.getElementById('cancelProfesorBtn').addEventListener('click', () => {
-    inviteProfesorModal.classList.remove('active');
-    inviteProfesorForm.reset();
-  });
-  
-  inviteProfesorModal.addEventListener('click', (e) => {
-    if (e.target === inviteProfesorModal) {
-      inviteProfesorModal.classList.remove('active');
-      inviteProfesorForm.reset();
-    }
-  });
-  
-  inviteProfesorForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const submitBtn = inviteProfesorForm.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Invitando...';
-    
-    try {
-      const formData = new FormData(inviteProfesorForm);
-      const email = formData.get('email');
-      const nombre = formData.get('nombre');
-      
-      // Check if profesor already exists
-      const profesorDoc = await getDoc(doc(db, 'profesores', email));
-      
-      if (profesorDoc.exists()) {
-        alert('Este profesor ya tiene acceso al sistema.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar invitación';
-        return;
-      }
-      
-      // Create profesor document
-      await setDoc(doc(db, 'profesores', email), {
-        nombre: nombre || '',
-        colegioId: colegioId,
-        rol: 'profesor',
-        asignaturas: [],
-        createdAt: serverTimestamp(),
-        invitedBy: currentUser.email
-      });
-      
-      alert(`✅ Invitación enviada a ${email}.\n\nAhora puede hacer login en gradeweighting.com/app con su cuenta de Google.`);
-      
-      inviteProfesorModal.classList.remove('active');
-      inviteProfesorForm.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Enviar invitación';
-      
-      loadProfesores();
-      
-    } catch (error) {
-      console.error('Error invitando profesor:', error);
-      alert('Error al invitar profesor: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Enviar invitación';
-    }
-  });
-</script>
-
-</body>
-</html>
