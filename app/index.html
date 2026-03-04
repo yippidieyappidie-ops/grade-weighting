@@ -492,6 +492,7 @@
         <div>
           <h1>Mis clases</h1>
           <div style="display: flex; gap: 12px; margin-top: 12px;">
+            <button class="btn-secondary" onclick="showAsignaturasView()">📖 Ver asignaturas</button>
             <button class="btn-secondary" onclick="showProfesoresView()">👨‍🏫 Ver profesores</button>
           </div>
         </div>
@@ -521,6 +522,24 @@
       </div>
     </div>
     
+    <!-- DIRECTOR VIEW: Asignaturas -->
+    <div id="asignaturasView" class="hidden">
+      <div class="page-header">
+        <div>
+          <h1>Asignaturas</h1>
+          <div style="display: flex; gap: 12px; margin-top: 12px;">
+            <button class="btn-secondary" onclick="showDirectorView()">📚 Ver clases</button>
+            <button class="btn-secondary" onclick="showProfesoresView()">👨‍🏫 Ver profesores</button>
+          </div>
+        </div>
+        <button class="btn-primary" id="newAsignaturaBtn">+ Crear asignatura</button>
+      </div>
+      
+      <div id="asignaturasList" class="loading">
+        Cargando asignaturas...
+      </div>
+    </div>
+    
     <!-- DIRECTOR VIEW: Profesores -->
     <div id="profesoresView" class="hidden">
       <div class="page-header">
@@ -528,6 +547,7 @@
           <h1>Profesores</h1>
           <div style="display: flex; gap: 12px; margin-top: 12px;">
             <button class="btn-secondary" onclick="showDirectorView()">📚 Ver clases</button>
+            <button class="btn-secondary" onclick="showAsignaturasView()">📖 Ver asignaturas</button>
           </div>
         </div>
         <button class="btn-primary" id="inviteProfesorBtn">+ Invitar profesor</button>
@@ -544,8 +564,8 @@
         <h1>Mis asignaturas</h1>
       </div>
       
-      <div class="alert alert-info">
-        🚧 Panel de profesor en desarrollo. Próximamente podrás gestionar notas y asistencia.
+      <div id="profesorAsignaturasList" class="loading">
+        Cargando asignaturas...
       </div>
     </div>
   </main>
@@ -599,6 +619,39 @@
   </div>
 </div>
 
+<!-- MODAL: CREATE ASIGNATURA -->
+<div id="createAsignaturaModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Crear nueva asignatura</h2>
+    
+    <form id="createAsignaturaForm">
+      <div class="form-group">
+        <label>Nombre de la asignatura *</label>
+        <input type="text" name="nombre" required placeholder="Ej. Matemáticas">
+      </div>
+      
+      <div class="form-group">
+        <label>Clase *</label>
+        <select name="claseId" required id="asignaturaClaseSelect">
+          <option value="">Selecciona una clase</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Profesor *</label>
+        <select name="profesorEmail" required id="asignaturaProfesorSelect">
+          <option value="">Selecciona un profesor</option>
+        </select>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelAsignaturaBtn">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear asignatura</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- MODAL: INVITE PROFESOR -->
 <div id="inviteProfesorModal" class="modal">
   <div class="modal-content">
@@ -627,7 +680,7 @@
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
@@ -646,6 +699,8 @@
   let userRole = null;
   let colegioId = null;
   let currentClassId = null;
+  let cachedClasses = [];
+  let cachedProfesores = [];
   
   // Login with POPUP
   document.getElementById('loginBtn').addEventListener('click', async () => {
@@ -731,6 +786,7 @@
     document.getElementById('profesorView').classList.add('hidden');
     document.getElementById('studentsView').classList.add('hidden');
     document.getElementById('profesoresView').classList.add('hidden');
+    document.getElementById('asignaturasView').classList.add('hidden');
     loadClasses();
   }
   
@@ -740,6 +796,8 @@
     document.getElementById('profesorView').classList.remove('hidden');
     document.getElementById('studentsView').classList.add('hidden');
     document.getElementById('profesoresView').classList.add('hidden');
+    document.getElementById('asignaturasView').classList.add('hidden');
+    loadProfesorAsignaturas();
   }
   
   // Show profesores view
@@ -748,7 +806,18 @@
     document.getElementById('studentsView').classList.add('hidden');
     document.getElementById('profesorView').classList.add('hidden');
     document.getElementById('profesoresView').classList.remove('hidden');
+    document.getElementById('asignaturasView').classList.add('hidden');
     loadProfesores();
+  }
+  
+  // Show asignaturas view
+  window.showAsignaturasView = function() {
+    document.getElementById('directorView').classList.add('hidden');
+    document.getElementById('studentsView').classList.add('hidden');
+    document.getElementById('profesorView').classList.add('hidden');
+    document.getElementById('profesoresView').classList.add('hidden');
+    document.getElementById('asignaturasView').classList.remove('hidden');
+    loadAsignaturas();
   }
   
   // Load classes
@@ -761,6 +830,8 @@
         orderBy('nombre')
       );
       const snapshot = await getDocs(q);
+      
+      cachedClasses = [];
       
       if (snapshot.empty) {
         classesList.innerHTML = `
@@ -778,6 +849,7 @@
       let html = '<div class="cards-grid">';
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
+        cachedClasses.push({ id: docSnap.id, ...data });
         html += `
           <div class="card card-clickable" data-class-id="${docSnap.id}">
             <div class="card-title">${data.nombre}</div>
@@ -820,6 +892,7 @@
       document.getElementById('directorView').classList.add('hidden');
       document.getElementById('studentsView').classList.remove('hidden');
       document.getElementById('profesoresView').classList.add('hidden');
+      document.getElementById('asignaturasView').classList.add('hidden');
       
       loadStudents(classId);
       
@@ -899,6 +972,8 @@
       );
       const snapshot = await getDocs(q);
       
+      cachedProfesores = [];
+      
       if (snapshot.empty) {
         profesoresList.innerHTML = `
           <div class="empty-state">
@@ -927,6 +1002,7 @@
       
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
+        cachedProfesores.push({ id: docSnap.id, ...data });
         const rolText = data.rol === 'admin' ? 'Director' : 'Profesor';
         const numAsignaturas = data.asignaturas?.length || 0;
         
@@ -946,6 +1022,109 @@
     } catch (error) {
       console.error('Error cargando profesores:', error);
       profesoresList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar profesores</p>';
+    }
+  }
+  
+  // Load asignaturas
+  async function loadAsignaturas() {
+    const asignaturasList = document.getElementById('asignaturasList');
+    
+    try {
+      const q = query(
+        collection(db, `colegios/${colegioId}/asignaturas`),
+        orderBy('nombre')
+      );
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        asignaturasList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📖</div>
+            <p><strong>No hay asignaturas creadas</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Haz clic en "Crear asignatura" para añadir la primera
+            </p>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Asignatura</th>
+              <th>Clase</th>
+              <th>Profesor</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        html += `
+          <tr>
+            <td><strong>${data.nombre}</strong></td>
+            <td>${data.claseNombre || '—'}</td>
+            <td>${data.profesorEmail}</td>
+          </tr>
+        `;
+      });
+      
+      html += '</tbody></table>';
+      asignaturasList.innerHTML = html;
+      
+    } catch (error) {
+      console.error('Error cargando asignaturas:', error);
+      asignaturasList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar asignaturas</p>';
+    }
+  }
+  
+  // Load profesor asignaturas
+  async function loadProfesorAsignaturas() {
+    const profesorAsignaturasList = document.getElementById('profesorAsignaturasList');
+    
+    try {
+      const q = query(
+        collection(db, `colegios/${colegioId}/asignaturas`),
+        where('profesorEmail', '==', currentUser.email)
+      );
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        profesorAsignaturasList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📖</div>
+            <p><strong>No tienes asignaturas asignadas</strong></p>
+            <p style="font-size: 14px; margin-top: 8px;">
+              Contacta con tu director/a para que te asigne asignaturas
+            </p>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = '<div class="cards-grid">';
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        html += `
+          <div class="card">
+            <div class="card-title">${data.nombre}</div>
+            <div class="card-meta">📖 ${data.claseNombre || 'Sin clase'}</div>
+            <div class="card-meta" style="margin-top: 8px;">
+              🚧 Próximamente: gestión de notas
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      
+      profesorAsignaturasList.innerHTML = html;
+      
+    } catch (error) {
+      console.error('Error cargando asignaturas:', error);
+      profesorAsignaturasList.innerHTML = '<p style="color: red; text-align: center;">Error al cargar asignaturas</p>';
     }
   }
   
@@ -1073,6 +1252,93 @@
       alert('Error al añadir el alumno: ' + error.message);
       submitBtn.disabled = false;
       submitBtn.textContent = 'Añadir alumno';
+    }
+  });
+  
+  // Modal handlers - Create Asignatura
+  const createAsignaturaModal = document.getElementById('createAsignaturaModal');
+  const createAsignaturaForm = document.getElementById('createAsignaturaForm');
+  
+  document.getElementById('newAsignaturaBtn').addEventListener('click', async () => {
+    // Load classes and profesores for select options
+    if (cachedClasses.length === 0) await loadClasses();
+    if (cachedProfesores.length === 0) await loadProfesores();
+    
+    // Populate clase select
+    const claseSelect = document.getElementById('asignaturaClaseSelect');
+    claseSelect.innerHTML = '<option value="">Selecciona una clase</option>';
+    cachedClasses.forEach(clase => {
+      claseSelect.innerHTML += `<option value="${clase.id}">${clase.nombre} (${clase.curso})</option>`;
+    });
+    
+    // Populate profesor select (only profesores, not admins)
+    const profesorSelect = document.getElementById('asignaturaProfesorSelect');
+    profesorSelect.innerHTML = '<option value="">Selecciona un profesor</option>';
+    cachedProfesores.filter(p => p.rol === 'profesor').forEach(prof => {
+      profesorSelect.innerHTML += `<option value="${prof.id}">${prof.nombre || prof.id}</option>`;
+    });
+    
+    createAsignaturaModal.classList.add('active');
+  });
+  
+  document.getElementById('cancelAsignaturaBtn').addEventListener('click', () => {
+    createAsignaturaModal.classList.remove('active');
+    createAsignaturaForm.reset();
+  });
+  
+  createAsignaturaModal.addEventListener('click', (e) => {
+    if (e.target === createAsignaturaModal) {
+      createAsignaturaModal.classList.remove('active');
+      createAsignaturaForm.reset();
+    }
+  });
+  
+  createAsignaturaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = createAsignaturaForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creando...';
+    
+    try {
+      const formData = new FormData(createAsignaturaForm);
+      const nombre = formData.get('nombre');
+      const claseId = formData.get('claseId');
+      const profesorEmail = formData.get('profesorEmail');
+      
+      // Get clase data
+      const selectedClase = cachedClasses.find(c => c.id === claseId);
+      
+      // Create asignatura
+      const asignaturaRef = await addDoc(collection(db, `colegios/${colegioId}/asignaturas`), {
+        nombre: nombre,
+        claseId: claseId,
+        claseNombre: selectedClase?.nombre || '',
+        profesorEmail: profesorEmail,
+        trimestres: ['T1', 'T2', 'T3'],
+        createdAt: serverTimestamp(),
+        createdBy: currentUser.email
+      });
+      
+      // Update profesor's asignaturas array
+      await updateDoc(doc(db, 'profesores', profesorEmail), {
+        asignaturas: arrayUnion(asignaturaRef.id)
+      });
+      
+      alert(`✅ Asignatura "${nombre}" creada y asignada a ${profesorEmail}`);
+      
+      createAsignaturaModal.classList.remove('active');
+      createAsignaturaForm.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear asignatura';
+      
+      loadAsignaturas();
+      
+    } catch (error) {
+      console.error('Error creando asignatura:', error);
+      alert('Error al crear la asignatura: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear asignatura';
     }
   });
   
