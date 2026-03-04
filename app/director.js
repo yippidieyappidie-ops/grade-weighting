@@ -12,19 +12,49 @@ function hideAllViews() {
 export function showDirectorView() {
   hideAllViews();
   document.getElementById('directorView').classList.remove('hidden');
+  
+  // Update navigation tabs
+  updateNavTabs('clases');
+  
   loadClasses();
 }
 
 export function showProfesoresView() {
   hideAllViews();
   document.getElementById('profesoresView').classList.remove('hidden');
+  
+  // Update navigation tabs
+  updateNavTabs('profesores');
+  
   loadProfesores();
 }
 
 export function showAsignaturasView() {
   hideAllViews();
   document.getElementById('asignaturasView').classList.remove('hidden');
+  
+  // Update navigation tabs
+  updateNavTabs('asignaturas');
+  
   loadAsignaturas();
+}
+
+// Update navigation tabs active state
+function updateNavTabs(activeTab) {
+  // Remove active from all tabs
+  document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+  
+  // Add active to current tab
+  if (activeTab === 'clases') {
+    const tab = document.getElementById('navClases');
+    if (tab) tab.classList.add('active');
+  } else if (activeTab === 'asignaturas') {
+    const tab = document.getElementById('navAsignaturasActive');
+    if (tab) tab.classList.add('active');
+  } else if (activeTab === 'profesores') {
+    const tab = document.getElementById('navProfesoresActive');
+    if (tab) tab.classList.add('active');
+  }
 }
 
 export function showStudentsView(classId) {
