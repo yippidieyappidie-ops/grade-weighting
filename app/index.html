@@ -878,10 +878,11 @@ input:focus, select:focus, textarea:focus {
 </div>
 
 <script type="module">
+
+<script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
   import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
   // ===== CONFIG =====
   const firebaseConfig = {
     apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
@@ -909,58 +910,99 @@ input:focus, select:focus, textarea:focus {
     cachedProfesores: []
   };
 
-  // ===== UTILITIES =====
   function hideAllViews() {
     ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'].forEach(id => {
       document.getElementById(id).classList.add('hidden');
     });
   }
+// Authentication Module
 
-  // ===== AUTHENTICATION =====
+// Login with Google
+function initLogin() {
   document.getElementById('loginBtn').addEventListener('click', async () => {
+    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      console.log('🔄 Iniciando login con Google (popup)...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('✅ Login exitoso:', result.user.email);
     } catch (error) {
-      if (error.code !== 'auth/popup-closed-by-user') alert('Error: ' + error.message);
+      console.error('❌ Error al hacer login:', error);
+      if (error.code !== 'auth/popup-closed-by-user') {
+        alert('Error al iniciar sesión: ' + error.message);
+      }
     }
   });
-  
+}
+
+// Logout
+function initLogout() {
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await signOut(auth);
     location.reload();
   });
-  
+}
+
+// Detect user role
+async function detectUserRole(email) {
+  try {
+    console.log('🔍 Detectando rol para email:', email);
+    const profesorDoc = await getDoc(doc(db, 'profesores', email));
+    console.log('📄 Documento existe:', profesorDoc.exists());
+
+    if (profesorDoc.exists()) {
+      const data = profesorDoc.data();
+      console.log('✅ Datos del profesor:', data);
+      state.userRole = data.rol;
+      state.colegioId = data.colegioId;
+
+      const roleBadge = document.getElementById('roleBadge');
+      roleBadge.textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
+
+      console.log('👤 Rol detectado:', state.userRole, '| Colegio:', state.colegioId);
+
+      return { role: state.userRole, colegioId: state.colegioId };
+    } else {
+      console.error('❌ Documento del profesor NO existe para:', email);
+      alert('No tienes acceso a este sistema. Contacta con tu director/a.');
+      await signOut(auth);
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error detectando rol:', error);
+    alert('Error al verificar tu cuenta: ' + error.message);
+    return null;
+  }
+}
+
+// Auth state listener
+function initAuthListener(onDirectorView, onProfesorView) {
   onAuthStateChanged(auth, async (user) => {
+    console.log('🔍 Auth state changed. User:', user?.email || 'null');
+
     if (user) {
       state.currentUser = user;
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
       document.getElementById('userName').textContent = user.displayName || 'Usuario';
       document.getElementById('userEmail').textContent = user.email;
-      await detectUserRole(user.email);
+
+      const roleData = await detectUserRole(user.email);
+      
+      if (roleData) {
+        if (roleData.role === 'admin') {
+          console.log('📊 Mostrando vista de director');
+          onDirectorView();
+        } else {
+          console.log('📚 Mostrando vista de profesor');
+          onProfesorView();
+        }
+      }
     } else {
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('dashboard').classList.add('hidden');
     }
   });
-  
-  async function detectUserRole(email) {
-    try {
-      const profesorDoc = await getDoc(doc(db, 'profesores', email));
-      if (profesorDoc.exists()) {
-        const data = profesorDoc.data();
-        state.userRole = data.rol;
-        state.colegioId = data.colegioId;
-        document.getElementById('roleBadge').textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
-        state.userRole === 'admin' ? showDirectorView() : showProfesorView();
-      } else {
-        alert('No tienes acceso. Contacta con tu director/a.');
-        await signOut(auth);
-      }
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
+}
 // Director Module - Gestión de clases, alumnos, profesores y asignaturas
 
 // Navigation
@@ -970,6 +1012,7 @@ function hideAllViews() {
   });
 }
 
+function showDirectorView() {
   hideAllViews();
   document.getElementById('directorView').classList.remove('hidden');
   
@@ -979,6 +1022,7 @@ function hideAllViews() {
   loadClasses();
 }
 
+function showProfesoresView() {
   hideAllViews();
   document.getElementById('profesoresView').classList.remove('hidden');
   
@@ -988,6 +1032,7 @@ function hideAllViews() {
   loadProfesores();
 }
 
+function showAsignaturasView() {
   hideAllViews();
   document.getElementById('asignaturasView').classList.remove('hidden');
   
@@ -1015,6 +1060,7 @@ function updateNavTabs(activeTab) {
   }
 }
 
+function showStudentsView(classId) {
   state.currentClassId = classId;
   state.currentContext = 'clase'; // Para saber desde dónde vinimos
   hideAllViews();
@@ -1142,6 +1188,7 @@ async function loadAsignaturas() {
 }
 
 // Create class
+async function createClass(nombre, curso) {
   await addDoc(collection(db, `colegios/${state.colegioId}/clases`), {
     nombre,
     curso,
@@ -1153,6 +1200,7 @@ async function loadAsignaturas() {
 }
 
 // Add student
+async function addStudent(nombre, apellidos) {
   const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId));
   const currentCount = classDoc.data().numAlumnos || 0;
   
@@ -1171,6 +1219,7 @@ async function loadAsignaturas() {
 }
 
 // Create asignatura with specific students
+async function createAsignatura(nombre, profesorEmail, alumnos) {
   const asignaturaRef = await addDoc(collection(db, `colegios/${state.colegioId}/asignaturas`), {
     nombre,
     profesorEmail,
@@ -1189,6 +1238,7 @@ async function loadAsignaturas() {
 }
 
 // Invite profesor
+async function inviteProfesor(email, nombre) {
   const profesorDoc = await getDoc(doc(db, 'profesores', email));
   
   if (profesorDoc.exists()) {
@@ -1208,6 +1258,7 @@ async function loadAsignaturas() {
 }
 
 // Load alumnos for selection (multi-class selector)
+async function loadAlumnosForSelection() {
   if (state.cachedClasses.length === 0) await loadClasses();
   
   let html = '';
@@ -1239,12 +1290,14 @@ async function loadAsignaturas() {
 }
 
 // Select all from clase
+function selectAllFromClase(claseId) {
   const checkboxes = document.querySelectorAll(`input[value^="${claseId}/"]`);
   const allChecked = Array.from(checkboxes).every(cb => cb.checked);
   checkboxes.forEach(cb => cb.checked = !allChecked);
 }
 
 // Show trimestre detail (ponderación + alumnos)
+async function showTrimestreDetail(trimestre) {
   state.currentTrimestre = trimestre;
   hideAllViews();
   document.getElementById('trimestreDetailView').classList.remove('hidden');
@@ -1320,6 +1373,7 @@ function updatePesoTotal() {
 });
 
 // Save ponderación
+async function guardarPonderacion() {
   try {
     const examenes = parseInt(document.getElementById('pesoExamenes').value) || 0;
     const tareas = parseInt(document.getElementById('pesoTareas').value) || 0;
@@ -1415,6 +1469,7 @@ async function loadAlumnosForTrimestre(trimestre) {
 }
 
 // Back to class or asignatura
+function backToClassOrAsignatura() {
   if (state.currentContext === 'clase') {
     showStudentsView(state.currentClassId);
   } else {
@@ -1431,6 +1486,7 @@ function hideAllViews() {
 }
 
 // Show profesor view
+function showProfesorView() {
   hideAllViews();
   document.getElementById('profesorView').classList.remove('hidden');
   loadProfesorAsignaturas();
@@ -1467,6 +1523,7 @@ async function loadProfesorAsignaturas() {
 }
 
 // Show asignatura detail (trimestres cards)
+function showAsignaturaDetail(asignaturaId, nombre) {
   state.currentAsignaturaId = asignaturaId;
   state.currentContext = 'asignatura';
   document.getElementById('currentAsignaturaNombre').textContent = nombre;
@@ -1494,6 +1551,7 @@ async function loadProfesorAsignaturas() {
 }
 
 // Back to asignatura detail
+function backToAsignaturaDetail() {
   const asigNombre = document.getElementById('currentAsignaturaNombre').textContent;
   showAsignaturaDetail(state.currentAsignaturaId, asigNombre);
 }
@@ -1506,6 +1564,7 @@ function hideAllViews() {
 }
 
 // Show notas view
+function showNotasView(alumnoId, nombre) {
   state.currentAlumnoId = alumnoId;
   document.getElementById('currentAlumnoNombre').textContent = nombre;
   document.getElementById('notasViewTitle').textContent = `Notas - ${nombre}`;
@@ -1515,6 +1574,7 @@ function hideAllViews() {
 }
 
 // Switch trimestre
+function switchTrimestre(trimestre) {
   state.currentTrimestre = trimestre;
   document.querySelectorAll('.trimestre-tab').forEach(tab => tab.classList.remove('active'));
   event.target.classList.add('active');
@@ -1606,6 +1666,7 @@ function calcularNotaFinal(notasData, categorias) {
 }
 
 // Add nota
+async function addNota(categoria) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
     const docId = `${alumnoRef}-${state.currentTrimestre}`;
@@ -1627,6 +1688,7 @@ function calcularNotaFinal(notasData, categorias) {
 }
 
 // Update nota
+async function updateNota(categoria, index, valor) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
     const docId = `${alumnoRef}-${state.currentTrimestre}`;
@@ -1644,6 +1706,7 @@ function calcularNotaFinal(notasData, categorias) {
 }
 
 // Delete nota
+async function deleteNota(categoria, index) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
     const docId = `${alumnoRef}-${state.currentTrimestre}`;
@@ -1662,6 +1725,7 @@ function calcularNotaFinal(notasData, categorias) {
 // Modals Module - Gestión de todos los modales
 
 // Initialize all modals
+function initModals() {
   initCreateClassModal();
   initAddStudentModal();
   initCreateAsignaturaModal();
