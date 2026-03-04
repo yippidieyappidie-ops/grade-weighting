@@ -580,17 +580,17 @@
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
   import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
   const firebaseConfig = {
-  apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
-  authDomain: "gradeweighting.com",
-  projectId: "grade-weighting",
-  storageBucket: "grade-weighting.firebasestorage.app",
-  messagingSenderId: "567298019231",
-  appId: "1:567298019231:web:18c435e0a6808b7bd5f7aa"
-};
+    apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
+    authDomain: "grade-weighting.firebaseapp.com",
+    projectId: "grade-weighting",
+    storageBucket: "grade-weighting.firebasestorage.app",
+    messagingSenderId: "567298019231",
+    appId: "1:567298019231:web:18c435e0a6808b7bd5f7aa"
+  };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -601,26 +601,18 @@
   let colegioId = null;
   let currentClassId = null;
   
-  // Check redirect result
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result) {
-        console.log('✅ Login exitoso:', result.user.email);
-      }
-    })
-    .catch((error) => {
-      console.error('❌ Error en redirect:', error);
-    });
-  
-  // Login
+  // Login with POPUP instead of redirect
   document.getElementById('loginBtn').addEventListener('click', async () => {
     const provider = new GoogleAuthProvider();
     try {
-      console.log('🔄 Iniciando login con Google...');
-      await signInWithRedirect(auth, provider);
+      console.log('🔄 Iniciando login con Google (popup)...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('✅ Login exitoso:', result.user.email);
     } catch (error) {
       console.error('❌ Error al hacer login:', error);
-      alert('Error al iniciar sesión: ' + error.message);
+      if (error.code !== 'auth/popup-closed-by-user') {
+        alert('Error al iniciar sesión: ' + error.message);
+      }
     }
   });
   
