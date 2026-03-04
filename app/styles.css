@@ -220,6 +220,43 @@ body {
 
 .btn-secondary:hover { background: #d0cbc4; }
 
+/* NAVIGATION TABS (Director) */
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.nav-tab {
+  background: var(--border);
+  color: var(--ink);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-tab:hover {
+  background: #d0cbc4;
+  transform: translateY(-1px);
+}
+
+.nav-tab.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.nav-tab.active:hover {
+  background: #2d2d4a;
+}
+
 .btn-icon {
   background: none;
   border: none;
