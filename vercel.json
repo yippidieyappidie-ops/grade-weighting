@@ -7,8 +7,8 @@
       "destination": "/ads.txt"
     },
     {
-      "source": "/app",
-      "destination": "/app/index.html"
+      "source": "./",
+      "destination": "/index.html"
     },
     {
       "source": "/app/",
