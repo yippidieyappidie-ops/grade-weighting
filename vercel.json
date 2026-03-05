@@ -1,15 +1,17 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
-    },
     {
       "source": "/ads.txt",
       "destination": "/ads.txt"
     },
     {
       "source": "/app",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/app/",
       "destination": "/app/index.html"
     },
     {
