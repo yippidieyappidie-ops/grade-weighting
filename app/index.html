@@ -519,10 +519,61 @@ input:focus, select:focus, textarea:focus {
 
 /* SISTEMA DE NOTAS */
 .ponderacion-config {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.categoria-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: 1fr 120px 40px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+}
+
+.categoria-row input[type="text"] {
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  background: white;
+}
+
+.categoria-row input[type="number"] {
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  background: white;
+}
+
+.btn-remove-cat {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--accent-light);
+  color: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-remove-cat:hover {
+  background: var(--accent);
+  color: white;
 }
 
 .ponderacion-item label {
@@ -712,25 +763,20 @@ input:focus, select:focus, textarea:focus {
       </div>
       
       <div class="card" style="margin-bottom: 32px;">
-        <h3 style="margin-bottom: 16px; font-size: 18px;">⚙️ Configuración de Ponderación</h3>
-        <div class="ponderacion-config">
-          <div class="ponderacion-item">
-            <label>Exámenes (%)</label>
-            <input type="number" id="pesoExamenes" min="0" max="100" value="70">
-          </div>
-          <div class="ponderacion-item">
-            <label>Tareas (%)</label>
-            <input type="number" id="pesoTareas" min="0" max="100" value="20">
-          </div>
-          <div class="ponderacion-item">
-            <label>Participación (%)</label>
-            <input type="number" id="pesoParticipacion" min="0" max="100" value="10">
-          </div>
-          <div class="ponderacion-total">
-            <strong>Total: <span id="pesoTotal">100</span>%</strong>
-          </div>
+        <h3 style="margin-bottom: 16px; font-size: 18px;">⚙️ Configuración de Categorías</h3>
+        <p style="margin-bottom: 20px; color: var(--ink-light); font-size: 14px;">Añade, elimina o ajusta el peso de cada categoría. El total debe sumar 100%.</p>
+        
+        <div id="categoriasConfig"></div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <button class="btn-secondary" onclick="añadirCategoria()">+ Añadir categoría</button>
+          <button class="btn-primary" onclick="guardarPonderacion()">Guardar configuración</button>
         </div>
-        <button class="btn-primary" onclick="guardarPonderacion()">Guardar ponderación</button>
+        
+        <div class="ponderacion-total" style="margin-top: 20px;">
+          <strong>Total: <span id="pesoTotal">0</span>%</strong>
+          <span id="pesoStatus" style="margin-left: 12px; font-size: 14px;"></span>
+        </div>
       </div>
       
       <h3 style="margin-bottom: 16px; font-size: 18px;">📊 Alumnos</h3>
@@ -879,12 +925,12 @@ input:focus, select:focus, textarea:focus {
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
   import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
   // ===== CONFIG =====
   const firebaseConfig = {
     apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
-    authDomain: "gradeweighting.com",
+    authDomain: "grade-weighting.firebaseapp.com",
     projectId: "grade-weighting",
     storageBucket: "grade-weighting.firebasestorage.app",
     messagingSenderId: "567298019231",
@@ -917,43 +963,19 @@ input:focus, select:focus, textarea:focus {
 
 // Login with Google
 function initLogin() {
-  console.log('🔧 Inicializando login...');
   const loginBtn = document.getElementById('loginBtn');
-  console.log('🔧 Botón encontrado:', loginBtn);
-  
-  if (!loginBtn) {
-    console.error('❌ No se encontró el botón de login!');
-    return;
-  }
+  if (!loginBtn) return;
   
   loginBtn.addEventListener('click', async () => {
-    console.log('🔄 Click en botón de login detectado');
     const provider = new GoogleAuthProvider();
     try {
-      console.log('🔄 Iniciando login con Google (redirect)...');
-      await signInWithRedirect(auth, provider);
-      // El usuario será redirigido a Google, luego volverá a esta página
+      await signInWithPopup(auth, provider);
     } catch (error) {
-      console.error('❌ Error al hacer login:', error);
-      alert('Error al iniciar sesión: ' + error.message);
+      if (error.code !== 'auth/popup-closed-by-user') {
+        alert('Error: ' + error.message);
+      }
     }
   });
-  
-  console.log('✅ Event listener de login añadido');
-  
-  // Manejar el resultado del redirect cuando el usuario vuelva
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result) {
-        console.log('✅ Login exitoso (redirect):', result.user.email);
-      }
-    })
-    .catch((error) => {
-      console.error('❌ Error en redirect result:', error);
-      if (error.code !== 'auth/popup-closed-by-user') {
-        alert('Error al iniciar sesión: ' + error.message);
-      }
-    });
 }
 
 // Logout
@@ -1341,6 +1363,9 @@ async function showTrimestreDetail(trimestre) {
 }
 
 // Load ponderación for trimestre
+// Global categories state
+let currentCategorias = [];
+
 async function loadPonderacion(trimestre) {
   try {
     let ponderacionDocPath;
@@ -1354,51 +1379,111 @@ async function loadPonderacion(trimestre) {
     
     if (ponderacionDoc.exists()) {
       const data = ponderacionDoc.data();
-      document.getElementById('pesoExamenes').value = data.Exámenes || 70;
-      document.getElementById('pesoTareas').value = data.Tareas || 20;
-      document.getElementById('pesoParticipacion').value = data.Participación || 10;
+      currentCategorias = data.categorias || [
+        { nombre: "Exámenes", peso: 40 },
+        { nombre: "Proyectos", peso: 30 },
+        { nombre: "Trabajo diario", peso: 20 },
+        { nombre: "Actitud", peso: 10 }
+      ];
     } else {
-      // Valores por defecto
-      document.getElementById('pesoExamenes').value = 70;
-      document.getElementById('pesoTareas').value = 20;
-      document.getElementById('pesoParticipacion').value = 10;
+      // Valores por defecto (como la calculadora)
+      currentCategorias = [
+        { nombre: "Exámenes", peso: 40 },
+        { nombre: "Proyectos", peso: 30 },
+        { nombre: "Trabajo diario", peso: 20 },
+        { nombre: "Actitud", peso: 10 }
+      ];
     }
     
+    renderCategorias();
     updatePesoTotal();
   } catch (error) {
     console.error('Error cargando ponderación:', error);
   }
 }
 
-// Update peso total display
-function updatePesoTotal() {
-  const examenes = parseInt(document.getElementById('pesoExamenes').value) || 0;
-  const tareas = parseInt(document.getElementById('pesoTareas').value) || 0;
-  const participacion = parseInt(document.getElementById('pesoParticipacion').value) || 0;
-  const total = examenes + tareas + participacion;
+// Render categories UI
+function renderCategorias() {
+  const container = document.getElementById('categoriasConfig');
+  if (!container) return;
   
-  document.getElementById('pesoTotal').textContent = total;
-  document.getElementById('pesoTotal').style.color = total === 100 ? 'var(--green)' : 'var(--accent)';
+  let html = '<div class="ponderacion-config">';
+  currentCategorias.forEach((cat, idx) => {
+    html += `
+      <div class="categoria-row">
+        <input type="text" value="${cat.nombre}" onchange="updateCategoriaNombre(${idx}, this.value)" placeholder="Nombre de la categoría">
+        <input type="number" min="0" max="100" value="${cat.peso}" onchange="updateCategoriaPeso(${idx}, this.value)" placeholder="%">
+        <button class="btn-remove-cat" onclick="eliminarCategoria(${idx})" title="Eliminar">🗑️</button>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
 }
 
-// Auto-update total when inputs change
-['pesoExamenes', 'pesoTareas', 'pesoParticipacion'].forEach(id => {
-  const input = document.getElementById(id);
-  if (input) {
-    input.addEventListener('input', updatePesoTotal);
+// Update peso total display
+function updatePesoTotal() {
+  const total = currentCategorias.reduce((sum, cat) => sum + (parseInt(cat.peso) || 0), 0);
+  
+  const totalSpan = document.getElementById('pesoTotal');
+  const statusSpan = document.getElementById('pesoStatus');
+  
+  if (totalSpan) {
+    totalSpan.textContent = total;
+    totalSpan.style.color = total === 100 ? 'var(--green)' : 'var(--accent)';
   }
-});
+  
+  if (statusSpan) {
+    if (total === 100) {
+      statusSpan.textContent = '✅ Correcto';
+      statusSpan.style.color = 'var(--green)';
+    } else {
+      statusSpan.textContent = '⚠️ Debe sumar 100%';
+      statusSpan.style.color = 'var(--accent)';
+    }
+  }
+}
+
+// Category management functions
+function updateCategoriaNombre(idx, nombre) {
+  currentCategorias[idx].nombre = nombre;
+}
+
+function updateCategoriaPeso(idx, peso) {
+  currentCategorias[idx].peso = parseInt(peso) || 0;
+  updatePesoTotal();
+}
+
+function añadirCategoria() {
+  currentCategorias.push({ nombre: "", peso: 0 });
+  renderCategorias();
+  updatePesoTotal();
+}
+
+function eliminarCategoria(idx) {
+  if (currentCategorias.length <= 1) {
+    alert('Debe haber al menos una categoría');
+    return;
+  }
+  currentCategorias.splice(idx, 1);
+  renderCategorias();
+  updatePesoTotal();
+}
 
 // Save ponderación
 async function guardarPonderacion() {
   try {
-    const examenes = parseInt(document.getElementById('pesoExamenes').value) || 0;
-    const tareas = parseInt(document.getElementById('pesoTareas').value) || 0;
-    const participacion = parseInt(document.getElementById('pesoParticipacion').value) || 0;
-    const total = examenes + tareas + participacion;
+    const total = currentCategorias.reduce((sum, cat) => sum + (parseInt(cat.peso) || 0), 0);
     
     if (total !== 100) {
       alert('La suma de los porcentajes debe ser 100%');
+      return;
+    }
+    
+    // Validate all categories have names
+    const hasEmptyNames = currentCategorias.some(cat => !cat.nombre.trim());
+    if (hasEmptyNames) {
+      alert('Todas las categorías deben tener un nombre');
       return;
     }
     
@@ -1410,9 +1495,7 @@ async function guardarPonderacion() {
     }
     
     await setDoc(doc(db, ponderacionDocPath), {
-      'Exámenes': examenes,
-      'Tareas': tareas,
-      'Participación': participacion,
+      categorias: currentCategorias,
       updatedAt: serverTimestamp()
     });
     
@@ -1606,17 +1689,19 @@ async function loadNotas() {
     let categorias;
     if (ponderacionDoc.exists()) {
       const pond = ponderacionDoc.data();
-      categorias = [
-        { nombre: 'Exámenes', peso: pond.Exámenes || 70 },
-        { nombre: 'Tareas', peso: pond.Tareas || 20 },
-        { nombre: 'Participación', peso: pond.Participación || 10 }
+      categorias = pond.categorias || [
+        { nombre: 'Exámenes', peso: 40 },
+        { nombre: 'Proyectos', peso: 30 },
+        { nombre: 'Trabajo diario', peso: 20 },
+        { nombre: 'Actitud', peso: 10 }
       ];
     } else {
-      // Valores por defecto
+      // Valores por defecto (como la calculadora)
       categorias = [
-        { nombre: 'Exámenes', peso: 70 },
-        { nombre: 'Tareas', peso: 20 },
-        { nombre: 'Participación', peso: 10 }
+        { nombre: 'Exámenes', peso: 40 },
+        { nombre: 'Proyectos', peso: 30 },
+        { nombre: 'Trabajo diario', peso: 20 },
+        { nombre: 'Actitud', peso: 10 }
       ];
     }
     
@@ -1967,11 +2052,16 @@ function initInviteProfesorModal() {
   window.showTrimestreDetail = showTrimestreDetail;
   window.guardarPonderacion = guardarPonderacion;
   window.backToClassOrAsignatura = backToClassOrAsignatura;
+  window.añadirCategoria = añadirCategoria;
+  window.eliminarCategoria = eliminarCategoria;
+  window.updateCategoriaNombre = updateCategoriaNombre;
+  window.updateCategoriaPeso = updateCategoriaPeso;
 
   // ===== INITIALIZE APP =====
   document.addEventListener('DOMContentLoaded', () => {
     initLogin();
     initLogout();
+    initAuthListener(showDirectorView, showProfesorView);
     initModals();
   });
 </script>
