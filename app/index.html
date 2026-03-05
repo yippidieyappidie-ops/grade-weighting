@@ -878,7 +878,6 @@ input:focus, select:focus, textarea:focus {
 </div>
 
 <script type="module">
-
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
   import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -1004,6 +1003,7 @@ function initAuthListener(onDirectorView, onProfesorView) {
 }
 // Director Module - Gestión de clases, alumnos, profesores y asignaturas
 
+// Navigation
 
 function showDirectorView() {
   hideAllViews();
@@ -1545,6 +1545,7 @@ function backToAsignaturaDetail() {
 }
 // Sistema de Notas Module
 
+
 // Show notas view
 function showNotasView(alumnoId, nombre) {
   state.currentAlumnoId = alumnoId;
@@ -1945,6 +1946,8 @@ function initInviteProfesorModal() {
 
   // ===== INITIALIZE APP =====
   document.addEventListener('DOMContentLoaded', () => {
+    initLogin();
+    initLogout();
     initModals();
   });
 </script>
