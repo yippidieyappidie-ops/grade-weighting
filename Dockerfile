@@ -1,18 +1,26 @@
-# 1. Usamos una imagen de Node ligera
-FROM node:18-alpine
+# ETAPA 1: Construcción (Build)
+FROM node:18-alpine AS build
 
-# 2. Creamos el directorio de la app
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# 3. Instalamos dependencias (esto se cachea para que sea rápido)
+# Copiamos solo lo necesario para instalar dependencias
 COPY package*.json ./
 RUN npm install
 
-# 4. Copiamos el resto de tu código
+# Copiamos el resto del código y compilamos
 COPY . .
+RUN npm run build
 
-# 5. Exponemos el puerto que usa tu app (ajusta si es otro, ej: 8080)
-EXPOSE 3000
+# ETAPA 2: Servidor de Producción
+# Usamos Nginx para servir los archivos estáticos de forma ultra rápida
+FROM nginx:stable-alpine
 
-# 6. Arrancamos la aplicación
-CMD [ "npm", "start" ]
+# Copiamos los archivos compilados desde la etapa anterior
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copiamos una configuración de Nginx para que las rutas de React funcionen (SPA)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
