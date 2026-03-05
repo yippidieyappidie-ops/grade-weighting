@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    restart: always
+    environment:
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY}
+      # Aquí añades tus otras variables de entorno
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
