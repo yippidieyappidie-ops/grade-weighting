@@ -5,7 +5,7 @@ import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase
 
 const firebaseConfig = {
   apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
-  authDomain: "grade-weighting.firebaseapp.com",
+  authDomain: "www.gradeweighting.com",
   projectId: "grade-weighting",
   storageBucket: "grade-weighting.firebasestorage.app",
   messagingSenderId: "567298019231",
