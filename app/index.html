@@ -917,7 +917,17 @@ input:focus, select:focus, textarea:focus {
 
 // Login with Google
 function initLogin() {
-  document.getElementById('loginBtn').addEventListener('click', async () => {
+  console.log('🔧 Inicializando login...');
+  const loginBtn = document.getElementById('loginBtn');
+  console.log('🔧 Botón encontrado:', loginBtn);
+  
+  if (!loginBtn) {
+    console.error('❌ No se encontró el botón de login!');
+    return;
+  }
+  
+  loginBtn.addEventListener('click', async () => {
+    console.log('🔄 Click en botón de login detectado');
     const provider = new GoogleAuthProvider();
     try {
       console.log('🔄 Iniciando login con Google (redirect)...');
@@ -928,6 +938,8 @@ function initLogin() {
       alert('Error al iniciar sesión: ' + error.message);
     }
   });
+  
+  console.log('✅ Event listener de login añadido');
   
   // Manejar el resultado del redirect cuando el usuario vuelva
   getRedirectResult(auth)
