@@ -10,11 +10,22 @@
     },
     {
       "source": "/app",
-      "destination": "/app/index-bundled.html"
+      "destination": "/app/index.html"
     },
     {
       "source": "/app/",
-      "destination": "/app/index-bundled.html"
+      "destination": "/app/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/app/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        }
+      ]
     }
   ]
 }
