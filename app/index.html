@@ -879,7 +879,7 @@ input:focus, select:focus, textarea:focus {
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
   import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
   // ===== CONFIG =====
   const firebaseConfig = {
@@ -920,16 +920,28 @@ function initLogin() {
   document.getElementById('loginBtn').addEventListener('click', async () => {
     const provider = new GoogleAuthProvider();
     try {
-      console.log('🔄 Iniciando login con Google (popup)...');
-      const result = await signInWithPopup(auth, provider);
-      console.log('✅ Login exitoso:', result.user.email);
+      console.log('🔄 Iniciando login con Google (redirect)...');
+      await signInWithRedirect(auth, provider);
+      // El usuario será redirigido a Google, luego volverá a esta página
     } catch (error) {
       console.error('❌ Error al hacer login:', error);
+      alert('Error al iniciar sesión: ' + error.message);
+    }
+  });
+  
+  // Manejar el resultado del redirect cuando el usuario vuelva
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result) {
+        console.log('✅ Login exitoso (redirect):', result.user.email);
+      }
+    })
+    .catch((error) => {
+      console.error('❌ Error en redirect result:', error);
       if (error.code !== 'auth/popup-closed-by-user') {
         alert('Error al iniciar sesión: ' + error.message);
       }
-    }
-  });
+    });
 }
 
 // Logout
