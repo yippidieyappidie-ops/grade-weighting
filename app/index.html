@@ -1004,12 +1004,6 @@ function initAuthListener(onDirectorView, onProfesorView) {
 }
 // Director Module - Gestión de clases, alumnos, profesores y asignaturas
 
-// Navigation
-function hideAllViews() {
-  ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'].forEach(id => {
-    document.getElementById(id).classList.add('hidden');
-  });
-}
 
 function showDirectorView() {
   hideAllViews();
@@ -1478,11 +1472,6 @@ function backToClassOrAsignatura() {
 }
 // Profesor Module - Vista de asignaturas y trimestres
 
-function hideAllViews() {
-  ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'].forEach(id => {
-    document.getElementById(id).classList.add('hidden');
-  });
-}
 
 // Show profesor view
 function showProfesorView() {
