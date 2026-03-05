@@ -1,1257 +1,1955 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grade Weighting</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grade Weighting — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993636752756332" crossorigin="anonymous"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Grade Weighting - Estilos principales */
 
-    :root {
-      --ink: #1a1a2e;
-      --ink-light: #4a4a6a;
-      --cream: #faf8f3;
-      --paper: #ffffff;
-      --accent: #c84b31;
-      --accent-light: #f5ede9;
-      --gold: #e8a838;
-      --green: #2d6a4f;
-      --green-light: #d8f3dc;
-      --border: #e2ddd6;
-      --shadow: 0 2px 16px rgba(26,26,46,0.08);
-      --shadow-lg: 0 8px 40px rgba(26,26,46,0.13);
-      --radius: 12px;
-      --radius-sm: 8px;
-    }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { scroll-behavior: smooth; }
+:root {
+  --ink: #1a1a2e; --ink-light: #4a4a6a; --cream: #faf8f3; --paper: #ffffff;
+  --accent: #c84b31; --accent-light: #f5ede9; --gold: #e8a838; --green: #2d6a4f;
+  --green-light: #d8f3dc; --border: #e2ddd6; --radius: 12px; --radius-sm: 8px;
+}
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      color: var(--ink);
-      min-height: 100vh;
-      font-size: 15px;
-      line-height: 1.6;
-    }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  margin: 0;
+}
 
-    /* HEADER */
-    .header {
-      background: var(--ink);
-      padding: 0 40px;
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      border-bottom: 3px solid var(--accent);
-    }
-    .header-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      color: #fff;
-      letter-spacing: -0.5px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .header-logo span { color: var(--gold); }
-    .header-tagline {
-      font-size: 12px;
-      color: rgba(255,255,255,0.45);
-      font-weight: 300;
-      letter-spacing: 0.5px;
-    }
-    .btn-login {
-      background: rgba(255,255,255,0.1);
-      border: 1.5px solid rgba(255,255,255,0.25);
-      color: #fff;
-      padding: 8px 20px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn-login:hover {
-      background: rgba(255,255,255,0.2);
-      transform: translateY(-1px);
-    }
+/* LOGIN SCREEN */
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 
-    /* LAYOUT */
-    .main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+.login-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 48px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 8px 40px rgba(26,26,46,0.13);
+  text-align: center;
+}
 
-    /* SECTION CARD */
-    .card {
-      background: var(--paper);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 32px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
-      animation: fadeUp 0.4s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+.login-card h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
 
-    .section-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 8px;
-    }
-    .section-label .step {
-      background: var(--accent);
-      color: #fff;
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
-    }
-    .card h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 24px;
-      font-weight: 500;
-      margin-bottom: 20px;
-      color: var(--ink);
-    }
+.login-card .subtitle {
+  color: var(--ink-light);
+  font-size: 15px;
+  margin-bottom: 32px;
+}
 
-    /* FORMS */
-    label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      color: var(--ink-light);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    input[type="text"], input[type="number"] {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      color: var(--ink);
-      background: var(--cream);
-      transition: border-color 0.2s, box-shadow 0.2s;
-      outline: none;
-    }
-    input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(200,75,49,0.1);
-      background: #fff;
-    }
-    input[type="range"] {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      outline: none;
-      margin: 8px 0;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: var(--accent);
-      cursor: pointer;
-      border: 2px solid #fff;
-      box-shadow: 0 1px 4px rgba(200,75,49,0.35);
-    }
+.btn-google {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 28px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
-    /* GRID */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-    .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-    @media(max-width: 640px) {
-      .grid-2, .grid-3, .grid-auto { grid-template-columns: 1fr; }
-    }
+.btn-google:hover {
+  background: #2d2d4a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26,26,46,0.2);
+}
 
-    /* WEIGHT DISPLAY */
-    .weight-display {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 4px;
-    }
-    .weight-value {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--accent);
-      min-width: 48px;
-      text-align: right;
-    }
+.login-note {
+  margin-top: 24px;
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.6;
+}
 
-    /* PROGRESS BAR */
-    .progress-wrap { background: var(--border); border-radius: 4px; height: 8px; overflow: hidden; margin: 12px 0; }
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.3s ease, background 0.3s ease;
-    }
-    .progress-fill.ok { background: var(--green); }
-    .progress-fill.warn { background: var(--gold); }
-    .progress-fill.error { background: var(--accent); }
-    .progress-label { font-size: 12px; color: var(--ink-light); }
+/* HEADER */
+.header {
+  background: var(--ink);
+  padding: 0 40px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--accent);
+}
 
-    /* TAGS */
-    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .tag {
-      padding: 6px 14px;
-      border-radius: 99px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.18s;
-      border: 1.5px solid var(--border);
-      background: var(--cream);
-      color: var(--ink-light);
-      user-select: none;
-    }
-    .tag.selected {
-      background: var(--ink);
-      border-color: var(--ink);
-      color: #fff;
-    }
-    .tag:hover:not(.selected) { border-color: var(--ink); color: var(--ink); }
+.header-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
 
-    /* CATEGORY BLOCK */
-    .cat-block {
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-    .cat-block-header {
-      background: var(--ink);
-      color: #fff;
-      padding: 12px 20px;
-      display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .cat-block-header .chevron { transition: transform 0.2s; font-size: 12px; }
-    .cat-block-header.open .chevron { transform: rotate(180deg); }
-    .cat-block-body { padding: 20px; background: var(--paper); }
+.header-logo span { color: var(--gold); }
 
-    .subitem-row {
-      display: grid;
-      grid-template-columns: 1fr 100px 36px;
-      gap: 10px;
-      align-items: end;
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    .subitem-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
-    /* BUTTONS */
-    .btn {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 10px 20px;
-      border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.18s;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: #a83a22; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(200,75,49,0.3); }
-    .btn-secondary { background: var(--ink); color: #fff; }
-    .btn-secondary:hover { background: #2d2d4a; transform: translateY(-1px); }
-    .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
-    .btn-ghost:hover { border-color: var(--ink); background: var(--cream); }
-    .btn-green { background: var(--green); color: #fff; }
-    .btn-green:hover { background: #1e5038; transform: translateY(-1px); }
-    .btn-gold { background: var(--gold); color: var(--ink); }
-    .btn-gold:hover { background: #d09620; transform: translateY(-1px); }
-    .btn-sm { padding: 6px 12px; font-size: 12px; }
-    .btn-danger { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
-    .btn-danger:hover { background: var(--accent-light); }
-    .btn-icon { padding: 8px; border-radius: 6px; background: var(--cream); color: var(--ink-light); border: 1.5px solid var(--border); cursor: pointer; font-size: 16px; transition: all 0.15s; }
-    .btn-icon:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.user-info {
+  text-align: right;
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
+}
 
-    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+.user-email {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
 
-    /* ALERTS */
-    .alert {
-      padding: 12px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      font-weight: 500;
-      margin: 12px 0;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .alert-warn { background: #fff8e1; color: #8a6600; border-left: 4px solid var(--gold); }
-    .alert-ok   { background: var(--green-light); color: var(--green); border-left: 4px solid var(--green); }
-    .alert-err  { background: var(--accent-light); color: var(--accent); border-left: 4px solid var(--accent); }
+.role-badge {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--ink);
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+}
 
-    /* STUDENT TABLE */
-    .student-grid {
-      display: grid;
-      grid-template-columns: 180px repeat(auto-fill, minmax(100px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      margin-top: 12px;
-    }
-    .sg-cell {
-      background: var(--paper);
-      padding: 10px 12px;
-      font-size: 13px;
-    }
-    .sg-header { background: var(--ink); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
-    .sg-name { font-weight: 600; color: var(--ink); }
-    .sg-note input {
-      width: 100%; padding: 4px 8px; border: 1.5px solid var(--border);
-      border-radius: 6px; font-size: 13px; text-align: center;
-      background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans-serif;
-    }
-    .sg-note input:focus { border-color: var(--accent); background: #fff; outline: none; }
+.btn-logout {
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
-    /* RESULTS */
-    .results-table {
-      width: 100%; border-collapse: collapse; margin-top: 16px;
-      font-size: 14px;
-    }
-    .results-table th {
-      background: var(--ink); color: #fff; padding: 11px 16px;
-      text-align: left; font-size: 12px; font-weight: 600;
-      letter-spacing: 0.5px; text-transform: uppercase;
-    }
-    .results-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
-    .results-table th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
-    .results-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); color: var(--ink); }
-    .results-table tr:last-child td { border-bottom: none; }
-    .results-table tr:hover td { background: var(--cream); }
+.btn-logout:hover { background: rgba(255,255,255,0.2); }
 
-    .nota-badge {
-      display: inline-block;
-      padding: 3px 12px;
-      border-radius: 99px;
-      font-weight: 700;
-      font-size: 15px;
-    }
-    .nota-high { background: var(--green-light); color: var(--green); }
-    .nota-mid  { background: #fff8e1; color: #8a6600; }
-    .nota-low  { background: var(--accent-light); color: var(--accent); }
+/* MAIN LAYOUT */
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
 
-    .export-row {
-      display: flex; flex-wrap: wrap; gap: 12px;
-      padding: 20px;
-      background: var(--cream);
-      border-radius: var(--radius);
-      border: 1.5px dashed var(--border);
-      margin-top: 20px;
-      align-items: center;
-    }
-    .export-row span { font-size: 13px; color: var(--ink-light); font-weight: 500; }
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
 
-    /* DIVIDER */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+.page-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+}
 
-    /* EMPTY STATE */
-    .empty {
-      text-align: center;
-      padding: 40px;
-      color: var(--ink-light);
-      font-size: 14px;
-    }
-    .empty .icon { font-size: 36px; margin-bottom: 10px; }
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ink-light);
+  margin-bottom: 16px;
+}
 
-    /* TOOLTIP */
-    .tooltip-wrap { position: relative; display: inline-block; }
-    .tooltip-icon {
-      width: 16px; height: 16px; background: var(--border); color: var(--ink-light);
-      border-radius: 50%; font-size: 10px; font-weight: 700;
-      display: inline-flex; align-items: center; justify-content: center;
-      cursor: default; margin-left: 4px;
-    }
+.breadcrumb a {
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
 
-    .nota-desc { font-size: 11px; color: var(--ink-light); margin-top: 2px; }
+.breadcrumb a:hover { text-decoration: underline; }
 
-    .scroll-x { overflow-x: auto; }
+/* BUTTONS */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    /* FOOTER */
-    .footer { text-align: center; padding: 32px; color: var(--ink-light); font-size: 12px; }
+.btn-primary:hover {
+  background: #a83a22;
+  transform: translateY(-1px);
+}
 
-    @media print {
-      .header, .btn, .btn-row, .export-row { display: none !important; }
-    }
+.btn-primary:disabled {
+  background: var(--border);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: var(--border);
+  color: var(--ink);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover { background: #d0cbc4; }
+
+/* NAVIGATION TABS (Director) */
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.nav-tab {
+  background: var(--border);
+  color: var(--ink);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-tab:hover {
+  background: #d0cbc4;
+  transform: translateY(-1px);
+}
+
+.nav-tab.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.nav-tab.active:hover {
+  background: #2d2d4a;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 16px;
+}
+
+.btn-icon:hover {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+/* CARDS */
+.card {
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(200,75,49,0.15);
+}
+
+.card-clickable { cursor: pointer; }
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.card-meta {
+  font-size: 13px;
+  color: var(--ink-light);
+  margin-bottom: 4px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* TABLE */
+.table {
+  width: 100%;
+  background: var(--paper);
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+}
+
+.table thead { background: var(--cream); }
+
+.table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-light);
+}
+
+.table td {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.table tr:hover { background: var(--cream); }
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 40px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  margin-bottom: 24px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* FORM */
+.form-group { margin-bottom: 20px; }
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--cream);
+  transition: all 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,75,49,0.1);
+  background: #fff;
+}
+
+/* CHECKBOX GROUP (para selector de alumnos) */
+.checkbox-group {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: var(--cream);
+}
+
+.clase-group {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--paper);
+  border-radius: var(--radius-sm);
+}
+
+.clase-group-header {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.select-all-btn {
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  margin-bottom: 4px;
+}
+
+.checkbox-item:hover {
+  background: rgba(200,75,49,0.05);
+  border-radius: 4px;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  margin: 0;
+  text-transform: none;
+  font-weight: 400;
+  font-size: 14px;
+  cursor: pointer;
+  flex: 1;
+}
+
+/* STATES */
+.hidden { display: none !important; }
+
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: var(--ink-light);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--ink-light);
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.alert {
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.alert-info {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1.5px solid #90caf9;
+}
+
+.alert-success {
+  background: var(--green-light);
+  color: var(--green);
+  border: 1.5px solid var(--green);
+}
+
+/* SISTEMA DE NOTAS */
+.ponderacion-config {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ponderacion-item label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ponderacion-item input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--cream);
+  text-align: center;
+}
+
+.ponderacion-total {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 16px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  font-size: 20px;
+}
+
+.trimestre-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.trimestre-tab {
+  padding: 10px 20px;
+  background: var(--border);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.trimestre-tab:hover { background: #d0cbc4; }
+
+.trimestre-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.categoria-section {
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.categoria-header {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+.nota-input-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.nota-input-row input { width: 100px; }
+
+.nota-final-display {
+  background: var(--green-light);
+  border: 2px solid var(--green);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.nota-final-display h3 {
+  font-size: 16px;
+  color: var(--green);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nota-final-display .nota {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--green);
+  font-family: 'Playfair Display', serif;
+}
   </style>
 </head>
 <body>
 
-<div id="root"></div>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <h1>Grade <span style="color: var(--gold);">Weighting</span></h1>
+    <p class="subtitle">Sistema de gestión de notas para colegios</p>
+    <button class="btn-google" id="loginBtn">
+      <svg width="20" height="20" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Iniciar sesión con Google
+    </button>
+    <p class="login-note">Solo para colegios con cuenta activa.<br>¿Eres profesor? <a href="/" style="color: var(--accent);">Usa la calculadora gratis</a></p>
+  </div>
+</div>
 
-<script type="text/babel">
-const { useState, useCallback, useMemo } = React;
-
-// ─── CONSTANTES ──────────────────────────────────────────────────────
-const CATEGORIAS_DEFAULT = [
-  { id: 1, nombre: "Exámenes",        peso: 40 },
-  { id: 2, nombre: "Proyectos",       peso: 30 },
-  { id: 3, nombre: "Trabajo diario",  peso: 20 },
-  { id: 4, nombre: "Actitud",         peso: 10 },
-];
-const ALL_CATS = ["Exámenes","Proyectos","Trabajo diario","Actitud","Participación","Deberes","Lectura"];
-
-function uid() { return Math.random().toString(36).slice(2,8); }
-
-// ─── HELPERS ─────────────────────────────────────────────────────────
-function calcNotaFinal(categorias, subitems, notas, escalaMax, usePercent) {
-  let total = 0;
-  for (const cat of categorias) {
-    const subs = subitems[cat.id] || [];
-    if (!subs.length) continue;
-    const pesoCat = cat.peso / 100;
-    let mediaCat = 0;
-    const totalSubPeso = subs.reduce((a,s) => a + s.peso, 0) || 1;
-    for (const sub of subs) {
-      let nota = notas?.[cat.id]?.[sub.id] ?? 0;
-      // si el profesor introduce en %, convertimos a la escala real
-      if (usePercent) nota = nota / 100 * escalaMax;
-      mediaCat += nota * (sub.peso / totalSubPeso);
-    }
-    total += mediaCat * pesoCat;
-  }
-  return total;
-}
-
-// Normaliza una nota a escala 0-10 para los colores del badge
-function notaBadge(nota, escalaMax) {
-  const n = parseFloat(nota) / escalaMax * 10;
-  if (n >= 7) return "nota-high";
-  if (n >= 5) return "nota-mid";
-  return "nota-low";
-}
-
-// ─── TRADUCCIONES ────────────────────────────────────────────────────
-const TRANSLATIONS = {
-  es: {
-    tagline: "Calculadora de ponderaciones para profesores",
-    tabs: ["⚙️ Configuración", "📝 Notas", "📊 Resultados"],
-    // Escala
-    scaleStep: "Escala de notas",
-    scaleTitle: "¿Sobre cuánto puntúas?",
-    scaleDesc: "Escribe el valor máximo de tu escala o elige uno rápido. El cálculo y la exportación se adaptan automáticamente.",
-    scaleMax: "Nota máxima",
-    scaleQuick: "Accesos rápidos",
-    scaleActive: "Escala activa",
-    scaleRange: "Las notas se introducirán entre",
-    scaleDisplay: "La nota final se mostrará en la misma escala",
-    // Categorías
-    catStep: "Categorías de evaluación",
-    catTitle: "¿Qué evalúas?",
-    catDesc: "Selecciona las categorías que usarás y ajusta el peso de cada una en la nota final.",
-    catEmpty: "Selecciona al menos una categoría",
-    weightOk: "Pesos correctos — suman 100%",
-    weightWarn: (n) => `¡Los pesos no suman 100%! Suma: ${n}%`,
-    // Sub-items
-    subStep: "Elementos por categoría",
-    subTitle: "Detalla cada categoría",
-    subDesc: "Añade los elementos individuales de cada categoría y su peso relativo dentro de ella.",
-    subLabel: "Nombre del elemento",
-    subWeight: "Peso (%)",
-    subAdd: "+ Añadir elemento",
-    subSum: "Suma",
-    subElements: (n) => `${n} elemento${n!==1?'s':''}`,
-    subOf: "de la nota",
-    // Alumnos
-    studentStep: "Alumnos y notas",
-    studentTitle: "Introduce las notas",
-    studentDesc: (max) => `Notas de 0 a ${max}. Modifica los nombres haciendo clic sobre ellos.`,
-    studentAdd: "+ Alumno",
-    studentEmpty: "Añade alumnos para empezar",
-    studentOf: "% de la nota final",
-    // Resultados
-    resultsStep: "Resultados",
-    resultsTitle: "Notas finales ponderadas",
-    resultsDesc: "Cálculo automático. La nota final siempre la decide el profesor — esta herramienta solo calcula.",
-    resultsEmpty: "No hay alumnos registrados",
-    colStudent: "Alumno",
-    colFinal: "Nota Final",
-    // Botones
-    btnContinue: "Continuar → Introducir notas",
-    btnAdjust: "Ajusta los pesos antes de continuar",
-    btnBack: "← Volver",
-    btnResults: "Ver resultados →",
-    btnEditGrades: "← Editar notas",
-    btnExcel: "📊 Descargar Excel (.xlsx)",
-    btnPDF: "📄 Descargar PDF",
-    exportLabel: "📥 Exportar informe:",
-    exportFileName: "Nombre del archivo",
-    exportFileNamePlaceholder: "ej. clase_3A_trimestre1",
-    percentMode: "Introducir notas en porcentaje (0–100%)",
-    percentModeDesc: "Actívalo para evaluar siempre sobre 100, independientemente de la escala máxima.",
-    // PDF
-    pdfTitle: "Grade Weighting — Informe de Notas",
-    pdfGenerated: (d) => `Generado el ${d}`,
-    pdfCategories: "Categorías",
-    pdfScale: "Escala de notas",
-    pdfDetail: "Detalle por sub-items",
-    pdfFinal: "Nota Final",
-    // Excel sheets
-    xlsxSheet1: "Resumen Notas",
-    xlsxSheet2: "Notas Detalladas",
-    xlsxStudent: (max) => `Alumno (escala 0–${max})`,
-    xlsxFinal: "NOTA FINAL",
-    // Default names
-    defaultStudent: (n) => `Alumno ${n}`,
-    defaultSubitem: (n) => `Elemento ${n}`,
-    defaultCats: ["Exámenes","Proyectos","Trabajo diario","Actitud","Participación","Deberes","Lectura"],
-    defaultSubNames: { 1: ["Examen 1","Examen 2"], 2: ["Proyecto trimestral"], 3: ["Ejercicios diarios"], 4: ["Comportamiento"] },
-    footer: "Grade Weighting · Calculadora de ponderaciones para profesores · La nota siempre la decide el profesor.",
-  },
-  en: {
-    tagline: "Grade weighting calculator for teachers",
-    tabs: ["⚙️ Setup", "📝 Grades", "📊 Results"],
-    scaleStep: "Grade scale",
-    scaleTitle: "What's your maximum score?",
-    scaleDesc: "Type your maximum grade or pick a quick option. The calculation and exports adapt automatically.",
-    scaleMax: "Maximum grade",
-    scaleQuick: "Quick options",
-    scaleActive: "Active scale",
-    scaleRange: "Grades will be entered between",
-    scaleDisplay: "The final grade will be shown in the same scale",
-    catStep: "Assessment categories",
-    catTitle: "What do you assess?",
-    catDesc: "Select the categories you'll use and set each one's weight in the final grade.",
-    catEmpty: "Select at least one category",
-    weightOk: "Weights are correct — they add up to 100%",
-    weightWarn: (n) => `Weights don't add up to 100%! Sum: ${n}%`,
-    subStep: "Items per category",
-    subTitle: "Break down each category",
-    subDesc: "Add the individual items within each category and their relative weight.",
-    subLabel: "Item name",
-    subWeight: "Weight (%)",
-    subAdd: "+ Add item",
-    subSum: "Sum",
-    subElements: (n) => `${n} item${n!==1?'s':''}`,
-    subOf: "of grade",
-    studentStep: "Students & grades",
-    studentTitle: "Enter grades",
-    studentDesc: (max) => `Grades from 0 to ${max}. Click any name to rename.`,
-    studentAdd: "+ Student",
-    studentEmpty: "Add students to get started",
-    studentOf: "% of final grade",
-    resultsStep: "Results",
-    resultsTitle: "Weighted final grades",
-    resultsDesc: "Automatic calculation. The final grade is always the teacher's decision — this tool only calculates.",
-    resultsEmpty: "No students registered",
-    colStudent: "Student",
-    colFinal: "Final Grade",
-    btnContinue: "Continue → Enter grades",
-    btnAdjust: "Fix weights before continuing",
-    btnBack: "← Back",
-    btnResults: "View results →",
-    btnEditGrades: "← Edit grades",
-    btnExcel: "📊 Download Excel (.xlsx)",
-    btnPDF: "📄 Download PDF",
-    exportLabel: "📥 Export report:",
-    exportFileName: "File name",
-    exportFileNamePlaceholder: "e.g. class_3A_term1",
-    percentMode: "Enter grades as percentage (0–100%)",
-    percentModeDesc: "Enable to always grade out of 100, regardless of the maximum scale.",
-    pdfTitle: "Grade Weighting — Grade Report",
-    pdfGenerated: (d) => `Generated on ${d}`,
-    pdfCategories: "Categories",
-    pdfScale: "Grade scale",
-    pdfDetail: "Detail by sub-items",
-    pdfFinal: "Final Grade",
-    xlsxSheet1: "Grade Summary",
-    xlsxSheet2: "Detailed Grades",
-    xlsxStudent: (max) => `Student (scale 0–${max})`,
-    xlsxFinal: "FINAL GRADE",
-    defaultStudent: (n) => `Student ${n}`,
-    defaultSubitem: (n) => `Item ${n}`,
-    defaultCats: ["Exams","Projects","Daily work","Attitude","Participation","Homework","Reading"],
-    defaultSubNames: { 1: ["Exam 1","Exam 2"], 2: ["Term project"], 3: ["Daily exercises"], 4: ["Behaviour"] },
-    footer: "Grade Weighting · Grade calculator for teachers · The final grade is always the teacher's decision.",
-  }
-};
-
-// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────
-function App() {
-  const [tab, setTab] = useState(0);
-  const [lang, setLang] = useState("es");
-  const [escalaMax, setEscalaMax] = useState(10);
-  const [escalaInput, setEscalaInput] = useState("10");
-  const [exportFileName, setExportFileName] = useState("notas_clase");
-  const [usePercent, setUsePercent] = useState(false); // introduce notas en % siempre
-
-  const t = TRANSLATIONS[lang];
-
-  // CATEGORÍAS
-  const [categorias, setCategorias] = useState(CATEGORIAS_DEFAULT);
-  const [catSeleccionadas, setCatSeleccionadas] = useState([1,2]);
-
-  // SUB-ITEMS por categoria
-  const [subitems, setSubitems] = useState({
-    1: [{ id: uid(), nombre: "Examen 1", peso: 50 },{ id: uid(), nombre: "Examen 2", peso: 50 }],
-    2: [{ id: uid(), nombre: "Proyecto trimestral", peso: 100 }],
-    3: [{ id: uid(), nombre: "Ejercicios diarios", peso: 100 }],
-    4: [{ id: uid(), nombre: "Comportamiento", peso: 100 }],
-  });
-
-  // ALUMNOS
-  const [alumnos, setAlumnos] = useState([
-    { id: uid(), nombre: "Alumno 1" },
-    { id: uid(), nombre: "Alumno 2" },
-  ]);
-
-  // NOTAS: { alumnoId: { catId: { subId: nota } } }
-  const [notas, setNotas] = useState({});
-
-  // Categorías activas
-  const catsActivas = categorias.filter(c => catSeleccionadas.includes(c.id));
-  const totalPeso = catsActivas.reduce((a,c) => a + c.peso, 0);
-
-  // ── HANDLERS CATEGORÍAS ──
-  function toggleCat(catId) {
-    setCatSeleccionadas(prev =>
-      prev.includes(catId) ? prev.filter(x => x!==catId) : [...prev, catId]
-    );
-  }
-  function addCat(nombre) {
-    const newCat = { id: uid(), nombre, peso: 0 };
-    setCategorias(prev => [...prev, newCat]);
-    setCatSeleccionadas(prev => [...prev, newCat.id]);
-    setSubitems(prev => ({ ...prev, [newCat.id]: [{ id: uid(), nombre: `${nombre} 1`, peso: 100 }] }));
-  }
-  function updateCatPeso(catId, peso) {
-    setCategorias(prev => prev.map(c => c.id===catId ? {...c, peso} : c));
-  }
-
-  // ── HANDLERS SUBITEMS ──
-  function addSubitem(catId) {
-    const subs = subitems[catId] || [];
-    const newPeso = subs.length ? Math.floor(100/(subs.length+1)) : 100;
-    setSubitems(prev => ({
-      ...prev,
-      [catId]: [...subs, { id: uid(), nombre: t.defaultSubitem(subs.length+1), peso: newPeso }]
-    }));
-  }
-  function removeSubitem(catId, subId) {
-    setSubitems(prev => ({
-      ...prev,
-      [catId]: (prev[catId]||[]).filter(s => s.id !== subId)
-    }));
-  }
-  function updateSubitem(catId, subId, field, value) {
-    setSubitems(prev => ({
-      ...prev,
-      [catId]: (prev[catId]||[]).map(s => s.id===subId ? {...s, [field]: value} : s)
-    }));
-  }
-
-  // ── HANDLERS ALUMNOS ──
-  function addAlumno() {
-    setAlumnos(prev => [...prev, { id: uid(), nombre: t.defaultStudent(prev.length+1) }]);
-  }
-  function removeAlumno(id) {
-    setAlumnos(prev => prev.filter(a => a.id !== id));
-    setNotas(prev => { const n={...prev}; delete n[id]; return n; });
-  }
-  function updateAlumnoNombre(id, nombre) {
-    setAlumnos(prev => prev.map(a => a.id===id ? {...a, nombre} : a));
-  }
-  function setNota(alumnoId, catId, subId, valor) {
-    const max = usePercent ? 100 : escalaMax;
-    const v = Math.max(0, Math.min(max, parseFloat(valor)||0));
-    setNotas(prev => ({
-      ...prev,
-      [alumnoId]: {
-        ...(prev[alumnoId]||{}),
-        [catId]: {
-          ...((prev[alumnoId]||{})[catId]||{}),
-          [subId]: v
-        }
-      }
-    }));
-  }
-
-  // ── CALCULOS ──
-  const resultados = useMemo(() => alumnos.map(a => ({
-    ...a,
-    notaFinal: calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent),
-    detalles: catsActivas.map(cat => {
-      const subs = subitems[cat.id]||[];
-      const totalSubPeso = subs.reduce((a,s)=>a+s.peso,0)||1;
-      const mediaCat = subs.reduce((acc,s) => {
-        let nota = notas?.[a.id]?.[cat.id]?.[s.id]??0;
-        if (usePercent) nota = nota / 100 * escalaMax;
-        return acc + nota*(s.peso/totalSubPeso);
-      }, 0);
-      return { cat: cat.nombre, media: mediaCat };
-    })
-  })), [alumnos, catsActivas, subitems, notas, escalaMax, usePercent]);
-
-  // ── EXPORT EXCEL ──
-  function exportExcel() {
-    const wb = XLSX.utils.book_new();
-
-    // Hoja resumen
-    const headerRow = [t.xlsxStudent(escalaMax), ...catsActivas.map(c => `${c.nombre} (${c.peso}%)`), t.xlsxFinal];
-    const rows = resultados.map(r => [
-      r.nombre,
-      ...r.detalles.map(d => +d.media.toFixed(2)),
-      +r.notaFinal.toFixed(2)
-    ]);
-    const wsData = [headerRow, ...rows];
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    ws["!cols"] = [{ wch: 22 }, ...catsActivas.map(() => ({ wch: 16 })), { wch: 14 }];
-    XLSX.utils.book_append_sheet(wb, ws, t.xlsxSheet1);
-
-    // Hoja detallada por sub-items
-    const cols2 = [t.colStudent];
-    for (const cat of catsActivas) {
-      for (const sub of (subitems[cat.id]||[])) {
-        cols2.push(`${sub.nombre} (${cat.nombre})`);
-      }
-    }
-    cols2.push(t.xlsxFinal);
-    const rows2 = alumnos.map(a => {
-      const row = [a.nombre];
-      for (const cat of catsActivas) {
-        for (const sub of (subitems[cat.id]||[])) {
-          row.push(notas?.[a.id]?.[cat.id]?.[sub.id] ?? 0);
-        }
-      }
-      row.push(+calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent).toFixed(2));
-      return row;
-    });
-    const ws2 = XLSX.utils.aoa_to_sheet([cols2, ...rows2]);
-    ws2["!cols"] = cols2.map((_,i) => ({ wch: i===0 ? 22 : 18 }));
-    XLSX.utils.book_append_sheet(wb, ws2, t.xlsxSheet2);
-
-    XLSX.writeFile(wb, `${exportFileName}.xlsx`);
-  }
-
-  // ── EXPORT PDF ──
-  function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: "landscape" });
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.setTextColor(26, 26, 46);
-    doc.text(t.pdfTitle, 14, 18);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 120);
-    const dateStr = new Date().toLocaleDateString(lang==='es' ? 'es-ES' : 'en-GB', {day:'2-digit',month:'long',year:'numeric'});
-    doc.text(t.pdfGenerated(dateStr), 14, 26);
-    doc.text(`${t.pdfCategories}: ${catsActivas.map(c=>c.nombre+' '+c.peso+'%').join(' · ')}`, 14, 32);
-    doc.text(`${t.pdfScale}: 0 – ${escalaMax}`, 14, 38);
-
-    const headers = [t.colStudent, ...catsActivas.map(c => `${c.nombre}\n${c.peso}%`), t.pdfFinal];
-    const body = resultados.map(r => [
-      r.nombre,
-      ...r.detalles.map(d => d.media.toFixed(2)),
-      r.notaFinal.toFixed(2)
-    ]);
-
-    doc.autoTable({
-      head: [headers],
-      body,
-      startY: 44,
-      styles: { font: "helvetica", fontSize: 10, cellPadding: 5 },
-      headStyles: { fillColor: [26,26,46], textColor: [255,255,255], fontStyle: "bold" },
-      alternateRowStyles: { fillColor: [250,248,243] },
-      columnStyles: {
-        0: { fontStyle: "bold", cellWidth: 45 },
-        [headers.length-1]: { fontStyle: "bold", fillColor: [214,246,221], textColor: [45,106,79] }
-      },
-      didParseCell(data) {
-        if (data.section === 'body' && data.column.index === headers.length-1) {
-          const n = parseFloat(data.cell.raw) / escalaMax * 10;
-          if (n < 5) {
-            data.cell.styles.fillColor = [245,237,233];
-            data.cell.styles.textColor = [200,75,49];
-          } else if (n < 7) {
-            data.cell.styles.fillColor = [255,248,225];
-            data.cell.styles.textColor = [138,102,0];
-          } else {
-            data.cell.styles.fillColor = [216,243,220];
-            data.cell.styles.textColor = [45,106,79];
-          }
-        }
-      }
-    });
-
-    // Sub-items detail table
-    const subHeaders = [t.colStudent];
-    for (const cat of catsActivas) {
-      for (const sub of (subitems[cat.id]||[])) {
-        subHeaders.push(`${sub.nombre}`);
-      }
-    }
-    subHeaders.push(t.pdfFinal);
-
-    const subBody = alumnos.map(a => {
-      const row = [a.nombre];
-      for (const cat of catsActivas) {
-        for (const sub of (subitems[cat.id]||[])) {
-          row.push((notas?.[a.id]?.[cat.id]?.[sub.id] ?? 0).toFixed(1));
-        }
-      }
-      row.push(calcNotaFinal(catsActivas, subitems, notas[a.id], escalaMax, usePercent).toFixed(2));
-      return row;
-    });
-
-    const y2 = (doc.lastAutoTable?.finalY || 40) + 14;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(26,26,46);
-    doc.text(t.pdfDetail, 14, y2);
-
-    doc.autoTable({
-      head: [subHeaders],
-      body: subBody,
-      startY: y2 + 4,
-      styles: { font: "helvetica", fontSize: 9, cellPadding: 4 },
-      headStyles: { fillColor: [200,75,49], textColor: [255,255,255], fontStyle: "bold" },
-      alternateRowStyles: { fillColor: [250,248,243] },
-    });
-
-    doc.save(`${exportFileName}.pdf`);
-  }
-
-  // ── RENDER TABS ──
-  const tabs = t.tabs;
-
-  return (
-    <div>
-      <header className="header">
-        <div className="header-logo">
-          Grade <span>Weighting</span>
+<div id="dashboard" class="hidden">
+  <header class="header">
+    <div class="header-logo">Grade <span>Weighting</span></div>
+    <div class="header-user">
+      <div class="user-info">
+        <div><span id="userName"></span><span id="roleBadge" class="role-badge"></span></div>
+        <div class="user-email" id="userEmail"></div>
+      </div>
+      <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </header>
+  
+  <main class="main">
+    <div id="directorView" class="hidden">
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="navClases" onclick="showDirectorView()">📚 Clases</button>
+        <button class="nav-tab" id="navAsignaturas" onclick="showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab" id="navProfesores" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+      </div>
+      <div class="page-header">
+        <h1>Mis clases</h1>
+        <button class="btn-primary" id="newClassBtn">+ Crear clase</button>
+      </div>
+      <div id="classesList" class="loading">Cargando...</div>
+    </div>
+    
+    <div id="studentsView" class="hidden">
+      <div class="breadcrumb">
+        <a onclick="showDirectorView()">← Mis clases</a><span>/</span><span id="currentClassName"></span>
+      </div>
+      <div class="page-header">
+        <h1 id="studentsViewTitle">Trimestres</h1>
+        <button class="btn-primary" id="newStudentBtn">+ Añadir alumno</button>
+      </div>
+      <div class="cards-grid">
+        <div class="card card-clickable" onclick="showTrimestreDetail('T1')">
+          <div class="card-title">1º Trimestre</div>
+          <div class="card-meta">Configurar ponderación y notas →</div>
         </div>
-        <div style={{display:'flex',alignItems:'center',gap:16}}>
-          <div className="header-tagline">{t.tagline}</div>
-          <a href="/app" className="btn-login">
-            {lang === 'es' ? 'Iniciar sesión' : 'Log in'}
-          </a>
-          <button
-            onClick={() => setLang(l => l==='es' ? 'en' : 'es')}
-            style={{
-              background:'rgba(255,255,255,0.1)', border:'1.5px solid rgba(255,255,255,0.25)',
-              color:'#fff', borderRadius:8, padding:'5px 14px', cursor:'pointer',
-              font:'600 12px DM Sans, sans-serif', letterSpacing:'0.5px',
-              display:'flex', alignItems:'center', gap:6, transition:'all 0.2s'
-            }}
-            title={lang==='es' ? 'Switch to English' : 'Cambiar a Español'}
-          >
-            {lang==='es' ? '🇬🇧 EN' : '🇪🇸 ES'}
-          </button>
+        <div class="card card-clickable" onclick="showTrimestreDetail('T2')">
+          <div class="card-title">2º Trimestre</div>
+          <div class="card-meta">Configurar ponderación y notas →</div>
         </div>
-      </header>
-
-      <main className="main">
-
-        {/* NAV TABS */}
-        <div style={{display:'flex', gap:8, marginBottom:28, borderBottom:'2px solid var(--border)', paddingBottom:0}}>
-          {tabs.map((tabLabel,i) => (
-            <button key={i} onClick={() => setTab(i)} style={{
-              padding:'10px 20px', border:'none', background:'transparent',
-              cursor:'pointer', font:'600 14px DM Sans, sans-serif',
-              color: tab===i ? 'var(--accent)' : 'var(--ink-light)',
-              borderBottom: tab===i ? '2px solid var(--accent)' : '2px solid transparent',
-              marginBottom:'-2px', transition:'all 0.15s'
-            }}>{tabLabel}</button>
-          ))}
-        </div>
-
-        {/* ══════════ TAB 0: CONFIGURACIÓN ══════════ */}
-        {tab===0 && (
-          <>
-            {/* ESCALA DE NOTAS */}
-            <div className="card" style={{paddingBottom:24}}>
-              <div className="section-label"><span className="step">0</span>{t.scaleStep}</div>
-              <h2>{t.scaleTitle}</h2>
-              <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:18}}>{t.scaleDesc}</p>
-
-              {/* INPUT LIBRE */}
-              <div style={{display:'flex',alignItems:'flex-end',gap:12,marginBottom:16,flexWrap:'wrap'}}>
-                <div style={{flex:'0 0 160px'}}>
-                  <label>{t.scaleMax}</label>
-                  <div style={{display:'flex',alignItems:'center',gap:8}}>
-                    <span style={{fontSize:16,color:'var(--ink-light)',fontWeight:500}}>0 —</span>
-                    <input
-                      type="number"
-                      min="1" max="1000" step="1"
-                      value={escalaInput}
-                      style={{width:80,textAlign:'center',fontSize:20,fontWeight:700,color:'var(--accent)'}}
-                      onChange={e => {
-                        setEscalaInput(e.target.value);
-                        const v = parseInt(e.target.value);
-                        if (v > 0 && v <= 1000) { setEscalaMax(v); setNotas({}); }
-                      }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label>{t.scaleQuick}</label>
-                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                    {[4,5,6,7,9,10,20,100].map(n => (
-                      <span key={n}
-                        className={`tag ${escalaMax===n && escalaInput===String(n) ? 'selected' : ''}`}
-                        style={{padding:'5px 12px',fontSize:13}}
-                        onClick={() => { setEscalaMax(n); setEscalaInput(String(n)); setNotas({}); }}
-                      >
-                        {escalaMax===n && escalaInput===String(n) ? '✓ ' : ''}{n}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{padding:'12px 16px',background:'var(--cream)',borderRadius:'var(--radius-sm)',border:'1.5px solid var(--border)',fontSize:13,color:'var(--ink-light)'}}>
-                {t.scaleActive}: <strong style={{color:'var(--ink)'}}>0 — {escalaMax}</strong>
-                &nbsp;·&nbsp; {t.scaleRange} <strong style={{color:'var(--ink)'}}>0 {lang==='es'?'y':'and'} {escalaMax}</strong>
-                &nbsp;·&nbsp; {t.scaleDisplay}
-              </div>
-
-              {/* MODO PORCENTAJE */}
-              <div style={{marginTop:14,padding:'14px 16px',background: usePercent ? 'rgba(200,75,49,0.06)' : 'var(--cream)',borderRadius:'var(--radius-sm)',border:`1.5px solid ${usePercent ? 'var(--accent)' : 'var(--border)'}`,display:'flex',alignItems:'flex-start',gap:12,cursor:'pointer'}}
-                onClick={() => { setUsePercent(p => !p); setNotas({}); }}>
-                <div style={{marginTop:2,width:20,height:20,borderRadius:4,border:`2px solid ${usePercent ? 'var(--accent)' : 'var(--border)'}`,background: usePercent ? 'var(--accent)' : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
-                  {usePercent && <span style={{color:'#fff',fontSize:13,fontWeight:700}}>✓</span>}
-                </div>
-                <div>
-                  <div style={{fontSize:13,fontWeight:600,color: usePercent ? 'var(--accent)' : 'var(--ink)'}}>{t.percentMode}</div>
-                  <div style={{fontSize:12,color:'var(--ink-light)',marginTop:2}}>{t.percentModeDesc}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* CATEGORÍAS */}
-            <div className="card">
-              <div className="section-label"><span className="step">1</span>{t.catStep}</div>
-              <h2>{t.catTitle}</h2>
-              <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:16}}>{t.catDesc}</p>
-
-              <div className="tag-list" style={{marginBottom:16}}>
-                {t.defaultCats.map((name, idx) => {
-                  const cat = categorias[idx];
-                  const active = cat && catSeleccionadas.includes(cat.id);
-                  return (
-                    <span key={idx} className={`tag ${active ? 'selected':''}`}
-                      onClick={() => {
-                        if (cat) toggleCat(cat.id);
-                        else addCat(name);
-                      }}>
-                      {active ? '✓ ' : ''}{name}
-                    </span>
-                  );
-                })}
-              </div>
-
-              {catsActivas.length === 0 && (
-                <div className="empty"><div className="icon">☝️</div>{t.catEmpty}</div>
-              )}
-
-              {catsActivas.length > 0 && (
-                <>
-                  <div className="grid-auto">
-                    {catsActivas.map(cat => (
-                      <div key={cat.id} style={{padding:'14px',background:'var(--cream)',borderRadius:'var(--radius-sm)',border:'1.5px solid var(--border)'}}>
-                        <label style={{marginBottom:2}}>{cat.nombre}</label>
-                        <div className="weight-display">
-                          <input type="range" min={0} max={100}
-                            value={cat.peso}
-                            onChange={e => updateCatPeso(cat.id, +e.target.value)} />
-                          <span className="weight-value">{cat.peso}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="progress-wrap" style={{marginTop:16}}>
-                    <div className={`progress-fill ${totalPeso===100?'ok':totalPeso>100?'error':'warn'}`}
-                      style={{width:`${Math.min(totalPeso,100)}%`}} />
-                  </div>
-                  {totalPeso !== 100
-                    ? <div className={`alert ${totalPeso>100?'alert-err':'alert-warn'}`}>
-                        ⚠️ {t.weightWarn(totalPeso)}
-                      </div>
-                    : <div className="alert alert-ok">✓ {t.weightOk}</div>
-                  }
-                </>
-              )}
-            </div>
-
-            {/* SUB-ITEMS */}
-            {catsActivas.length > 0 && (
-              <div className="card">
-                <div className="section-label"><span className="step">2</span>{t.subStep}</div>
-                <h2>{t.subTitle}</h2>
-                <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:20}}>{t.subDesc}</p>
-
-                {catsActivas.map(cat => {
-                  const subs = subitems[cat.id]||[];
-                  const totalSubPeso = subs.reduce((a,s)=>a+s.peso,0);
-                  return (
-                    <div key={cat.id} className="cat-block">
-                      <div className="cat-block-header open">
-                        <span>{cat.nombre} <span style={{opacity:0.6,fontWeight:400,fontSize:12}}>— {cat.peso}% {t.subOf}</span></span>
-                        <span style={{display:'flex',gap:8,alignItems:'center'}}>
-                          <span style={{fontSize:11,opacity:0.6}}>{t.subElements(subs.length)}</span>
-                          <span className="chevron">▼</span>
-                        </span>
-                      </div>
-                      <div className="cat-block-body">
-                        {subs.map((sub,idx) => (
-                          <div key={sub.id} className="subitem-row">
-                            <div>
-                              <label>{t.subLabel}</label>
-                              <input type="text" value={sub.nombre}
-                                onChange={e => updateSubitem(cat.id, sub.id, 'nombre', e.target.value)} />
-                            </div>
-                            <div>
-                              <label>{t.subWeight}</label>
-                              <input type="number" min={0} max={100} value={sub.peso}
-                                onChange={e => updateSubitem(cat.id, sub.id, 'peso', +e.target.value)} />
-                            </div>
-                            <div style={{paddingBottom:'2px'}}>
-                              <label style={{visibility:'hidden'}}>x</label>
-                              <button className="btn-icon" onClick={() => removeSubitem(cat.id, sub.id)} title="Delete">🗑</button>
-                            </div>
-                          </div>
-                        ))}
-
-                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:8}}>
-                          <button className="btn btn-ghost btn-sm" onClick={() => addSubitem(cat.id)}>
-                            {t.subAdd}
-                          </button>
-                          <span style={{fontSize:12, color: totalSubPeso===100?'var(--green)':'var(--gold)', fontWeight:600}}>
-                            {t.subSum}: {totalSubPeso}% {totalSubPeso!==100 && '⚠️'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="btn-row">
-              <button className="btn btn-primary" onClick={() => setTab(1)} disabled={totalPeso!==100}>
-                {t.btnContinue}
-              </button>
-              {totalPeso!==100 && <span style={{fontSize:12,color:'var(--ink-light)'}}>{t.btnAdjust}</span>}
-            </div>
-          </>
-        )}
-
-        {/* ══════════ TAB 1: NOTAS ══════════ */}
-        {tab===1 && (
-          <div className="card">
-            <div className="section-label"><span className="step">3</span>{t.studentStep}</div>
-            <h2>{t.studentTitle}</h2>
-            <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:20}}>
-              {usePercent
-                ? (lang==='es' ? 'Notas en porcentaje: 0 a 100%. La nota final se calcula sobre la escala ' : 'Grades as percentage: 0 to 100%. Final grade calculated on scale ') + `0–${escalaMax}.`
-                : t.studentDesc(escalaMax)
-              }
-              {' '}{lang==='es' ? 'Modifica los nombres haciendo clic sobre ellos.' : 'Click any name to rename.'}
-            </p>
-
-            {/* GESTIÓN ALUMNOS */}
-            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:20}}>
-              {alumnos.map(a => (
-                <div key={a.id} style={{display:'flex',alignItems:'center',gap:6,background:'var(--cream)',border:'1.5px solid var(--border)',borderRadius:8,padding:'6px 10px'}}>
-                  <input
-                    style={{border:'none',background:'transparent',fontFamily:'DM Sans, sans-serif',fontSize:13,fontWeight:600,color:'var(--ink)',width:120}}
-                    value={a.nombre}
-                    onChange={e => updateAlumnoNombre(a.id, e.target.value)}
-                  />
-                  <button className="btn-icon" style={{padding:'3px 6px',fontSize:12}} onClick={() => removeAlumno(a.id)} title="Remove">✕</button>
-                </div>
-              ))}
-              <button className="btn btn-ghost btn-sm" onClick={addAlumno}>{t.studentAdd}</button>
-            </div>
-
-            <hr className="divider" />
-
-            {/* TABLA DE NOTAS */}
-            {alumnos.length === 0
-              ? <div className="empty"><div className="icon">👤</div>{t.studentEmpty}</div>
-              : catsActivas.map(cat => {
-                const subs = subitems[cat.id]||[];
-                return (
-                  <div key={cat.id} style={{marginBottom:28}}>
-                    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
-                      <span style={{fontWeight:700,fontSize:15}}>{cat.nombre}</span>
-                      <span style={{fontSize:12,color:'var(--ink-light)',background:'var(--cream)',padding:'2px 10px',borderRadius:99,border:'1px solid var(--border)'}}>{cat.peso}{t.studentOf}</span>
-                    </div>
-                    <div className="scroll-x">
-                      <div className="student-grid" style={{gridTemplateColumns:`160px repeat(${subs.length}, 1fr)`}}>
-                        {/* Header */}
-                        <div className="sg-cell sg-header">{t.colStudent}</div>
-                        {subs.map(sub => (
-                          <div key={sub.id} className="sg-cell sg-header" title={`${sub.peso}% in ${cat.nombre}`}>
-                            {sub.nombre}
-                            <div style={{fontWeight:300,opacity:0.7,fontSize:10}}>{sub.peso}%</div>
-                          </div>
-                        ))}
-                        {/* Rows */}
-                        {alumnos.map(a => (
-                          <React.Fragment key={a.id}>
-                            <div className="sg-cell sg-name">{a.nombre}</div>
-                            {subs.map(sub => (
-                              <div key={sub.id} className="sg-cell sg-note" style={{position:'relative'}}>
-                                <input
-                                  type="number" min="0" max={usePercent ? 100 : escalaMax} step={usePercent ? 1 : escalaMax > 10 ? 1 : 0.1}
-                                  value={notas?.[a.id]?.[cat.id]?.[sub.id] ?? ""}
-                                  placeholder="—"
-                                  onChange={e => setNota(a.id, cat.id, sub.id, e.target.value)}
-                                  style={{paddingRight: usePercent ? '22px' : '8px'}}
-                                />
-                                {usePercent && <span style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'var(--ink-light)',pointerEvents:'none'}}>%</span>}
-                              </div>
-                            ))}
-                          </React.Fragment>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            }
-
-            <div className="btn-row">
-              <button className="btn btn-ghost" onClick={() => setTab(0)}>{t.btnBack}</button>
-              <button className="btn btn-primary" onClick={() => setTab(2)}>{t.btnResults}</button>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════ TAB 2: RESULTADOS ══════════ */}
-        {tab===2 && (
-          <div className="card">
-            <div className="section-label"><span className="step">4</span>{t.resultsStep}</div>
-            <h2>{t.resultsTitle}</h2>
-            <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:4}}>
-              {t.resultsDesc}
-            </p>
-
-            {alumnos.length === 0
-              ? <div className="empty"><div className="icon">📋</div>{t.resultsEmpty}</div>
-              : (
-                <div className="scroll-x">
-                  <table className="results-table">
-                    <thead>
-                      <tr>
-                        <th>{t.colStudent}</th>
-                        {catsActivas.map(c => <th key={c.id}>{c.nombre}<br/><span style={{fontWeight:300,opacity:.7,fontSize:11}}>{c.peso}%</span></th>)}
-                        <th>{t.colFinal}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {resultados.map(r => (
-                        <tr key={r.id}>
-                          <td style={{fontWeight:600}}>{r.nombre}</td>
-                          {r.detalles.map((d,i) => (
-                            <td key={i} style={{color:'var(--ink-light)'}}>{d.media.toFixed(2)}</td>
-                          ))}
-                          <td>
-                            <span className={`nota-badge ${notaBadge(r.notaFinal, escalaMax)}`}>
-                              {r.notaFinal.toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )
-            }
-
-            <hr className="divider" />
-
-            {/* EXPORT */}
-            <div className="export-row">
-              <div style={{width:'100%',marginBottom:12}}>
-                <label>{t.exportFileName}</label>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginTop:4}}>
-                  <input
-                    type="text"
-                    value={exportFileName}
-                    placeholder={t.exportFileNamePlaceholder}
-                    onChange={e => setExportFileName(e.target.value.replace(/[^a-zA-Z0-9_\-]/g,'_'))}
-                    style={{maxWidth:280,fontSize:14}}
-                  />
-                  <span style={{fontSize:12,color:'var(--ink-light)'}}>.pdf / .xlsx</span>
-                </div>
-              </div>
-              <span>{t.exportLabel}</span>
-              <button className="btn btn-green" onClick={exportExcel} disabled={alumnos.length===0}>
-                {t.btnExcel}
-              </button>
-              <button className="btn btn-secondary" onClick={exportPDF} disabled={alumnos.length===0}>
-                {t.btnPDF}
-              </button>
-            </div>
-
-            <div className="btn-row" style={{marginTop:16}}>
-              <button className="btn btn-ghost" onClick={() => setTab(1)}>{t.btnEditGrades}</button>
-            </div>
-          </div>
-        )}
-
-      </main>
-
-      {/* BANNER COLEGIOS */}
-      <div style={{background:"linear-gradient(135deg, #c84b31 0%, #a83a22 100%)", padding:"24px 32px", textAlign:"center", color:"#fff", borderTop:"3px solid #a83a22"}}>
-        <div style={{maxWidth:900, margin:"0 auto"}}>
-          <div style={{fontSize:19, fontWeight:600, marginBottom:8}}>¿Tu colegio necesita gestionar notas de todos los profesores?</div>
-          <div style={{fontSize:14, opacity:0.95, marginBottom:16}}>Analytics · Progresión de alumnos · Colaboración entre profesores</div>
-          <a href="/colegios" style={{display:"inline-block", background:"#fff", color:"#c84b31", padding:"10px 24px", borderRadius:8, fontWeight:600, textDecoration:"none", fontSize:14}}>Más información →</a>
+        <div class="card card-clickable" onclick="showTrimestreDetail('T3')">
+          <div class="card-title">3º Trimestre</div>
+          <div class="card-meta">Configurar ponderación y notas →</div>
         </div>
       </div>
-
-      <footer className="footer">
-        <div>{t.footer}</div>
-        <div style={{marginTop:6, fontSize:11, color:'var(--ink-light)', opacity:0.7}}>
-          © {new Date().getFullYear()} Grade Weighting · {lang==='es' ? 'Todos los derechos reservados' : 'All rights reserved'}
-        </div>
-      </footer>
     </div>
-  );
+    
+    <div id="trimestreDetailView" class="hidden">
+      <div class="breadcrumb">
+        <a onclick="backToClassOrAsignatura()">← Volver</a><span>/</span>
+        <span id="trimestreDetailContext"></span><span>/</span>
+        <span id="currentTrimestre"></span>
+      </div>
+      <div class="page-header">
+        <h1 id="trimestreDetailTitle">1º Trimestre</h1>
+      </div>
+      
+      <div class="card" style="margin-bottom: 32px;">
+        <h3 style="margin-bottom: 16px; font-size: 18px;">⚙️ Configuración de Ponderación</h3>
+        <div class="ponderacion-config">
+          <div class="ponderacion-item">
+            <label>Exámenes (%)</label>
+            <input type="number" id="pesoExamenes" min="0" max="100" value="70">
+          </div>
+          <div class="ponderacion-item">
+            <label>Tareas (%)</label>
+            <input type="number" id="pesoTareas" min="0" max="100" value="20">
+          </div>
+          <div class="ponderacion-item">
+            <label>Participación (%)</label>
+            <input type="number" id="pesoParticipacion" min="0" max="100" value="10">
+          </div>
+          <div class="ponderacion-total">
+            <strong>Total: <span id="pesoTotal">100</span>%</strong>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="guardarPonderacion()">Guardar ponderación</button>
+      </div>
+      
+      <h3 style="margin-bottom: 16px; font-size: 18px;">📊 Alumnos</h3>
+      <div id="trimestreAlumnosList" class="loading">Cargando...</div>
+    </div>
+    
+    <div id="asignaturasView" class="hidden">
+      <div class="nav-tabs">
+        <button class="nav-tab" id="navClasesFromAsig" onclick="showDirectorView()">📚 Clases</button>
+        <button class="nav-tab active" id="navAsignaturasActive" onclick="showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab" id="navProfesoresFromAsig" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+      </div>
+      <div class="page-header">
+        <h1>Asignaturas</h1>
+        <button class="btn-primary" id="newAsignaturaBtn">+ Crear asignatura</button>
+      </div>
+      <div id="asignaturasList" class="loading">Cargando...</div>
+    </div>
+    
+    <div id="profesoresView" class="hidden">
+      <div class="nav-tabs">
+        <button class="nav-tab" id="navClasesFromProf" onclick="showDirectorView()">📚 Clases</button>
+        <button class="nav-tab" id="navAsignaturasFromProf" onclick="showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab active" id="navProfesoresActive" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+      </div>
+      <div class="page-header">
+        <h1>Profesores</h1>
+        <button class="btn-primary" id="inviteProfesorBtn">+ Invitar profesor</button>
+      </div>
+      <div id="profesoresList" class="loading">Cargando...</div>
+    </div>
+    
+    <div id="profesorView" class="hidden">
+      <div class="page-header"><h1>Mis asignaturas</h1></div>
+      <div id="profesorAsignaturasList" class="loading">Cargando...</div>
+    </div>
+    
+    <div id="asignaturaDetailView" class="hidden">
+      <div class="breadcrumb">
+        <a onclick="showProfesorView()">← Mis asignaturas</a><span>/</span><span id="currentAsignaturaNombre"></span>
+      </div>
+      <div class="page-header"><h1 id="asignaturaDetailTitle">Trimestres</h1></div>
+      <div id="asignaturaAlumnosList" class="loading">Cargando...</div>
+    </div>
+    
+    <div id="notasView" class="hidden">
+      <div class="breadcrumb">
+        <a onclick="backToAsignaturaDetail()">← Alumnos</a><span>/</span><span id="currentAlumnoNombre"></span>
+      </div>
+      <div class="page-header"><h1 id="notasViewTitle">Notas</h1></div>
+      <div class="trimestre-tabs">
+        <button class="trimestre-tab active" onclick="switchTrimestre('T1')">1º Trimestre</button>
+        <button class="trimestre-tab" onclick="switchTrimestre('T2')">2º Trimestre</button>
+        <button class="trimestre-tab" onclick="switchTrimestre('T3')">3º Trimestre</button>
+      </div>
+      <div id="notasContent" class="loading">Cargando...</div>
+    </div>
+  </main>
+</div>
+
+<div id="createClassModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Crear nueva clase</h2>
+    <form id="createClassForm">
+      <div class="form-group">
+        <label>Nombre de la clase *</label>
+        <input type="text" name="nombre" required placeholder="Ej. 1º ESO A">
+      </div>
+      <div class="form-group">
+        <label>Curso *</label>
+        <input type="text" name="curso" required placeholder="Ej. 1º ESO">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelClassBtn">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear clase</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="addStudentModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Añadir alumno</h2>
+    <form id="addStudentForm">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" required placeholder="Ej. Juan">
+      </div>
+      <div class="form-group">
+        <label>Apellidos *</label>
+        <input type="text" name="apellidos" required placeholder="Ej. Pérez García">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelStudentBtn">Cancelar</button>
+        <button type="submit" class="btn-primary">Añadir alumno</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="createAsignaturaModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Crear nueva asignatura</h2>
+    <form id="createAsignaturaForm">
+      <div class="form-group">
+        <label>Nombre de la asignatura *</label>
+        <input type="text" name="nombre" required placeholder="Ej. Matemáticas">
+      </div>
+      <div class="form-group">
+        <label>Profesor *</label>
+        <select name="profesorEmail" required id="asignaturaProfesorSelect">
+          <option value="">Selecciona un profesor</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Seleccionar alumnos *</label>
+        <div id="alumnosSelection" class="checkbox-group"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelAsignaturaBtn">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear asignatura</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="inviteProfesorModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Invitar profesor</h2>
+    <form id="inviteProfesorForm">
+      <div class="form-group">
+        <label>Email del profesor *</label>
+        <input type="email" name="email" required placeholder="profesor@email.com">
+      </div>
+      <div class="form-group">
+        <label>Nombre (opcional)</label>
+        <input type="text" name="nombre" placeholder="Nombre del profesor">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelProfesorBtn">Cancelar</button>
+        <button type="submit" class="btn-primary">Enviar invitación</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  // ===== CONFIG =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
+    authDomain: "gradeweighting.com",
+    projectId: "grade-weighting",
+    storageBucket: "grade-weighting.firebasestorage.app",
+    messagingSenderId: "567298019231",
+    appId: "1:567298019231:web:18c435e0a6808b7bd5f7aa"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  
+  const state = {
+    currentUser: null,
+    userRole: null,
+    colegioId: null,
+    currentClassId: null,
+    currentAsignaturaId: null,
+    currentAlumnoId: null,
+    currentTrimestre: 'T1',
+    currentContext: null,
+    cachedClasses: [],
+    cachedProfesores: []
+  };
+
+  function hideAllViews() {
+    ['directorView', 'profesorView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+  }
+// Authentication Module
+
+// Login with Google
+function initLogin() {
+  const loginBtn = document.getElementById('loginBtn');
+  if (!loginBtn) return;
+  
+  loginBtn.addEventListener('click', async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      if (error.code !== 'auth/popup-closed-by-user') {
+        alert('Error: ' + error.message);
+      }
+    }
+  });
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+// Logout
+function initLogout() {
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    location.reload();
+  });
+}
+
+// Detect user role
+async function detectUserRole(email) {
+  try {
+    console.log('🔍 Detectando rol para email:', email);
+    const profesorDoc = await getDoc(doc(db, 'profesores', email));
+    console.log('📄 Documento existe:', profesorDoc.exists());
+
+    if (profesorDoc.exists()) {
+      const data = profesorDoc.data();
+      console.log('✅ Datos del profesor:', data);
+      state.userRole = data.rol;
+      state.colegioId = data.colegioId;
+
+      const roleBadge = document.getElementById('roleBadge');
+      roleBadge.textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
+
+      console.log('👤 Rol detectado:', state.userRole, '| Colegio:', state.colegioId);
+
+      return { role: state.userRole, colegioId: state.colegioId };
+    } else {
+      console.error('❌ Documento del profesor NO existe para:', email);
+      alert('No tienes acceso a este sistema. Contacta con tu director/a.');
+      await signOut(auth);
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error detectando rol:', error);
+    alert('Error al verificar tu cuenta: ' + error.message);
+    return null;
+  }
+}
+
+// Auth state listener
+function initAuthListener(onDirectorView, onProfesorView) {
+  onAuthStateChanged(auth, async (user) => {
+    console.log('🔍 Auth state changed. User:', user?.email || 'null');
+
+    if (user) {
+      state.currentUser = user;
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('userName').textContent = user.displayName || 'Usuario';
+      document.getElementById('userEmail').textContent = user.email;
+
+      const roleData = await detectUserRole(user.email);
+      
+      if (roleData) {
+        if (roleData.role === 'admin') {
+          console.log('📊 Mostrando vista de director');
+          onDirectorView();
+        } else {
+          console.log('📚 Mostrando vista de profesor');
+          onProfesorView();
+        }
+      }
+    } else {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('dashboard').classList.add('hidden');
+    }
+  });
+}
+// Director Module - Gestión de clases, alumnos, profesores y asignaturas
+
+// Navigation
+
+function showDirectorView() {
+  hideAllViews();
+  document.getElementById('directorView').classList.remove('hidden');
+  
+  // Update navigation tabs
+  updateNavTabs('clases');
+  
+  loadClasses();
+}
+
+function showProfesoresView() {
+  hideAllViews();
+  document.getElementById('profesoresView').classList.remove('hidden');
+  
+  // Update navigation tabs
+  updateNavTabs('profesores');
+  
+  loadProfesores();
+}
+
+function showAsignaturasView() {
+  hideAllViews();
+  document.getElementById('asignaturasView').classList.remove('hidden');
+  
+  // Update navigation tabs
+  updateNavTabs('asignaturas');
+  
+  loadAsignaturas();
+}
+
+// Update navigation tabs active state
+function updateNavTabs(activeTab) {
+  // Remove active from all tabs
+  document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+  
+  // Add active to current tab
+  if (activeTab === 'clases') {
+    const tab = document.getElementById('navClases');
+    if (tab) tab.classList.add('active');
+  } else if (activeTab === 'asignaturas') {
+    const tab = document.getElementById('navAsignaturasActive');
+    if (tab) tab.classList.add('active');
+  } else if (activeTab === 'profesores') {
+    const tab = document.getElementById('navProfesoresActive');
+    if (tab) tab.classList.add('active');
+  }
+}
+
+function showStudentsView(classId) {
+  state.currentClassId = classId;
+  state.currentContext = 'clase'; // Para saber desde dónde vinimos
+  hideAllViews();
+  document.getElementById('studentsView').classList.remove('hidden');
+  
+  getDoc(doc(db, `colegios/${state.colegioId}/clases`, classId)).then(classDoc => {
+    const classData = classDoc.data();
+    document.getElementById('currentClassName').textContent = classData.nombre;
+    document.getElementById('studentsViewTitle').textContent = `Trimestres - ${classData.nombre}`;
+    // Ya no cargamos estudiantes aquí, se mostrarán los cards de trimestres desde el HTML
+  });
+}
+
+// Load classes
+async function loadClasses() {
+  const classesList = document.getElementById('classesList');
+  
+  try {
+    const q = query(collection(db, `colegios/${state.colegioId}/clases`), orderBy('nombre'));
+    const snapshot = await getDocs(q);
+    state.cachedClasses = [];
+    
+    if (snapshot.empty) {
+      classesList.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><p><strong>No hay clases creadas</strong></p></div>';
+      return;
+    }
+
+    let html = '<div class="cards-grid">';
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      state.cachedClasses.push({ id: docSnap.id, ...data });
+      html += `<div class="card card-clickable" onclick="window.showStudentsView('${docSnap.id}')">
+        <div class="card-title">${data.nombre}</div>
+        <div class="card-meta">📖 ${data.curso}</div>
+        <div class="card-meta">${data.numAlumnos || 0} alumnos</div>
+      </div>`;
+    });
+    html += '</div>';
+    classesList.innerHTML = html;
+  } catch (error) {
+    console.error('Error cargando clases:', error);
+    classesList.innerHTML = '<p style="color: red;">Error al cargar clases</p>';
+  }
+}
+
+// Load students
+async function loadStudents(classId) {
+  const studentsList = document.getElementById('studentsList');
+  
+  try {
+    const q = query(collection(db, `colegios/${state.colegioId}/clases/${classId}/alumnos`), orderBy('apellidos'));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      studentsList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
+      return;
+    }
+
+    let html = '<table class="table"><thead><tr><th>Alumno</th></tr></thead><tbody>';
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      html += `<tr><td><strong>${data.apellidos}, ${data.nombre}</strong></td></tr>`;
+    });
+    html += '</tbody></table>';
+    studentsList.innerHTML = html;
+  } catch (error) {
+    console.error('Error cargando alumnos:', error);
+    studentsList.innerHTML = '<p style="color: red;">Error</p>';
+  }
+}
+
+// Load profesores
+async function loadProfesores() {
+  const profesoresList = document.getElementById('profesoresList');
+  
+  try {
+    const q = query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId));
+    const snapshot = await getDocs(q);
+    state.cachedProfesores = [];
+    
+    if (snapshot.empty) {
+      profesoresList.innerHTML = '<div class="empty-state"><div class="empty-icon">👨‍🏫</div><p><strong>No hay profesores</strong></p></div>';
+      return;
+    }
+
+    let html = '<table class="table"><thead><tr><th>Email</th><th>Nombre</th><th>Rol</th></tr></thead><tbody>';
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      state.cachedProfesores.push({ id: docSnap.id, ...data });
+      const rolText = data.rol === 'admin' ? 'Director' : 'Profesor';
+      html += `<tr><td><strong>${docSnap.id}</strong></td><td>${data.nombre || '—'}</td><td>${rolText}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    profesoresList.innerHTML = html;
+  } catch (error) {
+    console.error('Error cargando profesores:', error);
+    profesoresList.innerHTML = '<p style="color: red;">Error</p>';
+  }
+}
+
+// Load asignaturas
+async function loadAsignaturas() {
+  const asignaturasList = document.getElementById('asignaturasList');
+  
+  try {
+    const q = query(collection(db, `colegios/${state.colegioId}/asignaturas`), orderBy('nombre'));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) {
+      asignaturasList.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No hay asignaturas</strong></p></div>';
+      return;
+    }
+    
+    let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Alumnos</th></tr></thead><tbody>';
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      html += `<tr><td><strong>${data.nombre}</strong></td><td>${data.profesorEmail}</td><td>${data.alumnos?.length || 0} alumnos</td></tr>`;
+    });
+    html += '</tbody></table>';
+    asignaturasList.innerHTML = html;
+  } catch (error) {
+    console.error('Error cargando asignaturas:', error);
+    asignaturasList.innerHTML = '<p style="color: red;">Error</p>';
+  }
+}
+
+// Create class
+async function createClass(nombre, curso) {
+  await addDoc(collection(db, `colegios/${state.colegioId}/clases`), {
+    nombre,
+    curso,
+    numAlumnos: 0,
+    createdAt: serverTimestamp(),
+    createdBy: state.currentUser.email
+  });
+  loadClasses();
+}
+
+// Add student
+async function addStudent(nombre, apellidos) {
+  const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId));
+  const currentCount = classDoc.data().numAlumnos || 0;
+  
+  await addDoc(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), {
+    nombre,
+    apellidos,
+    orden: currentCount + 1,
+    createdAt: serverTimestamp()
+  });
+  
+  await setDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId), {
+    numAlumnos: currentCount + 1
+  }, { merge: true });
+  
+  loadStudents(state.currentClassId);
+}
+
+// Create asignatura with specific students
+async function createAsignatura(nombre, profesorEmail, alumnos) {
+  const asignaturaRef = await addDoc(collection(db, `colegios/${state.colegioId}/asignaturas`), {
+    nombre,
+    profesorEmail,
+    alumnos, // Array de referencias: ["claseId/alumnoId", ...]
+    trimestres: ['T1', 'T2', 'T3'],
+    createdAt: serverTimestamp(),
+    createdBy: state.currentUser.email
+  });
+  
+  await updateDoc(doc(db, 'profesores', profesorEmail), {
+    asignaturas: arrayUnion(asignaturaRef.id)
+  });
+  
+  loadAsignaturas();
+  return asignaturaRef.id;
+}
+
+// Invite profesor
+async function inviteProfesor(email, nombre) {
+  const profesorDoc = await getDoc(doc(db, 'profesores', email));
+  
+  if (profesorDoc.exists()) {
+    throw new Error('Este profesor ya existe');
+  }
+  
+  await setDoc(doc(db, 'profesores', email), {
+    nombre: nombre || '',
+    colegioId: state.colegioId,
+    rol: 'profesor',
+    asignaturas: [],
+    createdAt: serverTimestamp(),
+    invitedBy: state.currentUser.email
+  });
+  
+  loadProfesores();
+}
+
+// Load alumnos for selection (multi-class selector)
+async function loadAlumnosForSelection() {
+  if (state.cachedClasses.length === 0) await loadClasses();
+  
+  let html = '';
+  for (const clase of state.cachedClasses) {
+    const q = query(collection(db, `colegios/${state.colegioId}/clases/${clase.id}/alumnos`), orderBy('apellidos'));
+    const snapshot = await getDocs(q);
+    
+    if (!snapshot.empty) {
+      html += `<div class="clase-group">
+        <div class="clase-group-header">
+          <span>${clase.nombre} (${clase.curso})</span>
+          <span class="select-all-btn" onclick="window.selectAllFromClase('${clase.id}')">Seleccionar todos</span>
+        </div>`;
+      
+      snapshot.forEach(alumnoDoc => {
+        const alumno = alumnoDoc.data();
+        const alumnoRef = `${clase.id}/${alumnoDoc.id}`;
+        html += `<div class="checkbox-item">
+          <input type="checkbox" id="alumno-${alumnoRef.replace('/', '-')}" value="${alumnoRef}" name="alumnos">
+          <label for="alumno-${alumnoRef.replace('/', '-')}">${alumno.apellidos}, ${alumno.nombre}</label>
+        </div>`;
+      });
+      
+      html += '</div>';
+    }
+  }
+  
+  return html || '<div class="empty-state" style="padding:40px;"><p>No hay alumnos disponibles</p></div>';
+}
+
+// Select all from clase
+function selectAllFromClase(claseId) {
+  const checkboxes = document.querySelectorAll(`input[value^="${claseId}/"]`);
+  const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+  checkboxes.forEach(cb => cb.checked = !allChecked);
+}
+
+// Show trimestre detail (ponderación + alumnos)
+async function showTrimestreDetail(trimestre) {
+  state.currentTrimestre = trimestre;
+  hideAllViews();
+  document.getElementById('trimestreDetailView').classList.remove('hidden');
+  
+  // Cargar ponderación guardada
+  await loadPonderacion(trimestre);
+  
+  // Cargar lista de alumnos
+  await loadAlumnosForTrimestre(trimestre);
+  
+  // Actualizar títulos
+  const trimestreNames = { 'T1': '1º Trimestre', 'T2': '2º Trimestre', 'T3': '3º Trimestre' };
+  document.getElementById('currentTrimestre').textContent = trimestreNames[trimestre];
+  document.getElementById('trimestreDetailTitle').textContent = trimestreNames[trimestre];
+  
+  // Actualizar breadcrumb context
+  if (state.currentContext === 'clase') {
+    const className = document.getElementById('currentClassName').textContent;
+    document.getElementById('trimestreDetailContext').textContent = className;
+  } else {
+    const asignaturaName = document.getElementById('currentAsignaturaNombre').textContent;
+    document.getElementById('trimestreDetailContext').textContent = asignaturaName;
+  }
+}
+
+// Load ponderación for trimestre
+async function loadPonderacion(trimestre) {
+  try {
+    let ponderacionDocPath;
+    if (state.currentContext === 'clase') {
+      ponderacionDocPath = `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderaciones/${trimestre}`;
+    } else {
+      ponderacionDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${trimestre}`;
+    }
+    
+    const ponderacionDoc = await getDoc(doc(db, ponderacionDocPath));
+    
+    if (ponderacionDoc.exists()) {
+      const data = ponderacionDoc.data();
+      document.getElementById('pesoExamenes').value = data.Exámenes || 70;
+      document.getElementById('pesoTareas').value = data.Tareas || 20;
+      document.getElementById('pesoParticipacion').value = data.Participación || 10;
+    } else {
+      // Valores por defecto
+      document.getElementById('pesoExamenes').value = 70;
+      document.getElementById('pesoTareas').value = 20;
+      document.getElementById('pesoParticipacion').value = 10;
+    }
+    
+    updatePesoTotal();
+  } catch (error) {
+    console.error('Error cargando ponderación:', error);
+  }
+}
+
+// Update peso total display
+function updatePesoTotal() {
+  const examenes = parseInt(document.getElementById('pesoExamenes').value) || 0;
+  const tareas = parseInt(document.getElementById('pesoTareas').value) || 0;
+  const participacion = parseInt(document.getElementById('pesoParticipacion').value) || 0;
+  const total = examenes + tareas + participacion;
+  
+  document.getElementById('pesoTotal').textContent = total;
+  document.getElementById('pesoTotal').style.color = total === 100 ? 'var(--green)' : 'var(--accent)';
+}
+
+// Auto-update total when inputs change
+['pesoExamenes', 'pesoTareas', 'pesoParticipacion'].forEach(id => {
+  const input = document.getElementById(id);
+  if (input) {
+    input.addEventListener('input', updatePesoTotal);
+  }
+});
+
+// Save ponderación
+async function guardarPonderacion() {
+  try {
+    const examenes = parseInt(document.getElementById('pesoExamenes').value) || 0;
+    const tareas = parseInt(document.getElementById('pesoTareas').value) || 0;
+    const participacion = parseInt(document.getElementById('pesoParticipacion').value) || 0;
+    const total = examenes + tareas + participacion;
+    
+    if (total !== 100) {
+      alert('La suma de los porcentajes debe ser 100%');
+      return;
+    }
+    
+    let ponderacionDocPath;
+    if (state.currentContext === 'clase') {
+      ponderacionDocPath = `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderaciones/${state.currentTrimestre}`;
+    } else {
+      ponderacionDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`;
+    }
+    
+    await setDoc(doc(db, ponderacionDocPath), {
+      'Exámenes': examenes,
+      'Tareas': tareas,
+      'Participación': participacion,
+      updatedAt: serverTimestamp()
+    });
+    
+    alert('✅ Ponderación guardada correctamente');
+  } catch (error) {
+    console.error('Error guardando ponderación:', error);
+    alert('Error al guardar la ponderación');
+  }
+}
+
+// Load alumnos for trimestre
+async function loadAlumnosForTrimestre(trimestre) {
+  const alumnosList = document.getElementById('trimestreAlumnosList');
+  
+  try {
+    let alumnos = [];
+    
+    if (state.currentContext === 'clase') {
+      // Cargar alumnos de la clase
+      const q = query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), orderBy('apellidos'));
+      const snapshot = await getDocs(q);
+      
+      snapshot.forEach(alumnoDoc => {
+        const alumno = alumnoDoc.data();
+        alumnos.push({
+          id: `${state.currentClassId}/${alumnoDoc.id}`,
+          nombre: alumno.nombre,
+          apellidos: alumno.apellidos
+        });
+      });
+    } else {
+      // Cargar alumnos de la asignatura
+      const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, state.currentAsignaturaId));
+      const alumnosIds = asigDoc.data().alumnos || [];
+      
+      for (const alumnoRef of alumnosIds) {
+        const [claseId, alumnoId] = alumnoRef.split('/');
+        const alumnoDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${claseId}/alumnos`, alumnoId));
+        if (alumnoDoc.exists()) {
+          const alumno = alumnoDoc.data();
+          alumnos.push({
+            id: alumnoRef,
+            nombre: alumno.nombre,
+            apellidos: alumno.apellidos
+          });
+        }
+      }
+    }
+    
+    if (alumnos.length === 0) {
+      alumnosList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
+      return;
+    }
+    
+    alumnos.sort((a, b) => a.apellidos.localeCompare(b.apellidos));
+    
+    let html = '<div class="cards-grid">';
+    alumnos.forEach(alumno => {
+      html += `<div class="card card-clickable" onclick="window.showNotasView('${alumno.id}', '${alumno.nombre} ${alumno.apellidos}')">
+        <div class="card-title">${alumno.apellidos}, ${alumno.nombre}</div>
+        <div class="card-meta">Ver notas →</div>
+      </div>`;
+    });
+    html += '</div>';
+    
+    alumnosList.innerHTML = html;
+  } catch (error) {
+    console.error('Error cargando alumnos:', error);
+    alumnosList.innerHTML = '<p style="color:red;">Error al cargar alumnos</p>';
+  }
+}
+
+// Back to class or asignatura
+function backToClassOrAsignatura() {
+  if (state.currentContext === 'clase') {
+    showStudentsView(state.currentClassId);
+  } else {
+    // Implementar en profesor.js
+    window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent);
+  }
+}
+// Profesor Module - Vista de asignaturas y trimestres
+
+
+// Show profesor view
+function showProfesorView() {
+  hideAllViews();
+  document.getElementById('profesorView').classList.remove('hidden');
+  loadProfesorAsignaturas();
+}
+
+// Load profesor asignaturas
+async function loadProfesorAsignaturas() {
+  const profesorAsignaturasList = document.getElementById('profesorAsignaturasList');
+  
+  try {
+    const q = query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('profesorEmail', '==', state.currentUser.email));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) {
+      profesorAsignaturasList.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No tienes asignaturas asignadas</strong></p></div>';
+      return;
+    }
+    
+    let html = '<div class="cards-grid">';
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      html += `<div class="card card-clickable" onclick="window.showAsignaturaDetail('${docSnap.id}', '${data.nombre}')">
+        <div class="card-title">${data.nombre}</div>
+        <div class="card-meta">${data.alumnos?.length || 0} alumnos</div>
+      </div>`;
+    });
+    html += '</div>';
+    
+    profesorAsignaturasList.innerHTML = html;
+  } catch (error) {
+    console.error('Error cargando asignaturas:', error);
+    profesorAsignaturasList.innerHTML = '<p style="color: red;">Error</p>';
+  }
+}
+
+// Show asignatura detail (trimestres cards)
+function showAsignaturaDetail(asignaturaId, nombre) {
+  state.currentAsignaturaId = asignaturaId;
+  state.currentContext = 'asignatura';
+  document.getElementById('currentAsignaturaNombre').textContent = nombre;
+  document.getElementById('asignaturaDetailTitle').textContent = `Trimestres - ${nombre}`;
+  hideAllViews();
+  document.getElementById('asignaturaDetailView').classList.remove('hidden');
+  
+  const alumnosList = document.getElementById('asignaturaAlumnosList');
+  alumnosList.innerHTML = `
+    <div class="cards-grid">
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T1')">
+        <div class="card-title">1º Trimestre</div>
+        <div class="card-meta">Configurar ponderación y notas →</div>
+      </div>
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T2')">
+        <div class="card-title">2º Trimestre</div>
+        <div class="card-meta">Configurar ponderación y notas →</div>
+      </div>
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T3')">
+        <div class="card-title">3º Trimestre</div>
+        <div class="card-meta">Configurar ponderación y notas →</div>
+      </div>
+    </div>
+  `;
+}
+
+// Back to asignatura detail
+function backToAsignaturaDetail() {
+  const asigNombre = document.getElementById('currentAsignaturaNombre').textContent;
+  showAsignaturaDetail(state.currentAsignaturaId, asigNombre);
+}
+// Sistema de Notas Module
+
+
+// Show notas view
+function showNotasView(alumnoId, nombre) {
+  state.currentAlumnoId = alumnoId;
+  document.getElementById('currentAlumnoNombre').textContent = nombre;
+  document.getElementById('notasViewTitle').textContent = `Notas - ${nombre}`;
+  hideAllViews();
+  document.getElementById('notasView').classList.remove('hidden');
+  loadNotas();
+}
+
+// Switch trimestre
+function switchTrimestre(trimestre) {
+  state.currentTrimestre = trimestre;
+  document.querySelectorAll('.trimestre-tab').forEach(tab => tab.classList.remove('active'));
+  event.target.classList.add('active');
+  loadNotas();
+}
+
+// Load notas
+async function loadNotas() {
+  const notasContent = document.getElementById('notasContent');
+  notasContent.innerHTML = '<div class="loading">Cargando notas...</div>';
+  
+  try {
+    const alumnoRef = state.currentAlumnoId.replace('/', '-');
+    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
+    const notasDoc = await getDoc(doc(db, notasDocPath));
+    
+    // Cargar ponderación dinámica
+    const ponderacionPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`;
+    const ponderacionDoc = await getDoc(doc(db, ponderacionPath));
+    
+    let categorias;
+    if (ponderacionDoc.exists()) {
+      const pond = ponderacionDoc.data();
+      categorias = [
+        { nombre: 'Exámenes', peso: pond.Exámenes || 70 },
+        { nombre: 'Tareas', peso: pond.Tareas || 20 },
+        { nombre: 'Participación', peso: pond.Participación || 10 }
+      ];
+    } else {
+      // Valores por defecto
+      categorias = [
+        { nombre: 'Exámenes', peso: 70 },
+        { nombre: 'Tareas', peso: 20 },
+        { nombre: 'Participación', peso: 10 }
+      ];
+    }
+    
+    const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
+    
+    let html = '';
+    categorias.forEach(cat => {
+      const catNotas = notasData.categorias?.[cat.nombre] || [];
+      html += `<div class="categoria-section">
+        <div class="categoria-header">${cat.nombre} (${cat.peso}%)</div>
+        <div id="notas-${cat.nombre.replace(/\s/g, '')}">`;
+      
+      catNotas.forEach((nota, idx) => {
+        html += `<div class="nota-input-row">
+          <input type="number" min="0" max="10" step="0.1" value="${nota}" 
+            onchange="window.updateNota('${cat.nombre}', ${idx}, this.value)">
+          <button class="btn-icon" onclick="window.deleteNota('${cat.nombre}', ${idx})">🗑️</button>
+        </div>`;
+      });
+      
+      html += `</div>
+        <button class="btn-secondary" onclick="window.addNota('${cat.nombre}')" style="margin-top: 8px;">+ Añadir nota</button>
+      </div>`;
+    });
+    
+    const notaFinal = calcularNotaFinal(notasData, categorias);
+    html += `<div class="nota-final-display">
+      <h3>Nota Final ${state.currentTrimestre}</h3>
+      <div class="nota">${notaFinal.toFixed(2)}</div>
+    </div>`;
+    
+    notasContent.innerHTML = html;
+  } catch (error) {
+    console.error('Error cargando notas:', error);
+    notasContent.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+  }
+}
+
+// Calcular nota final ponderada
+function calcularNotaFinal(notasData, categorias) {
+  let notaFinal = 0;
+  let pesoTotal = 0;
+  
+  categorias.forEach(cat => {
+    const catNotas = notasData.categorias?.[cat.nombre] || [];
+    if (catNotas.length > 0) {
+      const promedio = catNotas.reduce((a, b) => a + b, 0) / catNotas.length;
+      notaFinal += promedio * (cat.peso / 100);
+      pesoTotal += cat.peso;
+    }
+  });
+  
+  return pesoTotal > 0 ? notaFinal : 0;
+}
+
+// Add nota
+async function addNota(categoria) {
+  try {
+    const alumnoRef = state.currentAlumnoId.replace('/', '-');
+    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
+    const notasDoc = await getDoc(doc(db, notasDocPath));
+    const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
+    
+    if (!notasData.categorias[categoria]) {
+      notasData.categorias[categoria] = [];
+    }
+    notasData.categorias[categoria].push(5);
+    
+    await setDoc(doc(db, notasDocPath), notasData);
+    loadNotas();
+  } catch (error) {
+    console.error('Error añadiendo nota:', error);
+    alert('Error al añadir nota');
+  }
+}
+
+// Update nota
+async function updateNota(categoria, index, valor) {
+  try {
+    const alumnoRef = state.currentAlumnoId.replace('/', '-');
+    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
+    const notasDoc = await getDoc(doc(db, notasDocPath));
+    const notasData = notasDoc.data();
+    
+    notasData.categorias[categoria][index] = parseFloat(valor);
+    await setDoc(doc(db, notasDocPath), notasData);
+    loadNotas();
+  } catch (error) {
+    console.error('Error actualizando nota:', error);
+    alert('Error al actualizar nota');
+  }
+}
+
+// Delete nota
+async function deleteNota(categoria, index) {
+  try {
+    const alumnoRef = state.currentAlumnoId.replace('/', '-');
+    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
+    const notasDoc = await getDoc(doc(db, notasDocPath));
+    const notasData = notasDoc.data();
+    
+    notasData.categorias[categoria].splice(index, 1);
+    await setDoc(doc(db, notasDocPath), notasData);
+    loadNotas();
+  } catch (error) {
+    console.error('Error eliminando nota:', error);
+    alert('Error al eliminar nota');
+  }
+}
+// Modals Module - Gestión de todos los modales
+
+// Initialize all modals
+function initModals() {
+  initCreateClassModal();
+  initAddStudentModal();
+  initCreateAsignaturaModal();
+  initInviteProfesorModal();
+}
+
+// Create Class Modal
+function initCreateClassModal() {
+  const modal = document.getElementById('createClassModal');
+  const form = document.getElementById('createClassForm');
+  
+  document.getElementById('newClassBtn').addEventListener('click', () => {
+    modal.classList.add('active');
+  });
+  
+  document.getElementById('cancelClassBtn').addEventListener('click', () => {
+    modal.classList.remove('active');
+    form.reset();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      form.reset();
+    }
+  });
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creando...';
+    
+    try {
+      const formData = new FormData(form);
+      await createClass(formData.get('nombre'), formData.get('curso'));
+      
+      modal.classList.remove('active');
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear clase';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear clase';
+    }
+  });
+}
+
+// Add Student Modal
+function initAddStudentModal() {
+  const modal = document.getElementById('addStudentModal');
+  const form = document.getElementById('addStudentForm');
+  
+  document.getElementById('newStudentBtn').addEventListener('click', () => {
+    modal.classList.add('active');
+  });
+  
+  document.getElementById('cancelStudentBtn').addEventListener('click', () => {
+    modal.classList.remove('active');
+    form.reset();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      form.reset();
+    }
+  });
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Añadiendo...';
+    
+    try {
+      const formData = new FormData(form);
+      await addStudent(formData.get('nombre'), formData.get('apellidos'));
+      
+      modal.classList.remove('active');
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Añadir alumno';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Añadir alumno';
+    }
+  });
+}
+
+// Create Asignatura Modal (con selector de alumnos específicos)
+function initCreateAsignaturaModal() {
+  const modal = document.getElementById('createAsignaturaModal');
+  const form = document.getElementById('createAsignaturaForm');
+  
+  document.getElementById('newAsignaturaBtn').addEventListener('click', async () => {
+    // Populate profesor select
+    const profesorSelect = document.getElementById('asignaturaProfesorSelect');
+    profesorSelect.innerHTML = '<option value="">Selecciona un profesor</option>';
+    state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(prof => {
+      profesorSelect.innerHTML += `<option value="${prof.id}">${prof.nombre || prof.id}</option>`;
+    });
+    
+    // Load alumnos for selection (multi-class checkboxes)
+    const alumnosSelection = document.getElementById('alumnosSelection');
+    alumnosSelection.innerHTML = '<div class="loading" style="padding:20px;">Cargando alumnos...</div>';
+    
+    const alumnosHTML = await loadAlumnosForSelection();
+    alumnosSelection.innerHTML = alumnosHTML;
+    
+    modal.classList.add('active');
+  });
+  
+  document.getElementById('cancelAsignaturaBtn').addEventListener('click', () => {
+    modal.classList.remove('active');
+    form.reset();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      form.reset();
+    }
+  });
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creando...';
+    
+    try {
+      const formData = new FormData(form);
+      const nombre = formData.get('nombre');
+      const profesorEmail = formData.get('profesorEmail');
+      
+      // Get selected alumnos
+      const selectedAlumnos = Array.from(document.querySelectorAll('input[name="alumnos"]:checked'))
+        .map(cb => cb.value);
+      
+      if (selectedAlumnos.length === 0) {
+        alert('Debes seleccionar al menos un alumno');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Crear asignatura';
+        return;
+      }
+      
+      await createAsignatura(nombre, profesorEmail, selectedAlumnos);
+      
+      alert(`✅ Asignatura "${nombre}" creada con ${selectedAlumnos.length} alumnos`);
+      
+      modal.classList.remove('active');
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear asignatura';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear asignatura';
+    }
+  });
+}
+
+// Invite Profesor Modal
+function initInviteProfesorModal() {
+  const modal = document.getElementById('inviteProfesorModal');
+  const form = document.getElementById('inviteProfesorForm');
+  
+  document.getElementById('inviteProfesorBtn').addEventListener('click', () => {
+    modal.classList.add('active');
+  });
+  
+  document.getElementById('cancelProfesorBtn').addEventListener('click', () => {
+    modal.classList.remove('active');
+    form.reset();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      form.reset();
+    }
+  });
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Invitando...';
+    
+    try {
+      const formData = new FormData(form);
+      const email = formData.get('email');
+      const nombre = formData.get('nombre');
+      
+      await inviteProfesor(email, nombre);
+      
+      alert(`✅ Invitación enviada a ${email}`);
+      
+      modal.classList.remove('active');
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar invitación';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar invitación';
+    }
+  });
+}
+
+  // ===== EXPOSE FUNCTIONS TO WINDOW =====
+  window.showDirectorView = showDirectorView;
+  window.showProfesoresView = showProfesoresView;
+  window.showAsignaturasView = showAsignaturasView;
+  window.showStudentsView = showStudentsView;
+  window.showProfesorView = showProfesorView;
+  window.showAsignaturaDetail = showAsignaturaDetail;
+  window.backToAsignaturaDetail = backToAsignaturaDetail;
+  window.showNotasView = showNotasView;
+  window.switchTrimestre = switchTrimestre;
+  window.addNota = addNota;
+  window.updateNota = updateNota;
+  window.deleteNota = deleteNota;
+  window.selectAllFromClase = selectAllFromClase;
+  window.showTrimestreDetail = showTrimestreDetail;
+  window.guardarPonderacion = guardarPonderacion;
+  window.backToClassOrAsignatura = backToClassOrAsignatura;
+
+  // ===== INITIALIZE APP =====
+  document.addEventListener('DOMContentLoaded', () => {
+    initLogin();
+    initLogout();
+    initModals();
+  });
 </script>
 </body>
 </html>
