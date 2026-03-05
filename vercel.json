@@ -5,15 +5,11 @@
       "destination": "/ads.txt"
     },
     {
-      "source": "/__/auth/:path*",
-      "destination": "/app"
-    },
-    {
       "source": "/app",
       "destination": "/app/index.html"
     },
     {
-      "source": "/app/",
+      "source": "/__/auth/:path*",
       "destination": "/app/index.html"
     }
   ],
