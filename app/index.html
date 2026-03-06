@@ -115,7 +115,9 @@
     .loading, .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-light); }
     .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
 
-    /* PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE) */
+    /* ==========================================================================
+       PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE)
+       ========================================================================== */
     .report-section { background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(26,26,46,0.04); }
     .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid var(--cream); padding-bottom: 16px; }
     .report-title { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--ink); }
@@ -137,7 +139,9 @@
       .chart-container { height: 250px; }
     }
 
-    /* ASISTENCIA */
+    /* ==========================================================================
+       RESTO DE ESTILOS (NOTAS, ACORDEONES, ASISTENCIA)
+       ========================================================================== */
     .attendance-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); background: #fff; }
     .ast-name { font-weight: 600; font-size: 15px; }
     .ast-toggles { display: flex; gap: 4px; background: var(--cream); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
@@ -147,7 +151,6 @@
     .ast-btn.active.R { background: #fff8e1; color: var(--gold); }
     .attendance-summary-badge { background: var(--cream); border: 1.5px dashed var(--border); padding: 16px; border-radius: var(--radius); margin-bottom: 24px; display: flex; gap: 24px; align-items: center; justify-content: center; }
     
-    /* ACORDEONES NOTAS */
     .professional-comment { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
     .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .accordion-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
@@ -161,7 +164,6 @@
     .nota-final-display { background: var(--ink); border-radius: var(--radius); padding: 32px; text-align: center; margin-top: 32px; color: var(--gold); }
     .nota-final-display .nota { font-size: 64px; font-weight: 700; font-family: 'Playfair Display', serif; line-height: 1; }
     
-    /* PONDERACIÓN */
     .ponderacion-config { display: flex; flex-direction: column; gap: 12px; }
     .categoria-row { display: grid; grid-template-columns: 1fr 120px 40px; gap: 12px; margin-bottom:12px; }
   </style>
@@ -231,20 +233,20 @@
 
     <div id="profesorAsignaturasView" class="hidden">
       <div class="nav-tabs">
-        <button class="nav-tab active">📖 Evaluar</button>
+        <button class="nav-tab active">📖 Mis asignaturas (Evaluar)</button>
         <button class="nav-tab" onclick="window.showProfesorClasesView()">📚 Todas las clases (Expedientes)</button>
       </div>
-      <div class="page-header"><h1>Mis Asignaturas y Tutorías</h1></div>
+      <div class="page-header"><h1>Mis asignaturas asignadas</h1></div>
       <div id="profesorAsignaturasList" class="loading">Cargando tus asignaturas...</div>
     </div>
 
     <div id="profesorClasesView" class="hidden">
       <div class="nav-tabs">
-        <button class="nav-tab" onclick="window.showProfesorAsignaturasView()">📖 Evaluar</button>
+        <button class="nav-tab" onclick="window.showProfesorAsignaturasView()">📖 Mis asignaturas (Evaluar)</button>
         <button class="nav-tab active">📚 Todas las clases (Expedientes)</button>
       </div>
       <div class="page-header"><h1>Clases del Colegio</h1></div>
-      <p style="color:var(--ink-light); margin-bottom:24px;">Selecciona una clase para pasar asistencia o ver los expedientes de los alumnos.</p>
+      <p style="color:var(--ink-light); margin-bottom:24px;">Selecciona una clase para pasar asistencia o ver los expedientes globales de los alumnos.</p>
       <div id="profesorClasesList" class="loading">Cargando clases...</div>
     </div>
 
@@ -305,7 +307,7 @@
 
     <div id="asignaturaDetailView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.backToAsignaturasList()">← Volver</a><span>/</span><span id="currentAsignaturaNombre"></span>
+        <a onclick="window.backToAsignaturaDetailBreadcrumb()">← Volver</a><span>/</span><span id="currentAsignaturaNombre"></span>
       </div>
       <div class="page-header"><h1 id="asignaturaDetailTitle">Trimestres</h1></div>
       <div class="cards-grid">
@@ -317,7 +319,7 @@
 
     <div id="trimestreDetailView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.backToAsignaturaDetail()">← Volver</a><span>/</span>
+        <a onclick="window.backToAsignaturaDetail()">← Volver a la asignatura</a><span>/</span>
         <span id="trimestreDetailContext"></span><span>/</span><span id="currentTrimestre"></span>
       </div>
       <div class="page-header"><h1 id="trimestreDetailTitle">1º Trimestre</h1></div>
@@ -351,7 +353,9 @@
         <button class="trimestre-tab" onclick="window.switchTrimestre('T3', this)">3º Trimestre</button>
       </div>
       
-      <div id="attendanceSummary" class="attendance-summary-badge"></div>
+      <div id="attendanceSummary" class="attendance-summary-badge">
+        </div>
+      
       <div id="notasContent" class="loading">Cargando perfil...</div>
     </div>
     
@@ -505,7 +509,10 @@
       document.getElementById('userEmail').textContent = user.email;
       
       try {
-        const pDoc = await getDoc(doc(db, 'profesores', user.email));
+        // 🎯 APLICADA CORRECCIÓN DE MAYÚSCULAS AQUÍ
+        const emailSeguro = user.email.trim().toLowerCase();
+        const pDoc = await getDoc(doc(db, 'profesores', emailSeguro));
+        
         if (pDoc.exists()) {
           state.userRole = pDoc.data().rol; 
           state.colegioId = pDoc.data().colegioId;
@@ -538,6 +545,11 @@
   window.backToClaseDetail = () => { window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent); };
   window.backToAsignaturasList = () => { state.userRole === 'admin' ? window.showAsignaturasView() : window.showProfesorAsignaturasView(); };
   
+  window.backToAsignaturaDetailBreadcrumb = () => { 
+    if (state.userRole === 'admin') { window.showAsignaturasView(); } 
+    else { window.showProfesorAsignaturasView(); }
+  };
+
   window.backToAsignaturaDetail = () => { 
     if (state.currentContext === 'tutoria') {
       window.showTutoriaDetail(state.currentClassId, document.getElementById('currentAsignaturaNombre').textContent.replace('Tutoría - ', ''));
@@ -725,7 +737,6 @@
       let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesores</th><th>Alumnos</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
       snap.forEach(docSnap => { 
         const d = docSnap.data();
-        // Soportar array de profes (nuevo) o string único (antiguo)
         const profes = d.profesorEmails ? d.profesorEmails.join(', ') : (d.profesorEmail || '—');
         
         html += `<tr>
@@ -744,15 +755,11 @@
     const list = document.getElementById('profesorAsignaturasList'); 
     list.innerHTML = '<div class="loading">Buscando tus asignaturas...</div>';
     try {
-      // 1. Buscar Asignaturas (array-contains para el nuevo sistema múltiple, o == para el viejo si hiciera falta, pero usamos array-contains)
       const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('profesorEmails', 'array-contains', state.currentUser.email))); 
-      
-      // 2. Buscar Tutorías
       const snapTut = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases`), where('tutorEmail', '==', state.currentUser.email)));
 
       let html = '';
       
-      // Sección Tutorías
       if (!snapTut.empty) {
         html += `<h3 style="margin-bottom:16px;">📚 Mis Tutorías (Evaluar Actitud/Comportamiento)</h3><div class="cards-grid">`;
         snapTut.forEach(docSnap => {
@@ -766,7 +773,6 @@
         html += `</div><br><br>`;
       }
 
-      // Sección Asignaturas
       html += `<h3 style="margin-bottom:16px;">📖 Mis Asignaturas Normales</h3>`;
       if(snapAsig.empty) {
         html += '<p class="empty-state">No tienes asignaturas asignadas.</p>';
@@ -787,7 +793,6 @@
     } catch(e) { console.error(e); }
   }
 
-  // ENTRAR EN ASIGNATURA NORMAL
   window.showAsignaturaDetail = (id, nombre) => { 
     state.currentAsignaturaId = id; 
     state.currentContext = 'asignatura'; 
@@ -796,7 +801,6 @@
     document.getElementById('asignaturaDetailView').classList.remove('hidden'); 
   };
 
-  // ENTRAR EN TUTORÍA
   window.showTutoriaDetail = (classId, className) => {
     state.currentClassId = classId; 
     state.currentContext = 'tutoria'; 
@@ -806,14 +810,12 @@
     document.getElementById('asignaturaDetailView').classList.remove('hidden');
   };
 
-  // RUTAS DINÁMICAS SEGÚN CONTEXTO (ASIGNATURA VS TUTORÍA)
   function getPonderacionPath(t) {
     return state.currentContext === 'tutoria' 
       ? `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderacionesTutoria/${t}`
       : `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${t}`;
   }
   function getNotasPath(studentRefStr, t) {
-    // Para tutoría studentRefStr es solo el ID del alumno. Para asignatura es claseId/alumnoId.
     return state.currentContext === 'tutoria'
       ? `colegios/${state.colegioId}/clases/${state.currentClassId}/notasTutoria/${studentRefStr}-${t}`
       : `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`;
@@ -900,13 +902,11 @@
       let alumnos = [];
       
       if (state.currentContext === 'tutoria') {
-        // En tutoría, cogemos directamente a todos los alumnos de esa clase
         const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), orderBy('apellidos')));
         snap.forEach(d => {
           alumnos.push({ id: d.id, n: d.data().nombre || '', a: d.data().apellidos || '', classId: state.currentClassId, alumId: d.id });
         });
       } else {
-        // En Asignatura normal
         const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, state.currentAsignaturaId));
         const alumnosRefs = asigDoc.data()?.alumnos || [];
         if (alumnosRefs.length === 0) return list.innerHTML = '<div class="empty-state"><p>No hay alumnos matriculados en esta asignatura.</p></div>';
@@ -960,7 +960,6 @@
     const container = document.getElementById('notasContent'); 
     container.innerHTML = '<div class="loading">Cargando perfil de evaluación...</div>';
     
-    // Resumen Asistencia Automática
     let faltas = 0; let retrasos = 0;
     try { 
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); 
@@ -1245,7 +1244,6 @@
 
   // --- 11. EVENT LISTENERS DE FORMULARIOS (GUARDADO DE DATOS) ---
   document.addEventListener('DOMContentLoaded', () => {
-    initLogin(); initLogout(); initAuthListener();
     
     // Crear Clase
     document.getElementById('createClassForm')?.addEventListener('submit', async(e) => { 
@@ -1302,7 +1300,7 @@
         const email = e.target.email.value.trim().toLowerCase(); const ref = doc(db, 'profesores', email); const d = await getDoc(ref);
         if(d.exists()) { if(d.data().colegioId === state.colegioId) throw new Error('Ya añadido a tu colegio.'); else throw new Error('Registrado en otro colegio.'); }
         await setDoc(ref, { nombre: e.target.nombre.value || '', colegioId: state.colegioId, rol: 'profesor', asignaturas: [], createdAt: serverTimestamp() }); 
-        loadProfesores(); alert('Profesor invitado correctamente.'); document.getElementById('inviteProfesorModal').classList.remove('active'); e.target.reset();
+        loadProfesores(); alert('Profesor invitado correctamente. Indícale que acceda con Google.'); document.getElementById('inviteProfesorModal').classList.remove('active'); e.target.reset();
       } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Invitar"; }
     });
   });
