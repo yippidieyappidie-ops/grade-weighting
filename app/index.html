@@ -263,7 +263,7 @@
 
     <div id="asistenciaView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la lista</a><span>/</span><span>Asistencia</span>
+        <a onclick="backToClaseDetail()">← Volver a la clase</a><span>/</span><span>Asistencia</span>
       </div>
       <div class="card" style="display:flex; justify-content:space-between; align-items:center; background:var(--ink); color:#fff;">
         <div>
@@ -279,7 +279,7 @@
 
     <div id="expedienteView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span id="expedienteAlumnoName"></span>
+        <a onclick="backToClaseDetail()">← Volver a la clase</a><span>/</span><span id="expedienteAlumnoName"></span>
       </div>
       <div class="page-header">
         <h1>Expediente Académico Global</h1>
@@ -306,7 +306,7 @@
 
     <div id="trimestreDetailView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent)">← Volver</a><span>/</span>
+        <a onclick="backToAsignaturaDetail()">← Volver a la asignatura</a><span>/</span>
         <span id="trimestreDetailContext"></span><span>/</span><span id="currentTrimestre"></span>
       </div>
       <div class="page-header"><h1 id="trimestreDetailTitle">1º Trimestre</h1></div>
@@ -331,7 +331,7 @@
 
     <div id="notasView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="showTrimestreDetail(state.currentTrimestre)">← Lista de alumnos</a><span>/</span><span id="currentAlumnoNombre"></span>
+        <a onclick="backToTrimestreDetail()">← Lista de alumnos</a><span>/</span><span id="currentAlumnoNombre"></span>
       </div>
       <div class="page-header"><h1 id="notasViewTitle">Panel del Alumno</h1></div>
       
@@ -433,7 +433,7 @@
   };
 
   function hideAllViews() {
-    const views = ['directorView', 'profesorAsignaturasView', 'profesorClasesView', 'claseDetailView', 'asistenciaView', 'expedienteView', 'studentsView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'];
+    const views = ['directorView', 'profesorAsignaturasView', 'profesorClasesView', 'claseDetailView', 'asistenciaView', 'expedienteView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'];
     views.forEach(id => document.getElementById(id)?.classList.add('hidden'));
   }
 
@@ -465,14 +465,18 @@
     }
   });
 
-  // --- NAVEGACIÓN DIRECTOR ---
+  // --- FUNCIONES GLOBALES DE NAVEGACIÓN Y RETROCESO (BREADCRUMBS) ---
   window.showDirectorView = () => { hideAllViews(); document.getElementById('directorView').classList.remove('hidden'); loadClasses('classesList'); }
   window.showProfesoresView = () => { hideAllViews(); document.getElementById('profesoresView').classList.remove('hidden'); loadProfesores(); }
   window.showAsignaturasView = () => { hideAllViews(); document.getElementById('asignaturasView').classList.remove('hidden'); loadAsignaturas(); }
-
-  // --- NAVEGACIÓN PROFESOR ---
   window.showProfesorAsignaturasView = () => { hideAllViews(); document.getElementById('profesorAsignaturasView').classList.remove('hidden'); loadProfesorAsignaturas(); }
   window.showProfesorClasesView = () => { hideAllViews(); document.getElementById('profesorClasesView').classList.remove('hidden'); loadClasses('profesorClasesList', true); }
+
+  window.backToClasesList = () => { state.userRole === 'admin' ? window.showDirectorView() : window.showProfesorClasesView(); };
+  window.backToClaseDetail = () => { window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent); };
+  window.backToAsignaturasList = () => { state.userRole === 'admin' ? window.showAsignaturasView() : window.showProfesorAsignaturasView(); };
+  window.backToAsignaturaDetail = () => { window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent); };
+  window.backToTrimestreDetail = () => { window.showTrimestreDetail(state.currentTrimestre); };
 
   // --- FUNCIONES DE CLASES ---
   async function loadClasses(containerId, isProfesor = false) {
@@ -481,13 +485,13 @@
     try {
       const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases`), orderBy('nombre')));
       state.cachedClasses = [];
-      if (snap.empty) return list.innerHTML = '<div class="empty-state"><p>No hay clases</p></div>';
+      if (snap.empty) return list.innerHTML = '<div class="empty-state"><p>No hay clases creadas en el colegio.</p></div>';
       
       let html = '<div class="cards-grid">';
       snap.forEach(d => {
         const data = d.data(); state.cachedClasses.push({ id: d.id, ...data });
         html += `<div class="card card-clickable" onclick="window.showClaseDetail('${d.id}', '${data.nombre}')">`;
-        if(!isProfesor) html += `<button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${d.id}','${data.nombre}','${data.curso}')">✏️</button>`;
+        if(!isProfesor) html += `<button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${d.id}','${data.nombre}','${data.curso}')" title="Editar Clase">✏️</button>`;
         html += `<div class="card-title">${data.nombre}</div><div class="card-meta">📖 ${data.curso}</div><div class="card-meta">${data.numAlumnos||0} alumnos</div></div>`;
       });
       list.innerHTML = html + '</div>';
@@ -524,11 +528,18 @@
           </div>
         `;
       });
+      
+      if(state.userRole === 'admin') {
+         html += `
+          <div class="card card-clickable" onclick="document.getElementById('addStudentModal').classList.add('active')" style="display:flex; align-items:center; justify-content:center; border:2px dashed var(--border); background:transparent;">
+            <div style="font-weight:600; color:var(--ink-light);">+ Añadir Alumno</div>
+          </div>
+        `;
+      }
+      
       list.innerHTML = html + '</div>';
     } catch(e) { list.innerHTML = '<p style="color:red">Error cargando alumnos</p>'; }
   };
-
-  window.backToClasesList = () => { state.userRole === 'admin' ? window.showDirectorView() : window.showProfesorClasesView(); };
 
   // --- SISTEMA DE ASISTENCIA ---
   window.showAsistenciaView = () => {
@@ -567,11 +578,9 @@
 
   window.markAsistencia = async (alumnoId, estado, dateStr) => {
     try {
-      // Update UI inmediately for fast feel
       ['P','F','R'].forEach(s => document.getElementById(`btn-ast-${alumnoId}-${s}`).className = 'ast-btn');
       document.getElementById(`btn-ast-${alumnoId}-${estado}`).classList.add('active', estado);
       
-      // Save to Firebase
       const path = `colegios/${state.colegioId}/clases/${state.currentClassId}/asistencia/${dateStr}`;
       await setDoc(doc(db, path), { [alumnoId]: estado }, { merge: true });
     } catch(e) { console.error("Error guardando asistencia", e); }
@@ -597,7 +606,6 @@
     container.innerHTML = '<div class="loading">Buscando notas en todas las asignaturas...</div>';
     
     try {
-      // 1. Encontrar asignaturas del alumno
       const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('alumnos', 'array-contains', state.currentAlumnoId)));
       if (snapAsig.empty) return container.innerHTML = '<div class="empty-state"><p>El alumno no está matriculado en ninguna asignatura.</p></div>';
       
@@ -605,15 +613,12 @@
       
       for (const d of snapAsig.docs) {
         const asig = d.data();
-        // 2. Fetch Ponderación
         const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/ponderaciones/${state.currentExpedienteTrimestre}`));
         const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [{nombre:'Exámenes',peso:40},{nombre:'Deberes',peso:30}];
         
-        // 3. Fetch Notas
         const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/notas/${state.currentAlumnoId.replace('/','-')}-${state.currentExpedienteTrimestre}`));
         const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
         
-        // 4. Calcular Nota Final Normalizada
         let notaFinal = 0; let pesoTotal = 0;
         cats.forEach(cat => {
           let cNotas = notasData.categorias?.[cat.nombre] || [];
@@ -672,7 +677,6 @@
     document.getElementById('currentAsignaturaNombre').textContent = n; document.getElementById('asignaturaDetailTitle').textContent = `Trimestres - ${n}`;
     hideAllViews(); document.getElementById('asignaturaDetailView').classList.remove('hidden');
   };
-  window.backToAsignaturasList = () => { state.userRole === 'admin' ? window.showAsignaturasView() : window.showProfesorAsignaturasView(); };
 
   // --- PONDERACIONES ---
   window.showTrimestreDetail = async (t) => {
@@ -745,7 +749,6 @@
   window.loadNotas = async (nombreAlumno) => {
     const content = document.getElementById('notasContent'); content.innerHTML = '<div class="loading">Cargando perfil...</div>';
     
-    // 1. Cargar Resumen de Asistencia del Alumno para esta Clase
     let faltas = 0; let retrasos = 0;
     try {
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`));
@@ -761,7 +764,6 @@
       `;
     } catch(e) { console.error("Error calculando asistencia", e); }
 
-    // 2. Cargar Notas
     try {
       const docId = `${state.currentAlumnoId.replace('/', '-')}-${state.currentTrimestre}`;
       const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`));
@@ -776,7 +778,11 @@
       categorias.forEach((cat, idx) => {
         let cNotas = data.categorias?.[cat.nombre] || [];
         cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: (n>10?100:10), descripcion: '' } : n);
-        const suma = cNotas.reduce((a,c) => a+((parseFloat(c.valor||0)/parseFloat(c.maximo||10))*10), 0);
+        const suma = cNotas.reduce((a,c) => {
+          let v = c.valor===''?0:parseFloat(c.valor||0);
+          let m = parseFloat(c.maximo||10); if(m<=0)m=10;
+          return a + ((v/m)*10);
+        }, 0);
         const mediaCat = cNotas.length > 0 ? (suma/cNotas.length) : 0;
         if(cNotas.length>0){ notaFinal+=mediaCat*(cat.peso/100); pesoTotal+=cat.peso; }
 
