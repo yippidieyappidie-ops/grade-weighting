@@ -77,10 +77,14 @@
     .card { background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; transition: all 0.2s; position: relative; }
     .card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(200,75,49,0.15); }
     .card-clickable { cursor: pointer; }
-    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--ink); padding-right: 35px; }
+    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--ink); padding-right: 75px; } /* Ajustado para botones */
     .card-meta { font-size: 13px; color: var(--ink-light); margin-bottom: 4px; }
-    .btn-edit-card { position: absolute; top: 15px; right: 15px; background: var(--cream); border: 1px solid var(--border); border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    
+    /* BOTONES DENTRO DE CARDS */
+    .btn-edit-card { position: absolute; top: 15px; right: 55px; background: var(--cream); border: 1px solid var(--border); border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; transition: all 0.2s; }
     .btn-edit-card:hover { background: var(--accent-light); border-color: var(--accent); }
+    .btn-delete-card { position: absolute; top: 15px; right: 15px; background: #fee; border: 1px solid rgba(200,75,49,0.2); color: var(--accent); border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    .btn-delete-card:hover { background: var(--accent); color: white; }
 
     /* TABLAS BÁSICAS */
     .table { width: 100%; background: var(--paper); border-radius: var(--radius); border: 1.5px solid var(--border); overflow: hidden; border-collapse: collapse; }
@@ -127,7 +131,7 @@
     .profe-tag { font-size: 12px; font-weight: 500; color: var(--ink-light); background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); font-style: normal; }
 
     @media print {
-      .header, .nav-tabs, .trimestre-tabs, .btn-primary, .btn-secondary, .breadcrumb, .btn-icon { display: none !important; }
+      .header, .nav-tabs, .trimestre-tabs, .btn-primary, .btn-secondary, .breadcrumb, .btn-icon, .btn-delete-card, .btn-edit-card { display: none !important; }
       body { background: white; }
       .main { padding: 0; max-width: 100%; }
       .report-section { border: none; box-shadow: none; padding: 0; margin-bottom: 40px; page-break-inside: avoid; }
@@ -440,7 +444,8 @@
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  // SE AÑADE deleteDoc PARA PERMITIR BORRAR ELEMENTOS
+  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
   
   const firebaseConfig = {
     apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
@@ -552,7 +557,10 @@
         
         html += `<div class="card card-clickable" onclick="window.showClaseDetail('${docSnap.id}', '${data.nombre}')">`;
         if(!isProfesor) {
-          html += `<button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${docSnap.id}','${data.nombre}','${data.curso}')" title="Editar">✏️</button>`;
+          // Botón de Editar original
+          html += `<button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${docSnap.id}','${data.nombre}','${data.curso}')" title="Editar Clase">✏️</button>`;
+          // NUEVO: Botón de Borrar Clase
+          html += `<button class="btn-delete-card" onclick="event.stopPropagation(); window.deleteClass('${docSnap.id}','${data.nombre}')" title="Eliminar Clase">🗑️</button>`;
         }
         html += `
             <div class="card-title">${data.nombre}</div>
@@ -596,8 +604,13 @@
           <div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${docSnap.id}', '${fullName}')">
             <div class="card-title">${a.apellidos}, ${a.nombre}</div>
             <div class="card-meta">Ver Expediente Global →</div>
-          </div>
         `;
+        
+        // NUEVO: Botón de borrar alumno
+        if(state.userRole === 'admin') {
+          html += `<button class="btn-delete-card" onclick="event.stopPropagation(); window.deleteStudent('${classId}','${docSnap.id}','${fullName}')" title="Eliminar Alumno">🗑️</button>`;
+        }
+        html += `</div>`; // Cierra card
       });
       
       if(state.userRole === 'admin') {
@@ -610,6 +623,61 @@
       
       list.innerHTML = html + '</div>';
     } catch(e) { console.error(e); list.innerHTML = '<p style="color:red">Error cargando alumnos</p>'; }
+  };
+
+  // ==================================================================
+  // NUEVAS FUNCIONES DE ELIMINACIÓN SEGURA
+  // ==================================================================
+  
+  // 1. Eliminar Clase
+  window.deleteClass = async (classId, className) => {
+    if(confirm(`⚠️ ATENCIÓN: ¿Estás completamente seguro de que quieres eliminar la clase "${className}"?\n\nEsta acción NO borrará a los alumnos de las asignaturas en las que ya estén matriculados, pero eliminará la clase de la lista principal.`)) {
+      try {
+        await deleteDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}`));
+        loadClasses('classesList', false); // Recargamos
+      } catch (error) {
+        alert("Error al eliminar la clase: " + error.message);
+      }
+    }
+  };
+
+  // 2. Eliminar Alumno
+  window.deleteStudent = async (classId, studentId, studentName) => {
+    if(confirm(`¿Estás seguro de que quieres eliminar permanentemente al alumno "${studentName}" de esta clase?`)) {
+      try {
+        // Borramos documento
+        await deleteDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}/alumnos/${studentId}`));
+        
+        // Restamos uno al contador de la clase
+        const classRef = doc(db, `colegios/${state.colegioId}/clases`, classId);
+        const cDoc = await getDoc(classRef);
+        if (cDoc.exists()) {
+          const currentCount = cDoc.data().numAlumnos || 1;
+          await updateDoc(classRef, { numAlumnos: currentCount - 1 });
+        }
+        
+        // Recargamos la vista
+        window.showClaseDetail(classId, document.getElementById('claseDetailName').textContent);
+      } catch (error) {
+        alert("Error al eliminar al alumno: " + error.message);
+      }
+    }
+  };
+
+  // 3. Eliminar Profesor
+  window.deleteProfesor = async (email) => {
+    if (email === state.currentUser.email) {
+      alert("No puedes eliminar tu propia cuenta de Administrador/Director.");
+      return;
+    }
+    if (confirm(`¿Estás seguro de que quieres revocar el acceso del profesor con correo: ${email}?`)) {
+      try {
+        await deleteDoc(doc(db, 'profesores', email));
+        loadProfesores(); // Recargamos lista
+      } catch (error) {
+        alert("Error al eliminar al profesor: " + error.message);
+      }
+    }
   };
 
   // --- 4. SISTEMA DE ASISTENCIA ---
@@ -671,11 +739,19 @@
       
       if(snap.empty) return list.innerHTML = '<div class="empty-state"><p>No hay profesores en el sistema.</p></div>';
       
-      let html = '<table class="table"><thead><tr><th>Email</th><th>Nombre</th><th>Rol</th></tr></thead><tbody>'; 
+      // NUEVO: Añadida columna de Acciones en la tabla
+      let html = '<table class="table"><thead><tr><th>Email</th><th>Nombre</th><th>Rol</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
       snap.forEach(docSnap => {
         const d = docSnap.data();
         state.cachedProfesores.push({id: docSnap.id, ...d}); 
-        html += `<tr><td><strong>${docSnap.id}</strong></td><td>${d.nombre || '—'}</td><td>${d.rol === 'admin' ? 'Director' : 'Profesor'}</td></tr>`; 
+        
+        // El botón de eliminar se oculta si es el propio director actual
+        let deleteBtn = '';
+        if (d.rol !== 'admin' || docSnap.id !== state.currentUser.email) {
+            deleteBtn = `<button class="btn-icon" style="color:var(--accent);" onclick="window.deleteProfesor('${docSnap.id}')" title="Revocar acceso">🗑️</button>`;
+        }
+
+        html += `<tr><td><strong>${docSnap.id}</strong></td><td>${d.nombre || '—'}</td><td>${d.rol === 'admin' ? 'Director' : 'Profesor'}</td><td style="text-align:center;">${deleteBtn}</td></tr>`; 
       }); 
       list.innerHTML = html + '</tbody></table>'; 
     } catch(e) { console.error(e); }
@@ -1170,19 +1246,6 @@
     alumList.innerHTML = html || '<div class="empty-state"><p>No hay alumnos disponibles para asignar</p></div>';
     
     document.getElementById('createAsignaturaModal').classList.add('active');
-  };
-
-  window.openEditClassModal = (id, n, c) => { 
-    document.getElementById('editClassId').value = id; 
-    document.getElementById('editClassNombre').value = n; 
-    document.getElementById('editClassCurso').value = c; 
-    document.getElementById('editClassModal').classList.add('active'); 
-  };
-
-  window.selectAllFromClase = (id) => { 
-    const cbs = document.querySelectorAll(`input[value^="${id}/"]`); 
-    const allChecked = Array.from(cbs).every(cb => cb.checked); 
-    cbs.forEach(cb => cb.checked = !allChecked); 
   };
 
   // --- 10. EVENT LISTENERS DE FORMULARIOS AL CARGAR DOM ---
