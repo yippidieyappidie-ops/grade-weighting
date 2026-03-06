@@ -5,11 +5,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    // WEB3FORMS_KEY debe configurarse en tu panel de variables de entorno de Vercel
-    const accessKey = process.env.WEB3FORMS_KEY;
+    // Usamos el nombre exacto de la variable que ya tienes en Vercel
+    const accessKey = process.env.WEB3FORMS_ACCESS_KEY;
 
     if (!accessKey) {
-      console.error('Falta la variable de entorno WEB3FORMS_KEY');
+      console.error('Falta la variable de entorno WEB3FORMS_ACCESS_KEY');
       return res.status(500).json({ error: 'Configuración del servidor incompleta' });
     }
 
