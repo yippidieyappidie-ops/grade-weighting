@@ -290,6 +290,7 @@ body {
   padding: 24px;
   margin-bottom: 20px;
   transition: all 0.2s;
+  position: relative; /* Añadido para posicionar el botón de editar */
 }
 
 .card:hover {
@@ -304,6 +305,7 @@ body {
   font-weight: 600;
   margin-bottom: 8px;
   color: var(--ink);
+  padding-right: 30px; /* Espacio para el icono de editar */
 }
 
 .card-meta {
@@ -316,6 +318,28 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
+}
+
+.btn-edit-card {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-edit-card:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
 }
 
 /* TABLE */
@@ -416,7 +440,7 @@ input:focus, select:focus, textarea:focus {
   background: #fff;
 }
 
-/* CHECKBOX GROUP (para selector de alumnos) */
+/* CHECKBOX GROUP */
 .checkbox-group {
   max-height: 300px;
   overflow-y: auto;
@@ -684,7 +708,6 @@ input:focus, select:focus, textarea:focus {
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="login-screen">
   <div class="login-card">
     <h1>Grade <span style="color: var(--gold);">Weighting</span></h1>
@@ -837,6 +860,27 @@ input:focus, select:focus, textarea:focus {
   </main>
 </div>
 
+<div id="editClassModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Editar clase</h2>
+    <form id="editClassForm">
+      <input type="hidden" id="editClassId" name="classId">
+      <div class="form-group">
+        <label>Nombre de la clase *</label>
+        <input type="text" name="nombre" id="editClassNombre" required placeholder="Ej. 1º ESO A">
+      </div>
+      <div class="form-group">
+        <label>Curso *</label>
+        <input type="text" name="curso" id="editClassCurso" required placeholder="Ej. 1º ESO">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelEditClassBtn">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div id="createClassModal" class="modal">
   <div class="modal-content">
     <h2 class="modal-header">Crear nueva clase</h2>
@@ -908,8 +952,8 @@ input:focus, select:focus, textarea:focus {
     <h2 class="modal-header">Invitar profesor</h2>
     <form id="inviteProfesorForm">
       <div class="form-group">
-        <label>Email del profesor *</label>
-        <input type="email" name="email" required placeholder="profesor@email.com">
+        <label>Email del profesor (Cuenta de Google) *</label>
+        <input type="email" name="email" required placeholder="profesor@gmail.com">
       </div>
       <div class="form-group">
         <label>Nombre (opcional)</label>
@@ -927,6 +971,7 @@ input:focus, select:focus, textarea:focus {
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
   import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  
   // ===== CONFIG =====
   const firebaseConfig = {
     apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
@@ -989,25 +1034,19 @@ function initLogout() {
 // Detect user role
 async function detectUserRole(email) {
   try {
-    console.log('🔍 Detectando rol para email:', email);
     const profesorDoc = await getDoc(doc(db, 'profesores', email));
-    console.log('📄 Documento existe:', profesorDoc.exists());
 
     if (profesorDoc.exists()) {
       const data = profesorDoc.data();
-      console.log('✅ Datos del profesor:', data);
       state.userRole = data.rol;
       state.colegioId = data.colegioId;
 
       const roleBadge = document.getElementById('roleBadge');
       roleBadge.textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
 
-      console.log('👤 Rol detectado:', state.userRole, '| Colegio:', state.colegioId);
-
       return { role: state.userRole, colegioId: state.colegioId };
     } else {
-      console.error('❌ Documento del profesor NO existe para:', email);
-      alert('No tienes acceso a este sistema. Contacta con tu director/a.');
+      alert('No tienes acceso a este sistema. Contacta con tu director/a para que te envíe una invitación.');
       await signOut(auth);
       return null;
     }
@@ -1021,8 +1060,6 @@ async function detectUserRole(email) {
 // Auth state listener
 function initAuthListener(onDirectorView, onProfesorView) {
   onAuthStateChanged(auth, async (user) => {
-    console.log('🔍 Auth state changed. User:', user?.email || 'null');
-
     if (user) {
       state.currentUser = user;
       document.getElementById('loginScreen').classList.add('hidden');
@@ -1034,10 +1071,8 @@ function initAuthListener(onDirectorView, onProfesorView) {
       
       if (roleData) {
         if (roleData.role === 'admin') {
-          console.log('📊 Mostrando vista de director');
           onDirectorView();
         } else {
-          console.log('📚 Mostrando vista de profesor');
           onProfesorView();
         }
       }
@@ -1050,43 +1085,31 @@ function initAuthListener(onDirectorView, onProfesorView) {
 // Director Module - Gestión de clases, alumnos, profesores y asignaturas
 
 // Navigation
-
 function showDirectorView() {
   hideAllViews();
   document.getElementById('directorView').classList.remove('hidden');
-  
-  // Update navigation tabs
   updateNavTabs('clases');
-  
   loadClasses();
 }
 
 function showProfesoresView() {
   hideAllViews();
   document.getElementById('profesoresView').classList.remove('hidden');
-  
-  // Update navigation tabs
   updateNavTabs('profesores');
-  
   loadProfesores();
 }
 
 function showAsignaturasView() {
   hideAllViews();
   document.getElementById('asignaturasView').classList.remove('hidden');
-  
-  // Update navigation tabs
   updateNavTabs('asignaturas');
-  
   loadAsignaturas();
 }
 
 // Update navigation tabs active state
 function updateNavTabs(activeTab) {
-  // Remove active from all tabs
   document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
   
-  // Add active to current tab
   if (activeTab === 'clases') {
     const tab = document.getElementById('navClases');
     if (tab) tab.classList.add('active');
@@ -1101,7 +1124,7 @@ function updateNavTabs(activeTab) {
 
 function showStudentsView(classId) {
   state.currentClassId = classId;
-  state.currentContext = 'clase'; // Para saber desde dónde vinimos
+  state.currentContext = 'clase'; 
   hideAllViews();
   document.getElementById('studentsView').classList.remove('hidden');
   
@@ -1109,7 +1132,6 @@ function showStudentsView(classId) {
     const classData = classDoc.data();
     document.getElementById('currentClassName').textContent = classData.nombre;
     document.getElementById('studentsViewTitle').textContent = `Trimestres - ${classData.nombre}`;
-    // Ya no cargamos estudiantes aquí, se mostrarán los cards de trimestres desde el HTML
   });
 }
 
@@ -1131,7 +1153,9 @@ async function loadClasses() {
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       state.cachedClasses.push({ id: docSnap.id, ...data });
+      // Se añade el botón de edición deteniendo la propagación del clic para que no abra la clase
       html += `<div class="card card-clickable" onclick="window.showStudentsView('${docSnap.id}')">
+        <button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${docSnap.id}', '${data.nombre}', '${data.curso}')" title="Editar clase">✏️</button>
         <div class="card-title">${data.nombre}</div>
         <div class="card-meta">📖 ${data.curso}</div>
         <div class="card-meta">${data.numAlumnos || 0} alumnos</div>
@@ -1143,6 +1167,14 @@ async function loadClasses() {
     console.error('Error cargando clases:', error);
     classesList.innerHTML = '<p style="color: red;">Error al cargar clases</p>';
   }
+}
+
+// Abrir modal de editar clase
+function openEditClassModal(id, nombre, curso) {
+  document.getElementById('editClassId').value = id;
+  document.getElementById('editClassNombre').value = nombre;
+  document.getElementById('editClassCurso').value = curso;
+  document.getElementById('editClassModal').classList.add('active');
 }
 
 // Load students
@@ -1238,6 +1270,15 @@ async function createClass(nombre, curso) {
   loadClasses();
 }
 
+// Update class
+async function updateClass(classId, nombre, curso) {
+  await updateDoc(doc(db, `colegios/${state.colegioId}/clases`, classId), {
+    nombre,
+    curso
+  });
+  loadClasses();
+}
+
 // Add student
 async function addStudent(nombre, apellidos) {
   const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId));
@@ -1276,15 +1317,23 @@ async function createAsignatura(nombre, profesorEmail, alumnos) {
   return asignaturaRef.id;
 }
 
-// Invite profesor
+// Invite profesor (MEJORADO PARA EVITAR FALLOS)
 async function inviteProfesor(email, nombre) {
-  const profesorDoc = await getDoc(doc(db, 'profesores', email));
+  // Limpiar email por seguridad (evita espacios y lo pasa a minúsculas)
+  email = email.trim().toLowerCase();
+  const profesorRef = doc(db, 'profesores', email);
+  const profesorDoc = await getDoc(profesorRef);
   
   if (profesorDoc.exists()) {
-    throw new Error('Este profesor ya existe');
+    const data = profesorDoc.data();
+    if (data.colegioId === state.colegioId) {
+        throw new Error('Este profesor ya ha sido añadido a tu colegio previamente.');
+    } else {
+        throw new Error('Este correo ya está registrado en otro colegio distinto.');
+    }
   }
   
-  await setDoc(doc(db, 'profesores', email), {
+  await setDoc(profesorRef, {
     nombre: nombre || '',
     colegioId: state.colegioId,
     rol: 'profesor',
@@ -1341,18 +1390,13 @@ async function showTrimestreDetail(trimestre) {
   hideAllViews();
   document.getElementById('trimestreDetailView').classList.remove('hidden');
   
-  // Cargar ponderación guardada
   await loadPonderacion(trimestre);
-  
-  // Cargar lista de alumnos
   await loadAlumnosForTrimestre(trimestre);
   
-  // Actualizar títulos
   const trimestreNames = { 'T1': '1º Trimestre', 'T2': '2º Trimestre', 'T3': '3º Trimestre' };
   document.getElementById('currentTrimestre').textContent = trimestreNames[trimestre];
   document.getElementById('trimestreDetailTitle').textContent = trimestreNames[trimestre];
   
-  // Actualizar breadcrumb context
   if (state.currentContext === 'clase') {
     const className = document.getElementById('currentClassName').textContent;
     document.getElementById('trimestreDetailContext').textContent = className;
@@ -1363,7 +1407,6 @@ async function showTrimestreDetail(trimestre) {
 }
 
 // Load ponderación for trimestre
-// Global categories state
 let currentCategorias = [];
 
 async function loadPonderacion(trimestre) {
@@ -1386,7 +1429,6 @@ async function loadPonderacion(trimestre) {
         { nombre: "Actitud", peso: 10 }
       ];
     } else {
-      // Valores por defecto (como la calculadora)
       currentCategorias = [
         { nombre: "Exámenes", peso: 40 },
         { nombre: "Proyectos", peso: 30 },
@@ -1421,10 +1463,8 @@ function renderCategorias() {
   container.innerHTML = html;
 }
 
-// Update peso total display
 function updatePesoTotal() {
   const total = currentCategorias.reduce((sum, cat) => sum + (parseInt(cat.peso) || 0), 0);
-  
   const totalSpan = document.getElementById('pesoTotal');
   const statusSpan = document.getElementById('pesoStatus');
   
@@ -1444,7 +1484,6 @@ function updatePesoTotal() {
   }
 }
 
-// Category management functions
 function updateCategoriaNombre(idx, nombre) {
   currentCategorias[idx].nombre = nombre;
 }
@@ -1470,7 +1509,6 @@ function eliminarCategoria(idx) {
   updatePesoTotal();
 }
 
-// Save ponderación
 async function guardarPonderacion() {
   try {
     const total = currentCategorias.reduce((sum, cat) => sum + (parseInt(cat.peso) || 0), 0);
@@ -1480,7 +1518,6 @@ async function guardarPonderacion() {
       return;
     }
     
-    // Validate all categories have names
     const hasEmptyNames = currentCategorias.some(cat => !cat.nombre.trim());
     if (hasEmptyNames) {
       alert('Todas las categorías deben tener un nombre');
@@ -1506,7 +1543,6 @@ async function guardarPonderacion() {
   }
 }
 
-// Load alumnos for trimestre
 async function loadAlumnosForTrimestre(trimestre) {
   const alumnosList = document.getElementById('trimestreAlumnosList');
   
@@ -1514,7 +1550,6 @@ async function loadAlumnosForTrimestre(trimestre) {
     let alumnos = [];
     
     if (state.currentContext === 'clase') {
-      // Cargar alumnos de la clase
       const q = query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), orderBy('apellidos'));
       const snapshot = await getDocs(q);
       
@@ -1527,7 +1562,6 @@ async function loadAlumnosForTrimestre(trimestre) {
         });
       });
     } else {
-      // Cargar alumnos de la asignatura
       const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, state.currentAsignaturaId));
       const alumnosIds = asigDoc.data().alumnos || [];
       
@@ -1568,26 +1602,21 @@ async function loadAlumnosForTrimestre(trimestre) {
   }
 }
 
-// Back to class or asignatura
 function backToClassOrAsignatura() {
   if (state.currentContext === 'clase') {
     showStudentsView(state.currentClassId);
   } else {
-    // Implementar en profesor.js
     window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent);
   }
 }
-// Profesor Module - Vista de asignaturas y trimestres
 
-
-// Show profesor view
+// Profesor Module
 function showProfesorView() {
   hideAllViews();
   document.getElementById('profesorView').classList.remove('hidden');
   loadProfesorAsignaturas();
 }
 
-// Load profesor asignaturas
 async function loadProfesorAsignaturas() {
   const profesorAsignaturasList = document.getElementById('profesorAsignaturasList');
   
@@ -1617,7 +1646,6 @@ async function loadProfesorAsignaturas() {
   }
 }
 
-// Show asignatura detail (trimestres cards)
 function showAsignaturaDetail(asignaturaId, nombre) {
   state.currentAsignaturaId = asignaturaId;
   state.currentContext = 'asignatura';
@@ -1645,15 +1673,12 @@ function showAsignaturaDetail(asignaturaId, nombre) {
   `;
 }
 
-// Back to asignatura detail
 function backToAsignaturaDetail() {
   const asigNombre = document.getElementById('currentAsignaturaNombre').textContent;
   showAsignaturaDetail(state.currentAsignaturaId, asigNombre);
 }
+
 // Sistema de Notas Module
-
-
-// Show notas view
 function showNotasView(alumnoId, nombre) {
   state.currentAlumnoId = alumnoId;
   document.getElementById('currentAlumnoNombre').textContent = nombre;
@@ -1663,7 +1688,6 @@ function showNotasView(alumnoId, nombre) {
   loadNotas();
 }
 
-// Switch trimestre
 function switchTrimestre(trimestre) {
   state.currentTrimestre = trimestre;
   document.querySelectorAll('.trimestre-tab').forEach(tab => tab.classList.remove('active'));
@@ -1671,7 +1695,6 @@ function switchTrimestre(trimestre) {
   loadNotas();
 }
 
-// Load notas
 async function loadNotas() {
   const notasContent = document.getElementById('notasContent');
   notasContent.innerHTML = '<div class="loading">Cargando notas...</div>';
@@ -1682,7 +1705,6 @@ async function loadNotas() {
     const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     
-    // Cargar ponderación dinámica
     const ponderacionPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`;
     const ponderacionDoc = await getDoc(doc(db, ponderacionPath));
     
@@ -1696,7 +1718,6 @@ async function loadNotas() {
         { nombre: 'Actitud', peso: 10 }
       ];
     } else {
-      // Valores por defecto (como la calculadora)
       categorias = [
         { nombre: 'Exámenes', peso: 40 },
         { nombre: 'Proyectos', peso: 30 },
@@ -1740,7 +1761,6 @@ async function loadNotas() {
   }
 }
 
-// Calcular nota final ponderada
 function calcularNotaFinal(notasData, categorias) {
   let notaFinal = 0;
   let pesoTotal = 0;
@@ -1757,7 +1777,6 @@ function calcularNotaFinal(notasData, categorias) {
   return pesoTotal > 0 ? notaFinal : 0;
 }
 
-// Add nota
 async function addNota(categoria) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
@@ -1779,7 +1798,6 @@ async function addNota(categoria) {
   }
 }
 
-// Update nota
 async function updateNota(categoria, index, valor) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
@@ -1797,7 +1815,6 @@ async function updateNota(categoria, index, valor) {
   }
 }
 
-// Delete nota
 async function deleteNota(categoria, index) {
   try {
     const alumnoRef = state.currentAlumnoId.replace('/', '-');
@@ -1814,17 +1831,16 @@ async function deleteNota(categoria, index) {
     alert('Error al eliminar nota');
   }
 }
-// Modals Module - Gestión de todos los modales
 
-// Initialize all modals
+// Modals Module
 function initModals() {
   initCreateClassModal();
+  initEditClassModal();
   initAddStudentModal();
   initCreateAsignaturaModal();
   initInviteProfesorModal();
 }
 
-// Create Class Modal
 function initCreateClassModal() {
   const modal = document.getElementById('createClassModal');
   const form = document.getElementById('createClassForm');
@@ -1868,7 +1884,50 @@ function initCreateClassModal() {
   });
 }
 
-// Add Student Modal
+// INICIALIZADOR PARA EL MODAL DE EDITAR CLASE
+function initEditClassModal() {
+  const modal = document.getElementById('editClassModal');
+  const form = document.getElementById('editClassForm');
+  
+  document.getElementById('cancelEditClassBtn').addEventListener('click', () => {
+    modal.classList.remove('active');
+    form.reset();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      form.reset();
+    }
+  });
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Guardando...';
+    
+    try {
+      const formData = new FormData(form);
+      const classId = formData.get('classId');
+      const nombre = formData.get('nombre');
+      const curso = formData.get('curso');
+      
+      await updateClass(classId, nombre, curso);
+      
+      modal.classList.remove('active');
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Guardar cambios';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Guardar cambios';
+    }
+  });
+}
+
 function initAddStudentModal() {
   const modal = document.getElementById('addStudentModal');
   const form = document.getElementById('addStudentForm');
@@ -1912,20 +1971,17 @@ function initAddStudentModal() {
   });
 }
 
-// Create Asignatura Modal (con selector de alumnos específicos)
 function initCreateAsignaturaModal() {
   const modal = document.getElementById('createAsignaturaModal');
   const form = document.getElementById('createAsignaturaForm');
   
   document.getElementById('newAsignaturaBtn').addEventListener('click', async () => {
-    // Populate profesor select
     const profesorSelect = document.getElementById('asignaturaProfesorSelect');
     profesorSelect.innerHTML = '<option value="">Selecciona un profesor</option>';
     state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(prof => {
       profesorSelect.innerHTML += `<option value="${prof.id}">${prof.nombre || prof.id}</option>`;
     });
     
-    // Load alumnos for selection (multi-class checkboxes)
     const alumnosSelection = document.getElementById('alumnosSelection');
     alumnosSelection.innerHTML = '<div class="loading" style="padding:20px;">Cargando alumnos...</div>';
     
@@ -1958,7 +2014,6 @@ function initCreateAsignaturaModal() {
       const nombre = formData.get('nombre');
       const profesorEmail = formData.get('profesorEmail');
       
-      // Get selected alumnos
       const selectedAlumnos = Array.from(document.querySelectorAll('input[name="alumnos"]:checked'))
         .map(cb => cb.value);
       
@@ -1986,7 +2041,6 @@ function initCreateAsignaturaModal() {
   });
 }
 
-// Invite Profesor Modal
 function initInviteProfesorModal() {
   const modal = document.getElementById('inviteProfesorModal');
   const form = document.getElementById('inviteProfesorForm');
@@ -2015,12 +2069,13 @@ function initInviteProfesorModal() {
     
     try {
       const formData = new FormData(form);
-      const email = formData.get('email');
-      const nombre = formData.get('nombre');
+      // Evitar errores capturando el correo de forma limpia
+      const email = formData.get('email').trim().toLowerCase();
+      const nombre = formData.get('nombre').trim();
       
       await inviteProfesor(email, nombre);
       
-      alert(`✅ Invitación enviada a ${email}`);
+      alert(`✅ Se ha concedido acceso a ${email}.\n\nIndícale al profesor que inicie sesión en Grade Weighting pulsando en "Iniciar sesión con Google" utilizando ese mismo correo electrónico para acceder a la plataforma.`);
       
       modal.classList.remove('active');
       form.reset();
@@ -2056,6 +2111,7 @@ function initInviteProfesorModal() {
   window.eliminarCategoria = eliminarCategoria;
   window.updateCategoriaNombre = updateCategoriaNombre;
   window.updateCategoriaPeso = updateCategoriaPeso;
+  window.openEditClassModal = openEditClassModal;
 
   // ===== INITIALIZE APP =====
   document.addEventListener('DOMContentLoaded', () => {
