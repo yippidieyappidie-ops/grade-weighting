@@ -255,7 +255,6 @@
 </head>
 <body>
 
-<!-- BANNER ARRIBA -->
 <div class="top-banner" id="topBanner"></div>
 
 <header class="header">
@@ -348,7 +347,6 @@
         <textarea name="comentarios" id="inputComentarios"></textarea>
       </div>
       
-      <!-- Anti-spam honeypot -->
       <input type="text" name="botcheck" value="" style="display: none;" tabindex="-1" autocomplete="off">
       
       <button type="submit" class="btn-submit" id="submitBtn"></button>
@@ -502,7 +500,7 @@ async function handleSubmit(e) {
   
   try {
     const formData = {
-      access_key: 'cc5e5598-8d00-41c7-86cd-01b4bcc4089b',
+      // AQUÍ YA NO ESTÁ LA CLAVE PÚBLICA, SE MANDA A TU SERVIDOR VERCEL
       subject: `Nueva solicitud de colegio: ${form.centro.value}`,
       from_name: form.contacto.value,
       email: form.email.value,
@@ -510,18 +508,16 @@ async function handleSubmit(e) {
       botcheck: form.botcheck?.value || ''
     };
 
-    const response = await fetch('https://api.web3forms.com/submit', {
+    // Apuntamos a tu nueva API segura de Vercel
+    const response = await fetch('/api/contact', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(formData)
     });
     
-    const data = await response.json();
-    
-    if (data.success) {
+    if (response.ok) {
       successMsg.style.display = 'block';
       form.reset();
       submitBtn.textContent = t.submitBtn;
@@ -531,7 +527,8 @@ async function handleSubmit(e) {
         successMsg.style.display = 'none';
       }, 5000);
     } else {
-      throw new Error(data.message || 'Error en el envío');
+      const data = await response.json();
+      throw new Error(data.error || 'Error en el envío');
     }
     
   } catch (error) {
