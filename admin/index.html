@@ -324,7 +324,6 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="login-screen">
   <div class="login-card">
     <h1>🔐 <span style="color: var(--gold);">Admin</span></h1>
@@ -332,8 +331,8 @@
     
     <form id="loginForm">
       <div class="form-group">
-        <label>Usuario</label>
-        <input type="text" name="username" required autocomplete="username">
+        <label>Email de Administrador</label>
+        <input type="email" name="email" required autocomplete="username">
       </div>
       
       <div class="form-group">
@@ -348,7 +347,6 @@
   </div>
 </div>
 
-<!-- ADMIN DASHBOARD -->
 <div id="dashboard" class="hidden">
   <header class="header">
     <div class="header-logo">
@@ -369,7 +367,6 @@
   </main>
 </div>
 
-<!-- MODAL CREAR COLEGIO -->
 <div id="createModal" class="modal">
   <div class="modal-content">
     <h2 class="modal-header">Crear nuevo colegio</h2>
@@ -398,10 +395,10 @@
   </div>
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
@@ -414,21 +411,24 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth(app);
   
-  let isAuthenticated = false;
+  // 1. Escuchar el estado de autenticación de Firebase
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      showDashboard();
+    } else {
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+    }
+  });
   
-  // Check session
-  if (sessionStorage.getItem('adminAuth') === 'true') {
-    isAuthenticated = true;
-    showDashboard();
-  }
-  
-  // Login form
+  // 2. Login Seguro con Firebase
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const formData = new FormData(e.target);
-    const username = formData.get('username');
+    const email = formData.get('email');
     const password = formData.get('password');
     const errorMsg = document.getElementById('errorMsg');
     const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -438,39 +438,20 @@
     errorMsg.style.display = 'none';
     
     try {
-      const response = await fetch('/api/admin-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        sessionStorage.setItem('adminAuth', 'true');
-        isAuthenticated = true;
-        showDashboard();
-      } else {
-        errorMsg.textContent = '❌ Usuario o contraseña incorrectos';
-        errorMsg.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Iniciar sesión';
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      // El dashboard se mostrará automáticamente por el onAuthStateChanged
     } catch (error) {
       console.error('Error en login:', error);
-      errorMsg.textContent = '❌ Error de conexión. Intenta de nuevo.';
+      errorMsg.textContent = '❌ Credenciales incorrectas o usuario no autorizado';
       errorMsg.style.display = 'block';
       submitBtn.disabled = false;
       submitBtn.textContent = 'Iniciar sesión';
     }
   });
   
-  // Logout
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('adminAuth');
-    isAuthenticated = false;
-    document.getElementById('dashboard').classList.add('hidden');
-    document.getElementById('loginScreen').classList.remove('hidden');
+  // 3. Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
   });
   
   function showDashboard() {
