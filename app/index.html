@@ -77,10 +77,9 @@
     .card { background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; transition: all 0.2s; position: relative; }
     .card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(200,75,49,0.15); }
     .card-clickable { cursor: pointer; }
-    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--ink); padding-right: 75px; } /* Ajustado para botones */
+    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--ink); padding-right: 75px; }
     .card-meta { font-size: 13px; color: var(--ink-light); margin-bottom: 4px; }
     
-    /* BOTONES DENTRO DE CARDS */
     .btn-edit-card { position: absolute; top: 15px; right: 55px; background: var(--cream); border: 1px solid var(--border); border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; transition: all 0.2s; }
     .btn-edit-card:hover { background: var(--accent-light); border-color: var(--accent); }
     .btn-delete-card { position: absolute; top: 15px; right: 15px; background: #fee; border: 1px solid rgba(200,75,49,0.2); color: var(--accent); border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; transition: all 0.2s; }
@@ -116,9 +115,7 @@
     .loading, .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-light); }
     .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
 
-    /* ==========================================================================
-       PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE)
-       ========================================================================== */
+    /* PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE) */
     .report-section { background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(26,26,46,0.04); }
     .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid var(--cream); padding-bottom: 16px; }
     .report-title { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--ink); }
@@ -140,9 +137,7 @@
       .chart-container { height: 250px; }
     }
 
-    /* ==========================================================================
-       RESTO DE ESTILOS (NOTAS, ACORDEONES, ASISTENCIA)
-       ========================================================================== */
+    /* ASISTENCIA */
     .attendance-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); background: #fff; }
     .ast-name { font-weight: 600; font-size: 15px; }
     .ast-toggles { display: flex; gap: 4px; background: var(--cream); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
@@ -152,6 +147,7 @@
     .ast-btn.active.R { background: #fff8e1; color: var(--gold); }
     .attendance-summary-badge { background: var(--cream); border: 1.5px dashed var(--border); padding: 16px; border-radius: var(--radius); margin-bottom: 24px; display: flex; gap: 24px; align-items: center; justify-content: center; }
     
+    /* ACORDEONES NOTAS */
     .professional-comment { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
     .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .accordion-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
@@ -165,6 +161,7 @@
     .nota-final-display { background: var(--ink); border-radius: var(--radius); padding: 32px; text-align: center; margin-top: 32px; color: var(--gold); }
     .nota-final-display .nota { font-size: 64px; font-weight: 700; font-family: 'Playfair Display', serif; line-height: 1; }
     
+    /* PONDERACIÓN */
     .ponderacion-config { display: flex; flex-direction: column; gap: 12px; }
     .categoria-row { display: grid; grid-template-columns: 1fr 120px 40px; gap: 12px; margin-bottom:12px; }
   </style>
@@ -201,7 +198,7 @@
       </div>
       <div class="page-header">
         <h1>Mis clases</h1>
-        <button class="btn-primary" onclick="document.getElementById('createClassModal').classList.add('active')">+ Crear clase</button>
+        <button class="btn-primary" onclick="window.openCreateClassModal()">+ Crear clase</button>
       </div>
       <div id="classesList" class="loading">Cargando clases...</div>
     </div>
@@ -234,20 +231,20 @@
 
     <div id="profesorAsignaturasView" class="hidden">
       <div class="nav-tabs">
-        <button class="nav-tab active">📖 Mis asignaturas (Evaluar)</button>
+        <button class="nav-tab active">📖 Evaluar</button>
         <button class="nav-tab" onclick="window.showProfesorClasesView()">📚 Todas las clases (Expedientes)</button>
       </div>
-      <div class="page-header"><h1>Mis asignaturas asignadas</h1></div>
+      <div class="page-header"><h1>Mis Asignaturas y Tutorías</h1></div>
       <div id="profesorAsignaturasList" class="loading">Cargando tus asignaturas...</div>
     </div>
 
     <div id="profesorClasesView" class="hidden">
       <div class="nav-tabs">
-        <button class="nav-tab" onclick="window.showProfesorAsignaturasView()">📖 Mis asignaturas (Evaluar)</button>
+        <button class="nav-tab" onclick="window.showProfesorAsignaturasView()">📖 Evaluar</button>
         <button class="nav-tab active">📚 Todas las clases (Expedientes)</button>
       </div>
       <div class="page-header"><h1>Clases del Colegio</h1></div>
-      <p style="color:var(--ink-light); margin-bottom:24px;">Selecciona una clase para pasar asistencia o ver los expedientes globales de los alumnos.</p>
+      <p style="color:var(--ink-light); margin-bottom:24px;">Selecciona una clase para pasar asistencia o ver los expedientes de los alumnos.</p>
       <div id="profesorClasesList" class="loading">Cargando clases...</div>
     </div>
 
@@ -308,7 +305,7 @@
 
     <div id="asignaturaDetailView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.backToAsignaturasList()">← Mis asignaturas</a><span>/</span><span id="currentAsignaturaNombre"></span>
+        <a onclick="window.backToAsignaturasList()">← Volver</a><span>/</span><span id="currentAsignaturaNombre"></span>
       </div>
       <div class="page-header"><h1 id="asignaturaDetailTitle">Trimestres</h1></div>
       <div class="cards-grid">
@@ -320,7 +317,7 @@
 
     <div id="trimestreDetailView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.backToAsignaturaDetail()">← Volver a la asignatura</a><span>/</span>
+        <a onclick="window.backToAsignaturaDetail()">← Volver</a><span>/</span>
         <span id="trimestreDetailContext"></span><span>/</span><span id="currentTrimestre"></span>
       </div>
       <div class="page-header"><h1 id="trimestreDetailTitle">1º Trimestre</h1></div>
@@ -354,9 +351,7 @@
         <button class="trimestre-tab" onclick="window.switchTrimestre('T3', this)">3º Trimestre</button>
       </div>
       
-      <div id="attendanceSummary" class="attendance-summary-badge">
-        </div>
-      
+      <div id="attendanceSummary" class="attendance-summary-badge"></div>
       <div id="notasContent" class="loading">Cargando perfil...</div>
     </div>
     
@@ -370,6 +365,10 @@
       <input type="hidden" id="editClassId" name="classId">
       <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" id="editClassNombre" required></div>
       <div class="form-group"><label>Curso *</label><input type="text" name="curso" id="editClassCurso" required></div>
+      <div class="form-group">
+        <label>Tutor de la Clase *</label>
+        <select name="tutorEmail" id="editClassTutor" required></select>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" onclick="document.getElementById('editClassModal').classList.remove('active')">Cancelar</button>
         <button type="submit" class="btn-primary">Guardar</button>
@@ -384,6 +383,10 @@
     <form id="createClassForm">
       <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required placeholder="Ej. 1º ESO A"></div>
       <div class="form-group"><label>Curso *</label><input type="text" name="curso" required placeholder="Ej. 1º ESO"></div>
+      <div class="form-group">
+        <label>Tutor de la Clase *</label>
+        <select name="tutorEmail" id="createClassTutor" required></select>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" onclick="document.getElementById('createClassModal').classList.remove('active')">Cancelar</button>
         <button type="submit" class="btn-primary">Crear</button>
@@ -412,8 +415,8 @@
     <form id="createAsignaturaForm">
       <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div>
       <div class="form-group">
-        <label>Profesor *</label>
-        <select name="profesorEmail" required id="asignaturaProfesorSelect"></select>
+        <label>Profesores de la Asignatura *</label>
+        <div id="asignaturaProfesoresSelection" class="checkbox-group" style="margin-bottom:12px;"></div>
       </div>
       <div class="form-group">
         <label>Alumnos *</label>
@@ -444,7 +447,6 @@
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-  // SE AÑADE deleteDoc PARA PERMITIR BORRAR ELEMENTOS
   import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, serverTimestamp, query, orderBy, where, updateDoc, arrayUnion, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
   
   const firebaseConfig = {
@@ -464,6 +466,7 @@
     currentUser: null, userRole: null, colegioId: null,
     currentClassId: null, currentAsignaturaId: null, currentAlumnoId: null,
     currentTrimestre: 'T1', currentExpedienteTrimestre: 'T1',
+    currentContext: null, // Puede ser 'asignatura' o 'tutoria'
     cachedClasses: [], cachedProfesores: [], cachedAlumnos: [],
     expedienteData: null
   };
@@ -508,7 +511,6 @@
           state.colegioId = pDoc.data().colegioId;
           document.getElementById('roleBadge').textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
           
-          // Redirección inicial según rol
           if (state.userRole === 'admin') {
             window.showDirectorView();
           } else {
@@ -524,7 +526,7 @@
     }
   });
 
-  // --- 2. RUTAS GLOBALES (BREADCRUMBS Y TABS) ---
+  // --- 2. RUTAS GLOBALES ---
   window.showDirectorView = () => { hideAllViews(); document.getElementById('directorView').classList.remove('hidden'); loadClasses('classesList', false); };
   window.showProfesoresView = () => { hideAllViews(); document.getElementById('profesoresView').classList.remove('hidden'); loadProfesores(); };
   window.showAsignaturasView = () => { hideAllViews(); document.getElementById('asignaturasView').classList.remove('hidden'); loadAsignaturas(); };
@@ -535,7 +537,15 @@
   window.backToClasesList = () => { state.userRole === 'admin' ? window.showDirectorView() : window.showProfesorClasesView(); };
   window.backToClaseDetail = () => { window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent); };
   window.backToAsignaturasList = () => { state.userRole === 'admin' ? window.showAsignaturasView() : window.showProfesorAsignaturasView(); };
-  window.backToAsignaturaDetail = () => { window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent); };
+  
+  window.backToAsignaturaDetail = () => { 
+    if (state.currentContext === 'tutoria') {
+      window.showTutoriaDetail(state.currentClassId, document.getElementById('currentAsignaturaNombre').textContent.replace('Tutoría - ', ''));
+    } else {
+      window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent);
+    }
+  };
+  
   window.backToTrimestreDetail = () => { window.showTrimestreDetail(state.currentTrimestre); };
 
   // --- 3. CARGA DE CLASES Y ALUMNOS ---
@@ -546,7 +556,7 @@
       const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases`), orderBy('nombre')));
       state.cachedClasses = [];
       if (snap.empty) {
-        list.innerHTML = '<div class="empty-state"><p>No hay clases creadas en el colegio.</p></div>';
+        list.innerHTML = '<div class="empty-state"><p>No hay clases creadas.</p></div>';
         return;
       }
       
@@ -557,14 +567,14 @@
         
         html += `<div class="card card-clickable" onclick="window.showClaseDetail('${docSnap.id}', '${data.nombre}')">`;
         if(!isProfesor) {
-          // Botón de Editar original
-          html += `<button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${docSnap.id}','${data.nombre}','${data.curso}')" title="Editar Clase">✏️</button>`;
-          // NUEVO: Botón de Borrar Clase
+          html += `<button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${docSnap.id}','${data.nombre}','${data.curso}','${data.tutorEmail||''}')" title="Editar Clase">✏️</button>`;
           html += `<button class="btn-delete-card" onclick="event.stopPropagation(); window.deleteClass('${docSnap.id}','${data.nombre}')" title="Eliminar Clase">🗑️</button>`;
         }
+        
+        const tutorName = data.tutorEmail ? data.tutorEmail.split('@')[0] : 'Sin tutor';
         html += `
             <div class="card-title">${data.nombre}</div>
-            <div class="card-meta">📖 ${data.curso}</div>
+            <div class="card-meta">📖 ${data.curso} | Tutor: ${tutorName}</div>
             <div class="card-meta">${data.numAlumnos || 0} alumnos</div>
           </div>
         `;
@@ -587,9 +597,7 @@
       
       if(snap.empty) {
         let emptyHtml = '<div class="empty-state"><p>No hay alumnos en esta clase.</p>';
-        if(state.userRole === 'admin') {
-          emptyHtml += `<button class="btn-secondary" onclick="document.getElementById('addStudentModal').classList.add('active')">+ Añadir Alumno</button>`;
-        }
+        if(state.userRole === 'admin') emptyHtml += `<button class="btn-secondary" onclick="document.getElementById('addStudentModal').classList.add('active')">+ Añadir Alumno</button>`;
         return list.innerHTML = emptyHtml + '</div>';
       }
 
@@ -597,20 +605,17 @@
       snap.forEach(docSnap => {
         const a = docSnap.data(); 
         state.cachedAlumnos.push({ id: docSnap.id, n: a.nombre, a: a.apellidos });
-        
-        // Limpiamos comillas para evitar errores en onclick
         const fullName = `${a.nombre} ${a.apellidos}`.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        
         html += `
           <div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${docSnap.id}', '${fullName}')">
             <div class="card-title">${a.apellidos}, ${a.nombre}</div>
             <div class="card-meta">Ver Expediente Global →</div>
         `;
-        
-        // NUEVO: Botón de borrar alumno
         if(state.userRole === 'admin') {
           html += `<button class="btn-delete-card" onclick="event.stopPropagation(); window.deleteStudent('${classId}','${docSnap.id}','${fullName}')" title="Eliminar Alumno">🗑️</button>`;
         }
-        html += `</div>`; // Cierra card
+        html += `</div>`;
       });
       
       if(state.userRole === 'admin') {
@@ -620,114 +625,73 @@
           </div>
         `;
       }
-      
       list.innerHTML = html + '</div>';
-    } catch(e) { console.error(e); list.innerHTML = '<p style="color:red">Error cargando alumnos</p>'; }
+    } catch(e) { console.error(e); }
   };
 
-  // ==================================================================
-  // NUEVAS FUNCIONES DE ELIMINACIÓN SEGURA
-  // ==================================================================
+  // --- BORRADOS (CLASES, ALUMNOS, ASIGNATURAS, PROFESORES) ---
+  window.deleteClass = async (id, nombre) => {
+    if(confirm(`⚠️ ¿Seguro que quieres borrar la clase "${nombre}"?`)) {
+      try { await deleteDoc(doc(db, `colegios/${state.colegioId}/clases/${id}`)); loadClasses('classesList', false); } 
+      catch (e) { alert(e.message); }
+    }
+  };
   
-  // 1. Eliminar Clase
-  window.deleteClass = async (classId, className) => {
-    if(confirm(`⚠️ ATENCIÓN: ¿Estás completamente seguro de que quieres eliminar la clase "${className}"?\n\nEsta acción NO borrará a los alumnos de las asignaturas en las que ya estén matriculados, pero eliminará la clase de la lista principal.`)) {
+  window.deleteStudent = async (cId, sId, name) => {
+    if(confirm(`¿Eliminar al alumno "${name}"?`)) {
       try {
-        await deleteDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}`));
-        loadClasses('classesList', false); // Recargamos
-      } catch (error) {
-        alert("Error al eliminar la clase: " + error.message);
-      }
+        await deleteDoc(doc(db, `colegios/${state.colegioId}/clases/${cId}/alumnos/${sId}`));
+        const cRef = doc(db, `colegios/${state.colegioId}/clases`, cId);
+        const cDoc = await getDoc(cRef);
+        if(cDoc.exists()) await updateDoc(cRef, { numAlumnos: (cDoc.data().numAlumnos || 1) - 1 });
+        window.showClaseDetail(cId, document.getElementById('claseDetailName').textContent);
+      } catch (e) { alert(e.message); }
     }
   };
 
-  // 2. Eliminar Alumno
-  window.deleteStudent = async (classId, studentId, studentName) => {
-    if(confirm(`¿Estás seguro de que quieres eliminar permanentemente al alumno "${studentName}" de esta clase?`)) {
-      try {
-        // Borramos documento
-        await deleteDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}/alumnos/${studentId}`));
-        
-        // Restamos uno al contador de la clase
-        const classRef = doc(db, `colegios/${state.colegioId}/clases`, classId);
-        const cDoc = await getDoc(classRef);
-        if (cDoc.exists()) {
-          const currentCount = cDoc.data().numAlumnos || 1;
-          await updateDoc(classRef, { numAlumnos: currentCount - 1 });
-        }
-        
-        // Recargamos la vista
-        window.showClaseDetail(classId, document.getElementById('claseDetailName').textContent);
-      } catch (error) {
-        alert("Error al eliminar al alumno: " + error.message);
-      }
+  window.deleteAsignatura = async (id, nombre) => {
+    if(confirm(`¿Borrar asignatura "${nombre}"? Se perderán todas sus notas.`)) {
+      try { await deleteDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${id}`)); loadAsignaturas(); } 
+      catch (e) { alert(e.message); }
     }
   };
 
-  // 3. Eliminar Profesor
   window.deleteProfesor = async (email) => {
-    if (email === state.currentUser.email) {
-      alert("No puedes eliminar tu propia cuenta de Administrador/Director.");
-      return;
-    }
-    if (confirm(`¿Estás seguro de que quieres revocar el acceso del profesor con correo: ${email}?`)) {
-      try {
-        await deleteDoc(doc(db, 'profesores', email));
-        loadProfesores(); // Recargamos lista
-      } catch (error) {
-        alert("Error al eliminar al profesor: " + error.message);
-      }
+    if(email === state.currentUser.email) return alert("No puedes borrarte a ti mismo.");
+    if(confirm(`¿Revocar acceso al profesor ${email}?`)) {
+      try { await deleteDoc(doc(db, 'profesores', email)); loadProfesores(); } 
+      catch (e) { alert(e.message); }
     }
   };
 
-  // --- 4. SISTEMA DE ASISTENCIA ---
+  // --- 4. ASISTENCIA ---
   window.showAsistenciaView = () => { 
-    hideAllViews(); 
-    document.getElementById('asistenciaView').classList.remove('hidden'); 
-    
-    // Poner el input type="date" en el día de hoy
-    const today = new Date().toISOString().split('T')[0]; 
-    document.getElementById('asistenciaDateInput').value = today; 
-    
-    window.loadAsistencia(today); 
+    hideAllViews(); document.getElementById('asistenciaView').classList.remove('hidden'); 
+    const td = new Date().toISOString().split('T')[0]; 
+    document.getElementById('asistenciaDateInput').value = td; 
+    window.loadAsistencia(td); 
   };
 
   window.loadAsistencia = async (date) => {
     const cont = document.getElementById('asistenciaListContainer'); 
-    cont.innerHTML = '<div class="loading">Cargando registro del día...</div>';
+    cont.innerHTML = '<div class="loading">Cargando...</div>';
     try {
       const d = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/asistencia/${date}`));
       const r = d.exists() ? d.data() : {}; 
-      
       let html = '';
       state.cachedAlumnos.forEach(a => {
-        const s = r[a.id] || ''; // Estado: P, F, R o nada
-        html += `
-          <div class="attendance-row">
-            <div class="ast-name">${a.a}, ${a.n}</div>
-            <div class="ast-toggles">
-              <button id="btn-ast-${a.id}-P" class="ast-btn ${s==='P'?'active P':''}" onclick="window.markAsistencia('${a.id}', 'P', '${date}')">✅</button>
-              <button id="btn-ast-${a.id}-F" class="ast-btn ${s==='F'?'active F':''}" onclick="window.markAsistencia('${a.id}', 'F', '${date}')">❌</button>
-              <button id="btn-ast-${a.id}-R" class="ast-btn ${s==='R'?'active R':''}" onclick="window.markAsistencia('${a.id}', 'R', '${date}')">⏰</button>
-            </div>
-          </div>
-        `;
+        const s = r[a.id] || ''; 
+        html += `<div class="attendance-row"><div class="ast-name">${a.a}, ${a.n}</div><div class="ast-toggles"><button id="btn-ast-${a.id}-P" class="ast-btn ${s==='P'?'active P':''}" onclick="window.markAsistencia('${a.id}', 'P', '${date}')">✅</button><button id="btn-ast-${a.id}-F" class="ast-btn ${s==='F'?'active F':''}" onclick="window.markAsistencia('${a.id}', 'F', '${date}')">❌</button><button id="btn-ast-${a.id}-R" class="ast-btn ${s==='R'?'active R':''}" onclick="window.markAsistencia('${a.id}', 'R', '${date}')">⏰</button></div></div>`;
       });
       cont.innerHTML = html;
-    } catch(e) { console.error(e); cont.innerHTML = '<p style="color:red; padding:20px;">Error cargando la asistencia</p>'; }
+    } catch(e) {}
   };
 
-  window.markAsistencia = async (alumnoId, estado, dateStr) => {
-    try {
-      // 1. Actualizar UI al instante
-      ['P','F','R'].forEach(s => document.getElementById(`btn-ast-${alumnoId}-${s}`).className = 'ast-btn');
-      document.getElementById(`btn-ast-${alumnoId}-${estado}`).classList.add('active', estado);
-      
-      // 2. Guardar en BD en segundo plano
-      await setDoc(doc(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/asistencia/${dateStr}`), { [alumnoId]: estado }, { merge: true });
-    } catch(e) { console.error("Error guardando asistencia", e); }
+  window.markAsistencia = async (id, st, date) => {
+    ['P','F','R'].forEach(s => document.getElementById(`btn-ast-${id}-${s}`).className = 'ast-btn');
+    document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st);
+    await setDoc(doc(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true });
   };
-
 
   // --- 5. CARGAS GENERALES DEL DIRECTOR ---
   async function loadProfesores() { 
@@ -736,25 +700,19 @@
     try {
       const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId))); 
       state.cachedProfesores = []; 
+      if(snap.empty) return list.innerHTML = '<div class="empty-state"><p>No hay profesores.</p></div>';
       
-      if(snap.empty) return list.innerHTML = '<div class="empty-state"><p>No hay profesores en el sistema.</p></div>';
-      
-      // NUEVO: Añadida columna de Acciones en la tabla
       let html = '<table class="table"><thead><tr><th>Email</th><th>Nombre</th><th>Rol</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
       snap.forEach(docSnap => {
-        const d = docSnap.data();
-        state.cachedProfesores.push({id: docSnap.id, ...d}); 
-        
-        // El botón de eliminar se oculta si es el propio director actual
-        let deleteBtn = '';
+        const d = docSnap.data(); state.cachedProfesores.push({id: docSnap.id, ...d}); 
+        let delBtn = '';
         if (d.rol !== 'admin' || docSnap.id !== state.currentUser.email) {
-            deleteBtn = `<button class="btn-icon" style="color:var(--accent);" onclick="window.deleteProfesor('${docSnap.id}')" title="Revocar acceso">🗑️</button>`;
+            delBtn = `<button class="btn-icon" style="color:var(--accent);" onclick="window.deleteProfesor('${docSnap.id}')">🗑️</button>`;
         }
-
-        html += `<tr><td><strong>${docSnap.id}</strong></td><td>${d.nombre || '—'}</td><td>${d.rol === 'admin' ? 'Director' : 'Profesor'}</td><td style="text-align:center;">${deleteBtn}</td></tr>`; 
+        html += `<tr><td><strong>${docSnap.id}</strong></td><td>${d.nombre || '—'}</td><td>${d.rol}</td><td style="text-align:center;">${delBtn}</td></tr>`; 
       }); 
       list.innerHTML = html + '</tbody></table>'; 
-    } catch(e) { console.error(e); }
+    } catch(e) {}
   }
   
   async function loadAsignaturas() { 
@@ -764,36 +722,72 @@
       const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), orderBy('nombre'))); 
       if(snap.empty) return list.innerHTML = '<div class="empty-state"><p>No hay asignaturas creadas.</p></div>';
       
-      let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Alumnos</th></tr></thead><tbody>'; 
+      let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesores</th><th>Alumnos</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
       snap.forEach(docSnap => { 
         const d = docSnap.data();
-        html += `<tr><td><strong>${d.nombre}</strong></td><td>${d.profesorEmail}</td><td>${d.alumnos?.length || 0}</td></tr>`; 
+        // Soportar array de profes (nuevo) o string único (antiguo)
+        const profes = d.profesorEmails ? d.profesorEmails.join(', ') : (d.profesorEmail || '—');
+        
+        html += `<tr>
+          <td><strong>${d.nombre}</strong></td>
+          <td>${profes}</td>
+          <td>${d.alumnos?.length || 0}</td>
+          <td style="text-align:center;"><button class="btn-icon" style="color:var(--accent);" onclick="window.deleteAsignatura('${docSnap.id}','${d.nombre}')">🗑️</button></td>
+        </tr>`; 
       }); 
       list.innerHTML = html + '</tbody></table>'; 
-    } catch(e) { console.error(e); }
+    } catch(e) {}
   }
 
-  // --- 6. VISTA DEL PROFESOR: ASIGNATURAS Y EVALUACIÓN ---
+  // --- 6. VISTA DEL PROFESOR: ASIGNATURAS Y TUTORÍAS ---
   async function loadProfesorAsignaturas() { 
     const list = document.getElementById('profesorAsignaturasList'); 
-    list.innerHTML = '<div class="loading">Cargando tus asignaturas...</div>';
+    list.innerHTML = '<div class="loading">Buscando tus asignaturas...</div>';
     try {
-      const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('profesorEmail', '==', state.currentUser.email))); 
-      if(snap.empty) return list.innerHTML = '<div class="empty-state"><p>No tienes asignaturas asignadas en este momento.</p></div>';
+      // 1. Buscar Asignaturas (array-contains para el nuevo sistema múltiple, o == para el viejo si hiciera falta, pero usamos array-contains)
+      const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('profesorEmails', 'array-contains', state.currentUser.email))); 
       
-      let html = '<div class="cards-grid">'; 
-      snap.forEach(docSnap => { 
-        const d = docSnap.data();
-        html += `
-          <div class="card card-clickable" onclick="window.showAsignaturaDetail('${docSnap.id}','${d.nombre}')">
-            <div class="card-title">${d.nombre}</div>
-            <div class="card-meta">${d.alumnos?.length || 0} alumnos a evaluar</div>
-          </div>`; 
-      }); 
-      list.innerHTML = html + '</div>'; 
+      // 2. Buscar Tutorías
+      const snapTut = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases`), where('tutorEmail', '==', state.currentUser.email)));
+
+      let html = '';
+      
+      // Sección Tutorías
+      if (!snapTut.empty) {
+        html += `<h3 style="margin-bottom:16px;">📚 Mis Tutorías (Evaluar Actitud/Comportamiento)</h3><div class="cards-grid">`;
+        snapTut.forEach(docSnap => {
+          const d = docSnap.data();
+          html += `
+            <div class="card card-clickable" style="border-left: 4px solid var(--gold);" onclick="window.showTutoriaDetail('${docSnap.id}','${d.nombre}')">
+              <div class="card-title">Tutoría - ${d.nombre}</div>
+              <div class="card-meta">${d.numAlumnos || 0} alumnos</div>
+            </div>`;
+        });
+        html += `</div><br><br>`;
+      }
+
+      // Sección Asignaturas
+      html += `<h3 style="margin-bottom:16px;">📖 Mis Asignaturas Normales</h3>`;
+      if(snapAsig.empty) {
+        html += '<p class="empty-state">No tienes asignaturas asignadas.</p>';
+      } else {
+        html += `<div class="cards-grid">`;
+        snapAsig.forEach(docSnap => { 
+          const d = docSnap.data();
+          html += `
+            <div class="card card-clickable" onclick="window.showAsignaturaDetail('${docSnap.id}','${d.nombre}')">
+              <div class="card-title">${d.nombre}</div>
+              <div class="card-meta">${d.alumnos?.length || 0} alumnos a evaluar</div>
+            </div>`; 
+        }); 
+        html += `</div>`;
+      }
+      
+      list.innerHTML = html; 
     } catch(e) { console.error(e); }
   }
 
+  // ENTRAR EN ASIGNATURA NORMAL
   window.showAsignaturaDetail = (id, nombre) => { 
     state.currentAsignaturaId = id; 
     state.currentContext = 'asignatura'; 
@@ -802,7 +796,30 @@
     document.getElementById('asignaturaDetailView').classList.remove('hidden'); 
   };
 
-  // PONDERACIÓN Y ALUMNOS PARA EVALUAR
+  // ENTRAR EN TUTORÍA
+  window.showTutoriaDetail = (classId, className) => {
+    state.currentClassId = classId; 
+    state.currentContext = 'tutoria'; 
+    document.getElementById('currentAsignaturaNombre').textContent = 'Tutoría - ' + className; 
+    document.getElementById('asignaturaDetailTitle').textContent = `Trimestres`;
+    hideAllViews(); 
+    document.getElementById('asignaturaDetailView').classList.remove('hidden');
+  };
+
+  // RUTAS DINÁMICAS SEGÚN CONTEXTO (ASIGNATURA VS TUTORÍA)
+  function getPonderacionPath(t) {
+    return state.currentContext === 'tutoria' 
+      ? `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderacionesTutoria/${t}`
+      : `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${t}`;
+  }
+  function getNotasPath(studentRefStr, t) {
+    // Para tutoría studentRefStr es solo el ID del alumno. Para asignatura es claseId/alumnoId.
+    return state.currentContext === 'tutoria'
+      ? `colegios/${state.colegioId}/clases/${state.currentClassId}/notasTutoria/${studentRefStr}-${t}`
+      : `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`;
+  }
+
+  // --- 7. PONDERACIÓN Y ALUMNOS PARA EVALUAR ---
   window.showTrimestreDetail = async (t) => {
     state.currentTrimestre = t; 
     hideAllViews(); 
@@ -818,13 +835,16 @@
   };
 
   let currentCategorias = [];
-  
   window.loadPonderacion = async (t) => {
     try {
-      const d = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${t}`));
-      currentCategorias = d.exists() ? (d.data().categorias || []) : [
-        {nombre:"Exámenes", peso:40}, {nombre:"Deberes", peso:60}
-      ];
+      const d = await getDoc(doc(db, getPonderacionPath(t)));
+      
+      if (state.currentContext === 'tutoria') {
+        currentCategorias = d.exists() ? (d.data().categorias || []) : [{nombre:"Actitud y Comportamiento", peso:100}];
+      } else {
+        currentCategorias = d.exists() ? (d.data().categorias || []) : [{nombre:"Exámenes", peso:40}, {nombre:"Deberes", peso:60}];
+      }
+      
       renderCategorias(); 
       updatePesoTotal();
     } catch(e) { console.error(e); }
@@ -837,7 +857,7 @@
         <div class="categoria-row">
           <input type="text" value="${cat.nombre}" onchange="window.updateCategoriaNombre(${i}, this.value)" placeholder="Categoría">
           <input type="number" value="${cat.peso}" onchange="window.updateCategoriaPeso(${i}, this.value)">
-          <button class="btn-remove-cat" onclick="window.eliminarCategoria(${i})" title="Borrar">🗑️</button>
+          <button class="btn-remove-cat" onclick="window.eliminarCategoria(${i})">🗑️</button>
         </div>`;
     });
     document.getElementById('categoriasConfig').innerHTML = html + '</div>';
@@ -868,39 +888,39 @@
     if(currentCategorias.some(c => !c.nombre.trim())) return alert('Todas las categorías necesitan nombre.');
     
     try {
-      await setDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`), { categorias: currentCategorias, updatedAt: serverTimestamp() }); 
-      alert('✅ Configuración guardada correctamente.');
+      await setDoc(doc(db, getPonderacionPath(state.currentTrimestre)), { categorias: currentCategorias, updatedAt: serverTimestamp() }); 
+      alert('✅ Configuración guardada.');
     } catch(e) { alert("Error guardando"); }
   };
 
   window.loadAlumnosParaEvaluar = async () => {
     const list = document.getElementById('trimestreAlumnosList'); 
-    list.innerHTML = '<div class="loading">Buscando alumnos de la asignatura...</div>';
+    list.innerHTML = '<div class="loading">Buscando alumnos...</div>';
     try {
       let alumnos = [];
-      const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, state.currentAsignaturaId));
       
-      const alumnosRefs = asigDoc.data()?.alumnos || [];
-      if (alumnosRefs.length === 0) {
-        return list.innerHTML = '<div class="empty-state"><p>No hay alumnos matriculados en esta asignatura.</p></div>';
-      }
+      if (state.currentContext === 'tutoria') {
+        // En tutoría, cogemos directamente a todos los alumnos de esa clase
+        const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), orderBy('apellidos')));
+        snap.forEach(d => {
+          alumnos.push({ id: d.id, n: d.data().nombre || '', a: d.data().apellidos || '', classId: state.currentClassId, alumId: d.id });
+        });
+      } else {
+        // En Asignatura normal
+        const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, state.currentAsignaturaId));
+        const alumnosRefs = asigDoc.data()?.alumnos || [];
+        if (alumnosRefs.length === 0) return list.innerHTML = '<div class="empty-state"><p>No hay alumnos matriculados en esta asignatura.</p></div>';
 
-      for (const ref of alumnosRefs) {
-        const partes = ref.split('/');
-        if (partes.length === 2) {
-          const claseId = partes[0];
-          const alumnoId = partes[1];
-          const aDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${claseId}/alumnos`, alumnoId));
-          if (aDoc.exists()) {
-            const data = aDoc.data();
-            alumnos.push({ id: ref, n: data.nombre || '', a: data.apellidos || '', classId: claseId, alumId: alumnoId });
+        for (const ref of alumnosRefs) {
+          const partes = ref.split('/');
+          if (partes.length === 2) {
+            const aDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${partes[0]}/alumnos`, partes[1]));
+            if (aDoc.exists()) alumnos.push({ id: ref, n: aDoc.data().nombre || '', a: aDoc.data().apellidos || '', classId: partes[0], alumId: partes[1] });
           }
         }
       }
 
-      if (alumnos.length === 0) {
-        return list.innerHTML = '<div class="empty-state"><p>No se encontraron datos válidos de los alumnos.</p></div>';
-      }
+      if (alumnos.length === 0) return list.innerHTML = '<div class="empty-state"><p>No hay alumnos.</p></div>';
 
       alumnos.sort((a,b) => (a.a || '').localeCompare(b.a || ''));
       
@@ -910,7 +930,7 @@
         html += `
           <div class="card card-clickable" onclick="window.showNotasView('${alum.id}', '${nLimpio}', '${alum.classId}', '${alum.alumId}')">
             <div class="card-title">${alum.a}, ${alum.n}</div>
-            <div class="card-meta">Evaluar alumno →</div>
+            <div class="card-meta">Evaluar →</div>
           </div>
         `;
       });
@@ -918,7 +938,7 @@
     } catch(e) { console.error(e); list.innerHTML = '<p style="color:red">Error cargando lista</p>'; }
   };
 
-  // --- 7. PANEL DE NOTAS X/Y (ACORDEONES) Y COMENTARIOS ---
+  // --- 8. PANEL DE NOTAS X/Y Y COMENTARIOS ---
   window.showNotasView = (id, nombreAlumno, classId, alumId) => { 
     state.currentAlumnoId = id; 
     state.currentEvalClassId = classId; 
@@ -936,11 +956,11 @@
     window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); 
   };
   
-  window.loadNotas = async (nombreAlumno) => {
+  window.loadNotas = async () => {
     const container = document.getElementById('notasContent'); 
     container.innerHTML = '<div class="loading">Cargando perfil de evaluación...</div>';
     
-    // Asistencia Integrada Automáticamente
+    // Resumen Asistencia Automática
     let faltas = 0; let retrasos = 0;
     try { 
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); 
@@ -950,15 +970,14 @@
         if(d[state.currentEvalAlumId] === 'R') retrasos++; 
       }); 
       document.getElementById('attendanceSummary').innerHTML = `
-        <div class="ast-stat">❌ Faltas en esta clase: <strong style="color:var(--accent);">${faltas}</strong></div>
+        <div class="ast-stat">❌ Faltas en clase: <strong style="color:var(--accent);">${faltas}</strong></div>
         <div class="ast-stat">⏰ Retrasos: <strong style="color:var(--gold);">${retrasos}</strong></div>
       `; 
-    } catch(e) { console.error(e); }
+    } catch(e) {}
 
     try {
-      const docId = `${state.currentAlumnoId.replace('/', '-')}-${state.currentTrimestre}`;
-      const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`));
-      const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`));
+      const pDoc = await getDoc(doc(db, getPonderacionPath(state.currentTrimestre)));
+      const nDoc = await getDoc(doc(db, getNotasPath(state.currentAlumnoId, state.currentTrimestre)));
       
       let cats = pDoc.exists() ? (pDoc.data().categorias || []) : []; 
       const data = nDoc.exists() ? nDoc.data() : { categorias: {}, comentarioTutor: "" };
@@ -966,10 +985,10 @@
       let html = `
         <div class="professional-comment">
           <div class="comment-header">
-            <strong>📝 Observaciones y Comentarios</strong>
+            <strong>📝 Observaciones (Visibles en Expediente)</strong>
             <span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0; transition:opacity 0.3s;">Guardado ✓</span>
           </div>
-          <textarea id="comentarioArea" rows="3" placeholder="Escribe aquí observaciones privadas sobre el progreso..." onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea>
+          <textarea id="comentarioArea" rows="3" onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea>
         </div>
       `;
 
@@ -977,55 +996,34 @@
       
       cats.forEach((cat, idx) => {
         let notasArr = data.categorias?.[cat.nombre] || []; 
-        // Conversión segura de formatos antiguos
         notasArr = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10, descripcion: '' } : n);
         
-        // Cálculo Media X/Y a Base 10
         const sumaBase10 = notasArr.reduce((acc, obj) => {
           let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0);
-          let max = parseFloat(obj.maximo || 10);
-          if (max <= 0) max = 10;
+          let max = parseFloat(obj.maximo || 10); if (max <= 0) max = 10;
           return acc + ((val / max) * 10);
         }, 0);
         
         const mediaCategoria = notasArr.length > 0 ? (sumaBase10 / notasArr.length) : 0;
-        
-        if (notasArr.length > 0) {
-          notaFinalGlobal += mediaCategoria * (cat.peso / 100);
-          pesoTotalGlobal += cat.peso;
-        }
+        if (notasArr.length > 0) { notaFinalGlobal += mediaCategoria * (cat.peso / 100); pesoTotalGlobal += cat.peso; }
         
         html += `
           <div class="accordion-card">
             <div class="accordion-header" onclick="window.toggleAccordion('acc-${idx}', 'icon-${idx}')">
               <div class="accordion-title">${cat.nombre} <span class="accordion-badge">${cat.peso}%</span></div>
-              <div class="accordion-stats">
-                <span class="accordion-media">Media: <strong>${mediaCategoria.toFixed(2)}</strong> / 10</span>
-                <span id="icon-${idx}" class="accordion-chevron">▼</span>
-              </div>
+              <div class="accordion-stats"><span class="accordion-media">Media: <strong>${mediaCategoria.toFixed(2)}</strong> / 10</span><span id="icon-${idx}" class="accordion-chevron">▼</span></div>
             </div>
-            <div class="accordion-body" id="acc-${idx}">
-              <div style="padding-top:15px;">
+            <div class="accordion-body" id="acc-${idx}"><div style="padding-top:15px;">
         `;
         
-        if (notasArr.length === 0) {
-          html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros evaluados.</div>`;
-        }
+        if (notasArr.length === 0) html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros evaluados.</div>`;
 
         notasArr.forEach((nObj, i) => {
           html += `
             <div class="record-row">
-              <div class="record-desc">
-                <input type="text" placeholder="Ej. Tarea 1 o Examen" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)">
-              </div>
-              <div class="record-val">
-                <input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor !== undefined ? nObj.valor : ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)" placeholder="Nota">
-                <span style="font-weight:600; color:var(--ink-light);">/</span>
-                <input type="number" class="val-max" min="0.1" step="0.1" value="${nObj.maximo || 10}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)" title="Nota máxima">
-              </div>
-              <div class="record-actions">
-                <button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})" title="Borrar">🗑️</button>
-              </div>
+              <div class="record-desc"><input type="text" placeholder="Concepto (ej. Examen 1)" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)"></div>
+              <div class="record-val"><input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor !== undefined ? nObj.valor : ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)"><span style="font-weight:600;">/</span><input type="number" class="val-max" min="0.1" step="0.1" value="${nObj.maximo || 10}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)"></div>
+              <div class="record-actions"><button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button></div>
             </div>
           `; 
         });
@@ -1037,73 +1035,53 @@
       html += `<div class="nota-final-display"><h3>Nota Global Ponderada</h3><div class="nota">${calculoFinalSeguro.toFixed(2)}</div></div>`; 
       
       container.innerHTML = html;
-    } catch(e) { console.error(e); container.innerHTML = '<p style="color:red">Error cargando datos de evaluación.</p>'; }
+    } catch(e) { console.error(e); }
   };
   
-  window.toggleAccordion = (bodyId, iconId) => { 
-    const body = document.getElementById(bodyId); 
-    const icon = document.getElementById(iconId); 
-    if (body.classList.contains('active')) {
-      body.classList.remove('active'); icon.classList.remove('open');
-    } else {
-      body.classList.add('active'); icon.classList.add('open');
-    } 
+  window.toggleAccordion = (bId, iId) => { 
+    const b = document.getElementById(bId), i = document.getElementById(iId); 
+    if(b.classList.contains('active')){ b.classList.remove('active'); i.classList.remove('open'); } else { b.classList.add('active'); i.classList.add('open'); } 
   };
   
   window.guardarComentario = async () => { 
     try {
-      await setDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${state.currentAlumnoId.replace('/','-')}-${state.currentTrimestre}`), { comentarioTutor: document.getElementById('comentarioArea').value }, { merge:true }); 
-      const i = document.getElementById('saveStatusIndicator'); 
-      i.style.opacity = 1; setTimeout(() => i.style.opacity = 0, 2000); 
+      await setDoc(doc(db, getNotasPath(state.currentAlumnoId, state.currentTrimestre)), { comentarioTutor: document.getElementById('comentarioArea').value }, { merge:true }); 
+      const i = document.getElementById('saveStatusIndicator'); i.style.opacity = 1; setTimeout(() => i.style.opacity = 0, 2000); 
     } catch(e) {}
   };
   
   window.addNota = async (cat) => { 
     try {
-      const path = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${state.currentAlumnoId.replace('/','-')}-${state.currentTrimestre}`; 
-      const d = await getDoc(doc(db, path)); 
+      const p = getNotasPath(state.currentAlumnoId, state.currentTrimestre);
+      const d = await getDoc(doc(db, p)); 
       const data = d.exists() ? d.data() : {categorias:{}}; 
       if(!data.categorias[cat]) data.categorias[cat] = []; 
       data.categorias[cat].push({valor: '', maximo: 10, descripcion: ''}); 
-      await setDoc(doc(db, path), data, {merge:true}); 
-      window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); 
+      await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); 
     } catch(e) {}
   };
   
   window.updateNotaDetalle = async (cat, idx, campo, val) => { 
     try {
-      const path = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${state.currentAlumnoId.replace('/','-')}-${state.currentTrimestre}`; 
-      const d = await getDoc(doc(db, path)); 
-      const data = d.data(); 
-      
-      if(typeof data.categorias[cat][idx] === 'number') {
-        const n = data.categorias[cat][idx];
-        data.categorias[cat][idx] = {valor: n, maximo: 10, descripcion: ''};
-      }
-      
-      if (campo === 'valor' || campo === 'maximo') {
-        data.categorias[cat][idx][campo] = val === '' ? '' : (parseFloat(val) || 0);
-      } else {
-        data.categorias[cat][idx][campo] = val;
-      }
-      
-      await setDoc(doc(db, path), data, {merge:true}); 
-      window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); 
+      const p = getNotasPath(state.currentAlumnoId, state.currentTrimestre);
+      const d = await getDoc(doc(db, p)); const data = d.data(); 
+      if(typeof data.categorias[cat][idx] === 'number') data.categorias[cat][idx] = {valor: data.categorias[cat][idx], maximo: 10, descripcion: ''};
+      if (campo === 'valor' || campo === 'maximo') data.categorias[cat][idx][campo] = val === '' ? '' : (parseFloat(val) || 0);
+      else data.categorias[cat][idx][campo] = val;
+      await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); 
     } catch(e) {}
   };
   
   window.deleteNota = async (cat, idx) => { 
     try {
-      const path = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${state.currentAlumnoId.replace('/','-')}-${state.currentTrimestre}`; 
-      const d = await getDoc(doc(db, path)); 
-      const data = d.data(); 
+      const p = getNotasPath(state.currentAlumnoId, state.currentTrimestre);
+      const d = await getDoc(doc(db, p)); const data = d.data(); 
       data.categorias[cat].splice(idx, 1); 
-      await setDoc(doc(db, path), data, {merge:true}); 
-      window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); 
+      await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); 
     } catch(e) {}
   };
 
-  // --- 8. EXPEDIENTE GLOBAL Y GRÁFICOS (Chart.js) ---
+  // --- 9. EXPEDIENTE GLOBAL Y GRÁFICOS ---
   function calcFinalGradeForChart(categorias, notasData) {
     let notaFinal = 0; let pesoTotal = 0;
     categorias.forEach(cat => {
@@ -1114,11 +1092,7 @@
         let m = parseFloat(curr.maximo || 10); if(m <= 0) m = 10;
         return acc + ((v/m) * 10);
       }, 0);
-      
-      if (cNotas.length > 0) { 
-        notaFinal += (suma/cNotas.length) * (cat.peso/100); 
-        pesoTotal += cat.peso; 
-      }
+      if (cNotas.length > 0) { notaFinal += (suma/cNotas.length) * (cat.peso/100); pesoTotal += cat.peso; }
     });
     return pesoTotal > 0 ? notaFinal : null;
   }
@@ -1127,29 +1101,42 @@
     state.currentAlumnoId = studentRef; 
     document.getElementById('expedienteAlumnoNameBread').textContent = studentName;
     document.getElementById('expedienteAlumnoNameTitle').textContent = studentName;
-    hideAllViews(); 
-    document.getElementById('expedienteView').classList.remove('hidden');
-    
-    document.getElementById('expedienteContentTable').innerHTML = '<div class="loading">Recopilando datos de todas las asignaturas...</div>';
+    hideAllViews(); document.getElementById('expedienteView').classList.remove('hidden');
+    document.getElementById('expedienteContentTable').innerHTML = '<div class="loading">Recopilando datos de todo el curso...</div>';
     document.getElementById('expedienteContentComments').innerHTML = '';
     
     try {
-      const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
       state.expedienteData = { averages: { T1: [], T2: [], T3: [] }, subjects: [] };
+      
+      // 1. Extraer Tutoría Primero (si tiene)
+      const [classId, alumnoId] = studentRef.split('/');
+      const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}`));
+      if (classDoc.exists()) {
+        let tutRecord = { name: "🎓 Tutoría y Actitud", profe: classDoc.data().tutorEmail || 'Sin Tutor', grades: {}, comments: {} };
+        for (const t of ['T1', 'T2', 'T3']) {
+          const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}/ponderacionesTutoria/${t}`));
+          const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}/notasTutoria/${alumnoId}-${t}`));
+          const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [];
+          const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
+          tutRecord.comments[t] = notasData.comentarioTutor || "";
+          const final = calcFinalGradeForChart(cats, notasData);
+          tutRecord.grades[t] = final;
+        }
+        state.expedienteData.subjects.push(tutRecord);
+      }
 
+      // 2. Extraer Asignaturas
+      const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
       for (const d of snapAsig.docs) {
         const asig = d.data();
-        let subRecord = { name: asig.nombre, profe: asig.profesorEmail, grades: {}, comments: {} };
-        
+        const profeStr = asig.profesorEmails ? asig.profesorEmails.join(', ') : asig.profesorEmail;
+        let subRecord = { name: asig.nombre, profe: profeStr, grades: {}, comments: {} };
         for (const t of ['T1', 'T2', 'T3']) {
           const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/ponderaciones/${t}`));
           const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/notas/${studentRef.replace('/','-')}-${t}`));
-          
           const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [];
           const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
-          
           subRecord.comments[t] = notasData.comentarioTutor || "";
-          
           const final = calcFinalGradeForChart(cats, notasData);
           subRecord.grades[t] = final;
           if (final !== null) state.expedienteData.averages[t].push(final);
@@ -1157,31 +1144,24 @@
         state.expedienteData.subjects.push(subRecord);
       }
 
-      // Medias por trimestre para el gráfico
+      // Gráfico
       const avgT1 = state.expedienteData.averages.T1.length ? (state.expedienteData.averages.T1.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T1.length) : null;
       const avgT2 = state.expedienteData.averages.T2.length ? (state.expedienteData.averages.T2.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T2.length) : null;
       const avgT3 = state.expedienteData.averages.T3.length ? (state.expedienteData.averages.T3.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T3.length) : null;
       
-      // Dibujar gráfico
       if (chartInstance) chartInstance.destroy();
       chartInstance = new Chart(document.getElementById('progresoChart').getContext('2d'), {
         type: 'line',
         data: { 
           labels: ['1º Trimestre', '2º Trimestre', '3º Trimestre'], 
-          datasets: [{ 
-            label: 'Media Global',
-            data: [avgT1, avgT2, avgT3], 
-            borderColor: '#c84b31', backgroundColor: 'rgba(200, 75, 49, 0.1)', borderWidth: 3, 
-            pointBackgroundColor: '#1a1a2e', pointRadius: 6, fill: true, tension: 0.3, spanGaps: true 
-          }] 
+          datasets: [{ label: 'Media Global', data: [avgT1, avgT2, avgT3], borderColor: '#c84b31', backgroundColor: 'rgba(200, 75, 49, 0.1)', borderWidth: 3, pointBackgroundColor: '#1a1a2e', pointRadius: 6, fill: true, tension: 0.3, spanGaps: true }] 
         },
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 10, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
       });
       
-      // Cargar primera pestaña, forzando a que el primer botón reciba el foco visualmente
       const btn1 = document.querySelector('#expedienteTrimestreTabs .trimestre-tab');
       window.switchExpedienteTrimestre('T1', btn1);
-    } catch(e) { console.error(e); document.getElementById('expedienteContentTable').innerHTML = '<p style="color:red">Error al generar expediente.</p>'; }
+    } catch(e) { console.error(e); }
   };
 
   window.switchExpedienteTrimestre = (t, btnElement) => {
@@ -1191,27 +1171,17 @@
     
     document.getElementById('expLabelTrimestre').textContent = { 'T1': '1º Trimestre', 'T2': '2º Trimestre', 'T3': '3º Trimestre' }[t];
     
-    if (!state.expedienteData || state.expedienteData.subjects.length === 0) {
-      document.getElementById('expedienteContentTable').innerHTML = '<div class="empty-state">No matriculado en asignaturas.</div>';
-      return;
-    }
+    if (!state.expedienteData || state.expedienteData.subjects.length === 0) return document.getElementById('expedienteContentTable').innerHTML = '<div class="empty-state">No matriculado en asignaturas.</div>';
 
     let htmlTable = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Nota Final</th></tr></thead><tbody>';
-    let htmlComments = ''; 
-    let hasComments = false;
+    let htmlComments = ''; let hasComments = false;
 
     state.expedienteData.subjects.forEach(sub => {
       const grade = sub.grades[t];
       htmlTable += `<tr><td><strong>${sub.name}</strong></td><td>${sub.profe}</td><td><strong style="color:var(--accent); font-size:15px;">${grade !== null ? grade.toFixed(2) : '—'}</strong></td></tr>`;
-      
       if (sub.comments[t] && sub.comments[t].trim() !== '') {
         hasComments = true;
-        htmlComments += `
-          <div class="comment-card">
-            <h4>${sub.name} <span class="profe-tag">Prof. ${sub.profe.split('@')[0]}</span></h4>
-            <p>"${sub.comments[t]}"</p>
-          </div>
-        `;
+        htmlComments += `<div class="comment-card"><h4>${sub.name} <span class="profe-tag">Prof. ${sub.profe.split('@')[0]}</span></h4><p>"${sub.comments[t]}"</p></div>`;
       }
     });
 
@@ -1219,17 +1189,39 @@
     document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones del equipo docente en este trimestre.</div>';
   };
 
-  // --- 9. FUNCIONES DE APOYO PARA CREACIÓN DE ASIGNATURAS ---
-  window.openCreateAsignaturaModal = async () => {
-    const profSelect = document.getElementById('asignaturaProfesorSelect');
-    profSelect.innerHTML = '<option value="">Selecciona profesor</option>';
-    state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(p => {
-      profSelect.innerHTML += `<option value="${p.id}">${p.nombre || p.id}</option>`;
+  // --- 10. MODALES (PREPARACIÓN DINÁMICA DE OPCIONES) ---
+  window.openCreateClassModal = async () => {
+    const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
+    let html = '<option value="">Selecciona un profesor como tutor</option>';
+    snap.forEach(d => { html += `<option value="${d.id}">${d.data().nombre || d.id}</option>`; });
+    document.getElementById('createClassTutor').innerHTML = html;
+    document.getElementById('createClassModal').classList.add('active');
+  };
+
+  window.openEditClassModal = async (id, n, c, currentTutor) => { 
+    document.getElementById('editClassId').value = id; 
+    document.getElementById('editClassNombre').value = n; 
+    document.getElementById('editClassCurso').value = c; 
+    
+    const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
+    let html = '<option value="">Selecciona un profesor como tutor</option>';
+    snap.forEach(d => { 
+      const isSelected = d.id === currentTutor ? 'selected' : '';
+      html += `<option value="${d.id}" ${isSelected}>${d.data().nombre || d.id}</option>`; 
     });
+    document.getElementById('editClassTutor').innerHTML = html;
+    document.getElementById('editClassModal').classList.add('active'); 
+  };
+
+  window.openCreateAsignaturaModal = async () => {
+    let profesHtml = '';
+    state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(p => {
+      profesHtml += `<div class="checkbox-item"><input type="checkbox" value="${p.id}" name="profesoresAsig"><label>${p.nombre || p.id}</label></div>`;
+    });
+    document.getElementById('asignaturaProfesoresSelection').innerHTML = profesHtml || '<p style="font-size:13px;">No hay profesores disponibles.</p>';
 
     const alumList = document.getElementById('alumnosSelection');
     alumList.innerHTML = '<div class="loading">Cargando alumnos...</div>';
-    
     if(!state.cachedClasses.length) await loadClasses('classesList', false);
     
     let html = '';
@@ -1237,111 +1229,82 @@
       const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${c.id}/alumnos`), orderBy('apellidos')));
       if(!snap.empty) {
         html += `<div class="clase-group"><div class="clase-group-header"><span>${c.nombre}</span><span class="select-all-btn" onclick="window.selectAllFromClase('${c.id}')">Seleccionar todos</span></div>`;
-        snap.forEach(d => { 
-          html += `<div class="checkbox-item"><input type="checkbox" value="${c.id}/${d.id}" name="alumnos"><label>${d.data().apellidos}, ${d.data().nombre}</label></div>`; 
-        });
+        snap.forEach(d => { html += `<div class="checkbox-item"><input type="checkbox" value="${c.id}/${d.id}" name="alumnos"><label>${d.data().apellidos}, ${d.data().nombre}</label></div>`; });
         html += '</div>';
       }
     }
     alumList.innerHTML = html || '<div class="empty-state"><p>No hay alumnos disponibles para asignar</p></div>';
-    
     document.getElementById('createAsignaturaModal').classList.add('active');
   };
 
-  // --- 10. EVENT LISTENERS DE FORMULARIOS AL CARGAR DOM ---
+  window.selectAllFromClase = (id) => { 
+    const cbs = document.querySelectorAll(`input[value^="${id}/"]`); 
+    const allChecked = Array.from(cbs).every(cb => cb.checked); 
+    cbs.forEach(cb => cb.checked = !allChecked); 
+  };
+
+  // --- 11. EVENT LISTENERS DE FORMULARIOS (GUARDADO DE DATOS) ---
   document.addEventListener('DOMContentLoaded', () => {
-    initLogin(); 
-    initLogout(); 
-    initAuthListener();
+    initLogin(); initLogout(); initAuthListener();
     
-    // Formulario Crear Clase
+    // Crear Clase
     document.getElementById('createClassForm')?.addEventListener('submit', async(e) => { 
-      e.preventDefault(); 
-      const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
+      e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
       try {
-        await addDoc(collection(db, `colegios/${state.colegioId}/clases`), { nombre: e.target.nombre.value, curso: e.target.curso.value, numAlumnos: 0, createdAt: serverTimestamp(), createdBy: state.currentUser.email }); 
-        loadClasses('classesList', false); 
-        document.getElementById('createClassModal').classList.remove('active'); 
-        e.target.reset(); 
-      } catch(err) { alert(err.message); }
-      btn.disabled = false; 
+        await addDoc(collection(db, `colegios/${state.colegioId}/clases`), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value, numAlumnos: 0, createdAt: serverTimestamp(), createdBy: state.currentUser.email }); 
+        loadClasses('classesList', false); document.getElementById('createClassModal').classList.remove('active'); e.target.reset(); 
+      } catch(err) { alert(err.message); } btn.disabled = false; 
     });
     
-    // Formulario Editar Clase
+    // Editar Clase
     document.getElementById('editClassForm')?.addEventListener('submit', async(e) => { 
-      e.preventDefault(); 
-      const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
+      e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
       try {
-        await updateDoc(doc(db, `colegios/${state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value }); 
-        loadClasses('classesList', false); 
-        document.getElementById('editClassModal').classList.remove('active'); 
-      } catch(err) { alert(err.message); }
-      btn.disabled = false; 
+        await updateDoc(doc(db, `colegios/${state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value }); 
+        loadClasses('classesList', false); document.getElementById('editClassModal').classList.remove('active'); 
+      } catch(err) { alert(err.message); } btn.disabled = false; 
     });
 
-    // Formulario Añadir Alumno
+    // Añadir Alumno
     document.getElementById('addStudentForm')?.addEventListener('submit', async(e) => { 
-      e.preventDefault(); 
-      const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Añadiendo...";
+      e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Añadiendo...";
       try {
         const cDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId));
-        const currentCount = cDoc.data().numAlumnos || 0;
-        await addDoc(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), { nombre: e.target.nombre.value, apellidos: e.target.apellidos.value, orden: currentCount + 1, createdAt: serverTimestamp() });
-        await setDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId), { numAlumnos: currentCount + 1 }, { merge: true });
-        
-        document.getElementById('addStudentModal').classList.remove('active'); 
-        e.target.reset(); 
-        window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent); 
-      } catch(err) { alert(err.message); }
-      finally { btn.disabled = false; btn.textContent = "Añadir"; }
+        const c = cDoc.data().numAlumnos || 0;
+        await addDoc(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), { nombre: e.target.nombre.value, apellidos: e.target.apellidos.value, orden: c + 1, createdAt: serverTimestamp() });
+        await setDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId), { numAlumnos: c + 1 }, { merge: true });
+        document.getElementById('addStudentModal').classList.remove('active'); e.target.reset(); window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent); 
+      } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Añadir"; }
     });
 
-    // Formulario Crear Asignatura
+    // Crear Asignatura (Múltiples Profesores)
     document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e) => { 
-      e.preventDefault(); 
-      const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Creando...";
+      e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Creando...";
       const alumnosChecked = Array.from(document.querySelectorAll('input[name="alumnos"]:checked')).map(cb => cb.value); 
+      const profesChecked = Array.from(document.querySelectorAll('input[name="profesoresAsig"]:checked')).map(cb => cb.value);
       
-      if(alumnosChecked.length === 0) { 
-        alert('Debes seleccionar al menos un alumno para matricular en la asignatura.'); 
-        btn.disabled = false; btn.textContent = "Crear"; return; 
-      }
+      if(alumnosChecked.length === 0) { alert('Selecciona al menos un alumno.'); btn.disabled = false; btn.textContent = "Crear"; return; }
+      if(profesChecked.length === 0) { alert('Selecciona al menos un profesor.'); btn.disabled = false; btn.textContent = "Crear"; return; }
       
       try {
-        const ref = await addDoc(collection(db, `colegios/${state.colegioId}/asignaturas`), { nombre: e.target.nombre.value, profesorEmail: e.target.profesorEmail.value, alumnos: alumnosChecked, trimestres: ['T1','T2','T3'], createdAt: serverTimestamp() });
-        await updateDoc(doc(db, 'profesores', e.target.profesorEmail.value), { asignaturas: arrayUnion(ref.id) }); 
+        const ref = await addDoc(collection(db, `colegios/${state.colegioId}/asignaturas`), { nombre: e.target.nombre.value, profesorEmails: profesChecked, alumnos: alumnosChecked, trimestres: ['T1','T2','T3'], createdAt: serverTimestamp() });
+        // Actualizamos a todos los profesores involucrados
+        for(const p of profesChecked) { await updateDoc(doc(db, 'profesores', p), { asignaturas: arrayUnion(ref.id) }); }
         
-        loadAsignaturas(); 
-        document.getElementById('createAsignaturaModal').classList.remove('active'); 
-        e.target.reset(); 
-      } catch(err) { alert(err.message); }
-      finally { btn.disabled = false; btn.textContent = "Crear"; }
+        loadAsignaturas(); document.getElementById('createAsignaturaModal').classList.remove('active'); e.target.reset(); 
+      } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Crear"; }
     });
 
-    // Formulario Invitar Profesor
+    // Invitar Profesor
     document.getElementById('inviteProfesorForm')?.addEventListener('submit', async(e) => { 
-      e.preventDefault(); 
-      const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Enviando...";
+      e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Enviando...";
       try {
-        const email = e.target.email.value.trim().toLowerCase(); 
-        const ref = doc(db, 'profesores', email); 
-        const d = await getDoc(ref);
-        
-        if(d.exists()) { 
-          if(d.data().colegioId === state.colegioId) throw new Error('Este profesor ya ha sido añadido a tu colegio.'); 
-          else throw new Error('Este email ya está registrado en otro colegio distinto.'); 
-        }
-        
+        const email = e.target.email.value.trim().toLowerCase(); const ref = doc(db, 'profesores', email); const d = await getDoc(ref);
+        if(d.exists()) { if(d.data().colegioId === state.colegioId) throw new Error('Ya añadido a tu colegio.'); else throw new Error('Registrado en otro colegio.'); }
         await setDoc(ref, { nombre: e.target.nombre.value || '', colegioId: state.colegioId, rol: 'profesor', asignaturas: [], createdAt: serverTimestamp() }); 
-        
-        loadProfesores(); 
-        alert('Profesor invitado correctamente. Indícale que acceda con Google.'); 
-        document.getElementById('inviteProfesorModal').classList.remove('active'); 
-        e.target.reset();
-      } catch(err) { alert(err.message); }
-      finally { btn.disabled = false; btn.textContent = "Invitar"; }
+        loadProfesores(); alert('Profesor invitado correctamente.'); document.getElementById('inviteProfesorModal').classList.remove('active'); e.target.reset();
+      } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Invitar"; }
     });
-
   });
 </script>
 </body>
