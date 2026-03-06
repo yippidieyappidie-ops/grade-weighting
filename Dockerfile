@@ -1,26 +1,36 @@
-# ETAPA 1: Construcción (Build)
+# Etapa 1: Build
 FROM node:18-alpine AS build
-
 WORKDIR /app
 
-# Copiamos solo lo necesario para instalar dependencias
+# Copiamos dependencias e instalamos
 COPY package*.json ./
 RUN npm install
 
-# Copiamos el resto del código y compilamos
+# Pasamos las variables de entorno de Firebase para que se inyecten en el build de Vite
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_STORAGE_BUCKET
+ARG VITE_FIREBASE_MESSAGING_SENDER_ID
+ARG VITE_FIREBASE_APP_ID
+
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
+ENV VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN
+ENV VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID
+ENV VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET
+ENV VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID
+ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
+
+# Copiamos el resto del código y generamos la carpeta /dist
 COPY . .
 RUN npm run build
 
-# ETAPA 2: Servidor de Producción
-# Usamos Nginx para servir los archivos estáticos de forma ultra rápida
+# Etapa 2: Producción
 FROM nginx:stable-alpine
-
-# Copiamos los archivos compilados desde la etapa anterior
+# Copiamos el resultado del build a la carpeta de Nginx
 COPY --from=build /app/dist /usr/share/nginx/html
-
-# Copiamos una configuración de Nginx para que las rutas de React funcionen (SPA)
+# Copiamos nuestra config de Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
