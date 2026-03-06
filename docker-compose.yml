@@ -1,13 +1,8 @@
 version: '3.8'
 services:
-  app:
+  grade-weighting:
     build: .
+    container_name: grade_weighting_container
+    ports:
+      - "8080:80"
     restart: always
-    environment:
-      - FIREBASE_API_KEY=${FIREBASE_API_KEY}
-      # Aquí añades tus otras variables de entorno
-
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    restart: always
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
