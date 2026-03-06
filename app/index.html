@@ -290,7 +290,7 @@ body {
   padding: 24px;
   margin-bottom: 20px;
   transition: all 0.2s;
-  position: relative; /* Añadido para posicionar el botón de editar */
+  position: relative;
 }
 
 .card:hover {
@@ -305,7 +305,7 @@ body {
   font-weight: 600;
   margin-bottom: 8px;
   color: var(--ink);
-  padding-right: 30px; /* Espacio para el icono de editar */
+  padding-right: 30px;
 }
 
 .card-meta {
@@ -529,18 +529,6 @@ input:focus, select:focus, textarea:focus {
   margin-bottom: 20px;
 }
 
-.alert-info {
-  background: #e3f2fd;
-  color: #1565c0;
-  border: 1.5px solid #90caf9;
-}
-
-.alert-success {
-  background: var(--green-light);
-  color: var(--green);
-  border: 1.5px solid var(--green);
-}
-
 /* SISTEMA DE NOTAS */
 .ponderacion-config {
   display: flex;
@@ -600,29 +588,6 @@ input:focus, select:focus, textarea:focus {
   color: white;
 }
 
-.ponderacion-item label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 8px;
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-.ponderacion-item input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--cream);
-  text-align: center;
-}
-
 .ponderacion-total {
   grid-column: 1 / -1;
   text-align: center;
@@ -674,12 +639,10 @@ input:focus, select:focus, textarea:focus {
 
 .nota-input-row {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   margin-bottom: 8px;
 }
-
-.nota-input-row input { width: 100px; }
 
 .nota-final-display {
   background: var(--green-light);
@@ -703,6 +666,14 @@ input:focus, select:focus, textarea:focus {
   font-weight: 700;
   color: var(--green);
   font-family: 'Playfair Display', serif;
+}
+
+.comentarios-section {
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 24px;
 }
   </style>
 </head>
@@ -1004,26 +975,21 @@ input:focus, select:focus, textarea:focus {
       document.getElementById(id).classList.add('hidden');
     });
   }
-// Authentication Module
 
-// Login with Google
+// Login con Google
 function initLogin() {
   const loginBtn = document.getElementById('loginBtn');
   if (!loginBtn) return;
-  
   loginBtn.addEventListener('click', async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
-      if (error.code !== 'auth/popup-closed-by-user') {
-        alert('Error: ' + error.message);
-      }
+      if (error.code !== 'auth/popup-closed-by-user') alert('Error: ' + error.message);
     }
   });
 }
 
-// Logout
 function initLogout() {
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await signOut(auth);
@@ -1031,19 +997,14 @@ function initLogout() {
   });
 }
 
-// Detect user role
 async function detectUserRole(email) {
   try {
     const profesorDoc = await getDoc(doc(db, 'profesores', email));
-
     if (profesorDoc.exists()) {
       const data = profesorDoc.data();
       state.userRole = data.rol;
       state.colegioId = data.colegioId;
-
-      const roleBadge = document.getElementById('roleBadge');
-      roleBadge.textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
-
+      document.getElementById('roleBadge').textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
       return { role: state.userRole, colegioId: state.colegioId };
     } else {
       alert('No tienes acceso a este sistema. Contacta con tu director/a para que te envíe una invitación.');
@@ -1051,13 +1012,11 @@ async function detectUserRole(email) {
       return null;
     }
   } catch (error) {
-    console.error('❌ Error detectando rol:', error);
     alert('Error al verificar tu cuenta: ' + error.message);
     return null;
   }
 }
 
-// Auth state listener
 function initAuthListener(onDirectorView, onProfesorView) {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -1068,13 +1027,9 @@ function initAuthListener(onDirectorView, onProfesorView) {
       document.getElementById('userEmail').textContent = user.email;
 
       const roleData = await detectUserRole(user.email);
-      
       if (roleData) {
-        if (roleData.role === 'admin') {
-          onDirectorView();
-        } else {
-          onProfesorView();
-        }
+        if (roleData.role === 'admin') onDirectorView();
+        else onProfesorView();
       }
     } else {
       document.getElementById('loginScreen').classList.remove('hidden');
@@ -1082,9 +1037,7 @@ function initAuthListener(onDirectorView, onProfesorView) {
     }
   });
 }
-// Director Module - Gestión de clases, alumnos, profesores y asignaturas
 
-// Navigation
 function showDirectorView() {
   hideAllViews();
   document.getElementById('directorView').classList.remove('hidden');
@@ -1106,20 +1059,11 @@ function showAsignaturasView() {
   loadAsignaturas();
 }
 
-// Update navigation tabs active state
 function updateNavTabs(activeTab) {
   document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-  
-  if (activeTab === 'clases') {
-    const tab = document.getElementById('navClases');
-    if (tab) tab.classList.add('active');
-  } else if (activeTab === 'asignaturas') {
-    const tab = document.getElementById('navAsignaturasActive');
-    if (tab) tab.classList.add('active');
-  } else if (activeTab === 'profesores') {
-    const tab = document.getElementById('navProfesoresActive');
-    if (tab) tab.classList.add('active');
-  }
+  if (activeTab === 'clases') document.getElementById('navClases')?.classList.add('active');
+  else if (activeTab === 'asignaturas') document.getElementById('navAsignaturasActive')?.classList.add('active');
+  else if (activeTab === 'profesores') document.getElementById('navProfesoresActive')?.classList.add('active');
 }
 
 function showStudentsView(classId) {
@@ -1135,10 +1079,8 @@ function showStudentsView(classId) {
   });
 }
 
-// Load classes
 async function loadClasses() {
   const classesList = document.getElementById('classesList');
-  
   try {
     const q = query(collection(db, `colegios/${state.colegioId}/clases`), orderBy('nombre'));
     const snapshot = await getDocs(q);
@@ -1153,7 +1095,6 @@ async function loadClasses() {
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       state.cachedClasses.push({ id: docSnap.id, ...data });
-      // Se añade el botón de edición deteniendo la propagación del clic para que no abra la clase
       html += `<div class="card card-clickable" onclick="window.showStudentsView('${docSnap.id}')">
         <button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${docSnap.id}', '${data.nombre}', '${data.curso}')" title="Editar clase">✏️</button>
         <div class="card-title">${data.nombre}</div>
@@ -1164,12 +1105,10 @@ async function loadClasses() {
     html += '</div>';
     classesList.innerHTML = html;
   } catch (error) {
-    console.error('Error cargando clases:', error);
     classesList.innerHTML = '<p style="color: red;">Error al cargar clases</p>';
   }
 }
 
-// Abrir modal de editar clase
 function openEditClassModal(id, nombre, curso) {
   document.getElementById('editClassId').value = id;
   document.getElementById('editClassNombre').value = nombre;
@@ -1177,36 +1116,8 @@ function openEditClassModal(id, nombre, curso) {
   document.getElementById('editClassModal').classList.add('active');
 }
 
-// Load students
-async function loadStudents(classId) {
-  const studentsList = document.getElementById('studentsList');
-  
-  try {
-    const q = query(collection(db, `colegios/${state.colegioId}/clases/${classId}/alumnos`), orderBy('apellidos'));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) {
-      studentsList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
-      return;
-    }
-
-    let html = '<table class="table"><thead><tr><th>Alumno</th></tr></thead><tbody>';
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      html += `<tr><td><strong>${data.apellidos}, ${data.nombre}</strong></td></tr>`;
-    });
-    html += '</tbody></table>';
-    studentsList.innerHTML = html;
-  } catch (error) {
-    console.error('Error cargando alumnos:', error);
-    studentsList.innerHTML = '<p style="color: red;">Error</p>';
-  }
-}
-
-// Load profesores
 async function loadProfesores() {
   const profesoresList = document.getElementById('profesoresList');
-  
   try {
     const q = query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId));
     const snapshot = await getDocs(q);
@@ -1227,24 +1138,19 @@ async function loadProfesores() {
     html += '</tbody></table>';
     profesoresList.innerHTML = html;
   } catch (error) {
-    console.error('Error cargando profesores:', error);
     profesoresList.innerHTML = '<p style="color: red;">Error</p>';
   }
 }
 
-// Load asignaturas
 async function loadAsignaturas() {
   const asignaturasList = document.getElementById('asignaturasList');
-  
   try {
     const q = query(collection(db, `colegios/${state.colegioId}/asignaturas`), orderBy('nombre'));
     const snapshot = await getDocs(q);
-    
     if (snapshot.empty) {
       asignaturasList.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No hay asignaturas</strong></p></div>';
       return;
     }
-    
     let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Alumnos</th></tr></thead><tbody>';
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -1253,114 +1159,68 @@ async function loadAsignaturas() {
     html += '</tbody></table>';
     asignaturasList.innerHTML = html;
   } catch (error) {
-    console.error('Error cargando asignaturas:', error);
     asignaturasList.innerHTML = '<p style="color: red;">Error</p>';
   }
 }
 
-// Create class
 async function createClass(nombre, curso) {
   await addDoc(collection(db, `colegios/${state.colegioId}/clases`), {
-    nombre,
-    curso,
-    numAlumnos: 0,
-    createdAt: serverTimestamp(),
-    createdBy: state.currentUser.email
+    nombre, curso, numAlumnos: 0, createdAt: serverTimestamp(), createdBy: state.currentUser.email
   });
   loadClasses();
 }
 
-// Update class
 async function updateClass(classId, nombre, curso) {
-  await updateDoc(doc(db, `colegios/${state.colegioId}/clases`, classId), {
-    nombre,
-    curso
-  });
+  await updateDoc(doc(db, `colegios/${state.colegioId}/clases`, classId), { nombre, curso });
   loadClasses();
 }
 
-// Add student
 async function addStudent(nombre, apellidos) {
   const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId));
   const currentCount = classDoc.data().numAlumnos || 0;
-  
   await addDoc(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), {
-    nombre,
-    apellidos,
-    orden: currentCount + 1,
-    createdAt: serverTimestamp()
+    nombre, apellidos, orden: currentCount + 1, createdAt: serverTimestamp()
   });
-  
-  await setDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId), {
-    numAlumnos: currentCount + 1
-  }, { merge: true });
-  
-  loadStudents(state.currentClassId);
+  await setDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId), { numAlumnos: currentCount + 1 }, { merge: true });
 }
 
-// Create asignatura with specific students
 async function createAsignatura(nombre, profesorEmail, alumnos) {
   const asignaturaRef = await addDoc(collection(db, `colegios/${state.colegioId}/asignaturas`), {
-    nombre,
-    profesorEmail,
-    alumnos, // Array de referencias: ["claseId/alumnoId", ...]
-    trimestres: ['T1', 'T2', 'T3'],
-    createdAt: serverTimestamp(),
-    createdBy: state.currentUser.email
+    nombre, profesorEmail, alumnos, trimestres: ['T1', 'T2', 'T3'], createdAt: serverTimestamp(), createdBy: state.currentUser.email
   });
-  
-  await updateDoc(doc(db, 'profesores', profesorEmail), {
-    asignaturas: arrayUnion(asignaturaRef.id)
-  });
-  
+  await updateDoc(doc(db, 'profesores', profesorEmail), { asignaturas: arrayUnion(asignaturaRef.id) });
   loadAsignaturas();
-  return asignaturaRef.id;
 }
 
-// Invite profesor (MEJORADO PARA EVITAR FALLOS)
 async function inviteProfesor(email, nombre) {
-  // Limpiar email por seguridad (evita espacios y lo pasa a minúsculas)
   email = email.trim().toLowerCase();
   const profesorRef = doc(db, 'profesores', email);
   const profesorDoc = await getDoc(profesorRef);
   
   if (profesorDoc.exists()) {
     const data = profesorDoc.data();
-    if (data.colegioId === state.colegioId) {
-        throw new Error('Este profesor ya ha sido añadido a tu colegio previamente.');
-    } else {
-        throw new Error('Este correo ya está registrado en otro colegio distinto.');
-    }
+    if (data.colegioId === state.colegioId) throw new Error('Este profesor ya ha sido añadido a tu colegio previamente.');
+    else throw new Error('Este correo ya está registrado en otro colegio distinto.');
   }
   
   await setDoc(profesorRef, {
-    nombre: nombre || '',
-    colegioId: state.colegioId,
-    rol: 'profesor',
-    asignaturas: [],
-    createdAt: serverTimestamp(),
-    invitedBy: state.currentUser.email
+    nombre: nombre || '', colegioId: state.colegioId, rol: 'profesor', asignaturas: [], createdAt: serverTimestamp(), invitedBy: state.currentUser.email
   });
-  
   loadProfesores();
 }
 
-// Load alumnos for selection (multi-class selector)
 async function loadAlumnosForSelection() {
   if (state.cachedClasses.length === 0) await loadClasses();
-  
   let html = '';
   for (const clase of state.cachedClasses) {
     const q = query(collection(db, `colegios/${state.colegioId}/clases/${clase.id}/alumnos`), orderBy('apellidos'));
     const snapshot = await getDocs(q);
-    
     if (!snapshot.empty) {
       html += `<div class="clase-group">
         <div class="clase-group-header">
           <span>${clase.nombre} (${clase.curso})</span>
           <span class="select-all-btn" onclick="window.selectAllFromClase('${clase.id}')">Seleccionar todos</span>
         </div>`;
-      
       snapshot.forEach(alumnoDoc => {
         const alumno = alumnoDoc.data();
         const alumnoRef = `${clase.id}/${alumnoDoc.id}`;
@@ -1369,22 +1229,18 @@ async function loadAlumnosForSelection() {
           <label for="alumno-${alumnoRef.replace('/', '-')}">${alumno.apellidos}, ${alumno.nombre}</label>
         </div>`;
       });
-      
       html += '</div>';
     }
   }
-  
   return html || '<div class="empty-state" style="padding:40px;"><p>No hay alumnos disponibles</p></div>';
 }
 
-// Select all from clase
 function selectAllFromClase(claseId) {
   const checkboxes = document.querySelectorAll(`input[value^="${claseId}/"]`);
   const allChecked = Array.from(checkboxes).every(cb => cb.checked);
   checkboxes.forEach(cb => cb.checked = !allChecked);
 }
 
-// Show trimestre detail (ponderación + alumnos)
 async function showTrimestreDetail(trimestre) {
   state.currentTrimestre = trimestre;
   hideAllViews();
@@ -1398,66 +1254,44 @@ async function showTrimestreDetail(trimestre) {
   document.getElementById('trimestreDetailTitle').textContent = trimestreNames[trimestre];
   
   if (state.currentContext === 'clase') {
-    const className = document.getElementById('currentClassName').textContent;
-    document.getElementById('trimestreDetailContext').textContent = className;
+    document.getElementById('trimestreDetailContext').textContent = document.getElementById('currentClassName').textContent;
   } else {
-    const asignaturaName = document.getElementById('currentAsignaturaNombre').textContent;
-    document.getElementById('trimestreDetailContext').textContent = asignaturaName;
+    document.getElementById('trimestreDetailContext').textContent = document.getElementById('currentAsignaturaNombre').textContent;
   }
 }
 
-// Load ponderación for trimestre
 let currentCategorias = [];
-
 async function loadPonderacion(trimestre) {
   try {
-    let ponderacionDocPath;
-    if (state.currentContext === 'clase') {
-      ponderacionDocPath = `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderaciones/${trimestre}`;
-    } else {
-      ponderacionDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${trimestre}`;
-    }
+    let ponderacionDocPath = state.currentContext === 'clase' 
+      ? `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderaciones/${trimestre}`
+      : `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${trimestre}`;
     
     const ponderacionDoc = await getDoc(doc(db, ponderacionDocPath));
-    
     if (ponderacionDoc.exists()) {
-      const data = ponderacionDoc.data();
-      currentCategorias = data.categorias || [
-        { nombre: "Exámenes", peso: 40 },
-        { nombre: "Proyectos", peso: 30 },
-        { nombre: "Trabajo diario", peso: 20 },
-        { nombre: "Actitud", peso: 10 }
+      currentCategorias = ponderacionDoc.data().categorias || [
+        { nombre: "Exámenes", peso: 40 }, { nombre: "Proyectos", peso: 30 }, { nombre: "Trabajo diario", peso: 20 }, { nombre: "Actitud", peso: 10 }
       ];
     } else {
       currentCategorias = [
-        { nombre: "Exámenes", peso: 40 },
-        { nombre: "Proyectos", peso: 30 },
-        { nombre: "Trabajo diario", peso: 20 },
-        { nombre: "Actitud", peso: 10 }
+        { nombre: "Exámenes", peso: 40 }, { nombre: "Proyectos", peso: 30 }, { nombre: "Trabajo diario", peso: 20 }, { nombre: "Actitud", peso: 10 }
       ];
     }
-    
     renderCategorias();
     updatePesoTotal();
-  } catch (error) {
-    console.error('Error cargando ponderación:', error);
-  }
+  } catch (error) { console.error('Error:', error); }
 }
 
-// Render categories UI
 function renderCategorias() {
   const container = document.getElementById('categoriasConfig');
   if (!container) return;
-  
   let html = '<div class="ponderacion-config">';
   currentCategorias.forEach((cat, idx) => {
-    html += `
-      <div class="categoria-row">
+    html += `<div class="categoria-row">
         <input type="text" value="${cat.nombre}" onchange="updateCategoriaNombre(${idx}, this.value)" placeholder="Nombre de la categoría">
         <input type="number" min="0" max="100" value="${cat.peso}" onchange="updateCategoriaPeso(${idx}, this.value)" placeholder="%">
         <button class="btn-remove-cat" onclick="eliminarCategoria(${idx})" title="Eliminar">🗑️</button>
-      </div>
-    `;
+      </div>`;
   });
   html += '</div>';
   container.innerHTML = html;
@@ -1467,125 +1301,56 @@ function updatePesoTotal() {
   const total = currentCategorias.reduce((sum, cat) => sum + (parseInt(cat.peso) || 0), 0);
   const totalSpan = document.getElementById('pesoTotal');
   const statusSpan = document.getElementById('pesoStatus');
-  
-  if (totalSpan) {
-    totalSpan.textContent = total;
-    totalSpan.style.color = total === 100 ? 'var(--green)' : 'var(--accent)';
-  }
-  
+  if (totalSpan) { totalSpan.textContent = total; totalSpan.style.color = total === 100 ? 'var(--green)' : 'var(--accent)'; }
   if (statusSpan) {
-    if (total === 100) {
-      statusSpan.textContent = '✅ Correcto';
-      statusSpan.style.color = 'var(--green)';
-    } else {
-      statusSpan.textContent = '⚠️ Debe sumar 100%';
-      statusSpan.style.color = 'var(--accent)';
-    }
+    if (total === 100) { statusSpan.textContent = '✅ Correcto'; statusSpan.style.color = 'var(--green)'; } 
+    else { statusSpan.textContent = '⚠️ Debe sumar 100%'; statusSpan.style.color = 'var(--accent)'; }
   }
 }
 
-function updateCategoriaNombre(idx, nombre) {
-  currentCategorias[idx].nombre = nombre;
-}
-
-function updateCategoriaPeso(idx, peso) {
-  currentCategorias[idx].peso = parseInt(peso) || 0;
-  updatePesoTotal();
-}
-
-function añadirCategoria() {
-  currentCategorias.push({ nombre: "", peso: 0 });
-  renderCategorias();
-  updatePesoTotal();
-}
-
+function updateCategoriaNombre(idx, nombre) { currentCategorias[idx].nombre = nombre; }
+function updateCategoriaPeso(idx, peso) { currentCategorias[idx].peso = parseInt(peso) || 0; updatePesoTotal(); }
+function añadirCategoria() { currentCategorias.push({ nombre: "", peso: 0 }); renderCategorias(); updatePesoTotal(); }
 function eliminarCategoria(idx) {
-  if (currentCategorias.length <= 1) {
-    alert('Debe haber al menos una categoría');
-    return;
-  }
-  currentCategorias.splice(idx, 1);
-  renderCategorias();
-  updatePesoTotal();
+  if (currentCategorias.length <= 1) return alert('Debe haber al menos una categoría');
+  currentCategorias.splice(idx, 1); renderCategorias(); updatePesoTotal();
 }
 
 async function guardarPonderacion() {
   try {
     const total = currentCategorias.reduce((sum, cat) => sum + (parseInt(cat.peso) || 0), 0);
+    if (total !== 100) return alert('La suma de los porcentajes debe ser 100%');
+    if (currentCategorias.some(cat => !cat.nombre.trim())) return alert('Todas las categorías deben tener un nombre');
     
-    if (total !== 100) {
-      alert('La suma de los porcentajes debe ser 100%');
-      return;
-    }
+    let path = state.currentContext === 'clase' 
+      ? `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderaciones/${state.currentTrimestre}`
+      : `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`;
     
-    const hasEmptyNames = currentCategorias.some(cat => !cat.nombre.trim());
-    if (hasEmptyNames) {
-      alert('Todas las categorías deben tener un nombre');
-      return;
-    }
-    
-    let ponderacionDocPath;
-    if (state.currentContext === 'clase') {
-      ponderacionDocPath = `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderaciones/${state.currentTrimestre}`;
-    } else {
-      ponderacionDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`;
-    }
-    
-    await setDoc(doc(db, ponderacionDocPath), {
-      categorias: currentCategorias,
-      updatedAt: serverTimestamp()
-    });
-    
+    await setDoc(doc(db, path), { categorias: currentCategorias, updatedAt: serverTimestamp() });
     alert('✅ Ponderación guardada correctamente');
-  } catch (error) {
-    console.error('Error guardando ponderación:', error);
-    alert('Error al guardar la ponderación');
-  }
+  } catch (error) { alert('Error al guardar la ponderación'); }
 }
 
 async function loadAlumnosForTrimestre(trimestre) {
   const alumnosList = document.getElementById('trimestreAlumnosList');
-  
   try {
     let alumnos = [];
-    
     if (state.currentContext === 'clase') {
       const q = query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), orderBy('apellidos'));
       const snapshot = await getDocs(q);
-      
-      snapshot.forEach(alumnoDoc => {
-        const alumno = alumnoDoc.data();
-        alumnos.push({
-          id: `${state.currentClassId}/${alumnoDoc.id}`,
-          nombre: alumno.nombre,
-          apellidos: alumno.apellidos
-        });
-      });
+      snapshot.forEach(doc => alumnos.push({ id: `${state.currentClassId}/${doc.id}`, nombre: doc.data().nombre, apellidos: doc.data().apellidos }));
     } else {
       const asigDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, state.currentAsignaturaId));
-      const alumnosIds = asigDoc.data().alumnos || [];
-      
-      for (const alumnoRef of alumnosIds) {
-        const [claseId, alumnoId] = alumnoRef.split('/');
-        const alumnoDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${claseId}/alumnos`, alumnoId));
-        if (alumnoDoc.exists()) {
-          const alumno = alumnoDoc.data();
-          alumnos.push({
-            id: alumnoRef,
-            nombre: alumno.nombre,
-            apellidos: alumno.apellidos
-          });
-        }
+      for (const ref of (asigDoc.data().alumnos || [])) {
+        const [cId, aId] = ref.split('/');
+        const aDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${cId}/alumnos`, aId));
+        if (aDoc.exists()) alumnos.push({ id: ref, nombre: aDoc.data().nombre, apellidos: aDoc.data().apellidos });
       }
     }
     
-    if (alumnos.length === 0) {
-      alumnosList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
-      return;
-    }
+    if (alumnos.length === 0) return alumnosList.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p><strong>No hay alumnos</strong></p></div>';
     
     alumnos.sort((a, b) => a.apellidos.localeCompare(b.apellidos));
-    
     let html = '<div class="cards-grid">';
     alumnos.forEach(alumno => {
       html += `<div class="card card-clickable" onclick="window.showNotasView('${alumno.id}', '${alumno.nombre} ${alumno.apellidos}')">
@@ -1594,97 +1359,58 @@ async function loadAlumnosForTrimestre(trimestre) {
       </div>`;
     });
     html += '</div>';
-    
     alumnosList.innerHTML = html;
-  } catch (error) {
-    console.error('Error cargando alumnos:', error);
-    alumnosList.innerHTML = '<p style="color:red;">Error al cargar alumnos</p>';
-  }
+  } catch (error) { alumnosList.innerHTML = '<p style="color:red;">Error al cargar alumnos</p>'; }
 }
 
 function backToClassOrAsignatura() {
-  if (state.currentContext === 'clase') {
-    showStudentsView(state.currentClassId);
-  } else {
-    window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent);
-  }
+  if (state.currentContext === 'clase') showStudentsView(state.currentClassId);
+  else window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent);
 }
 
-// Profesor Module
 function showProfesorView() {
-  hideAllViews();
-  document.getElementById('profesorView').classList.remove('hidden');
-  loadProfesorAsignaturas();
+  hideAllViews(); document.getElementById('profesorView').classList.remove('hidden'); loadProfesorAsignaturas();
 }
 
 async function loadProfesorAsignaturas() {
-  const profesorAsignaturasList = document.getElementById('profesorAsignaturasList');
-  
+  const list = document.getElementById('profesorAsignaturasList');
   try {
     const q = query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('profesorEmail', '==', state.currentUser.email));
     const snapshot = await getDocs(q);
-    
-    if (snapshot.empty) {
-      profesorAsignaturasList.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No tienes asignaturas asignadas</strong></p></div>';
-      return;
-    }
+    if (snapshot.empty) return list.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><p><strong>No tienes asignaturas asignadas</strong></p></div>';
     
     let html = '<div class="cards-grid">';
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      html += `<div class="card card-clickable" onclick="window.showAsignaturaDetail('${docSnap.id}', '${data.nombre}')">
-        <div class="card-title">${data.nombre}</div>
-        <div class="card-meta">${data.alumnos?.length || 0} alumnos</div>
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      html += `<div class="card card-clickable" onclick="window.showAsignaturaDetail('${doc.id}', '${d.nombre}')">
+        <div class="card-title">${d.nombre}</div><div class="card-meta">${d.alumnos?.length || 0} alumnos</div>
       </div>`;
     });
-    html += '</div>';
-    
-    profesorAsignaturasList.innerHTML = html;
-  } catch (error) {
-    console.error('Error cargando asignaturas:', error);
-    profesorAsignaturasList.innerHTML = '<p style="color: red;">Error</p>';
-  }
+    list.innerHTML = html + '</div>';
+  } catch (error) { list.innerHTML = '<p style="color: red;">Error</p>'; }
 }
 
-function showAsignaturaDetail(asignaturaId, nombre) {
-  state.currentAsignaturaId = asignaturaId;
-  state.currentContext = 'asignatura';
+function showAsignaturaDetail(id, nombre) {
+  state.currentAsignaturaId = id; state.currentContext = 'asignatura';
   document.getElementById('currentAsignaturaNombre').textContent = nombre;
   document.getElementById('asignaturaDetailTitle').textContent = `Trimestres - ${nombre}`;
-  hideAllViews();
-  document.getElementById('asignaturaDetailView').classList.remove('hidden');
+  hideAllViews(); document.getElementById('asignaturaDetailView').classList.remove('hidden');
   
-  const alumnosList = document.getElementById('asignaturaAlumnosList');
-  alumnosList.innerHTML = `
+  document.getElementById('asignaturaAlumnosList').innerHTML = `
     <div class="cards-grid">
-      <div class="card card-clickable" onclick="window.showTrimestreDetail('T1')">
-        <div class="card-title">1º Trimestre</div>
-        <div class="card-meta">Configurar ponderación y notas →</div>
-      </div>
-      <div class="card card-clickable" onclick="window.showTrimestreDetail('T2')">
-        <div class="card-title">2º Trimestre</div>
-        <div class="card-meta">Configurar ponderación y notas →</div>
-      </div>
-      <div class="card card-clickable" onclick="window.showTrimestreDetail('T3')">
-        <div class="card-title">3º Trimestre</div>
-        <div class="card-meta">Configurar ponderación y notas →</div>
-      </div>
-    </div>
-  `;
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T1')"><div class="card-title">1º Trimestre</div></div>
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T2')"><div class="card-title">2º Trimestre</div></div>
+      <div class="card card-clickable" onclick="window.showTrimestreDetail('T3')"><div class="card-title">3º Trimestre</div></div>
+    </div>`;
 }
 
-function backToAsignaturaDetail() {
-  const asigNombre = document.getElementById('currentAsignaturaNombre').textContent;
-  showAsignaturaDetail(state.currentAsignaturaId, asigNombre);
-}
+function backToAsignaturaDetail() { showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent); }
 
-// Sistema de Notas Module
 function showNotasView(alumnoId, nombre) {
   state.currentAlumnoId = alumnoId;
   document.getElementById('currentAlumnoNombre').textContent = nombre;
   document.getElementById('notasViewTitle').textContent = `Notas - ${nombre}`;
-  hideAllViews();
-  document.getElementById('notasView').classList.remove('hidden');
+  hideAllViews(); document.getElementById('notasView').classList.remove('hidden');
   loadNotas();
 }
 
@@ -1695,50 +1421,44 @@ function switchTrimestre(trimestre) {
   loadNotas();
 }
 
+/* -------------------------------------------------------------------------- */
+/* NUEVO SISTEMA DE NOTAS Y COMENTARIOS (Soporta nombres/etiquetas en notas) */
+/* -------------------------------------------------------------------------- */
+
 async function loadNotas() {
   const notasContent = document.getElementById('notasContent');
   notasContent.innerHTML = '<div class="loading">Cargando notas...</div>';
   
   try {
-    const alumnoRef = state.currentAlumnoId.replace('/', '-');
-    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const docId = `${state.currentAlumnoId.replace('/', '-')}-${state.currentTrimestre}`;
     const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     
     const ponderacionPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`;
     const ponderacionDoc = await getDoc(doc(db, ponderacionPath));
     
-    let categorias;
-    if (ponderacionDoc.exists()) {
-      const pond = ponderacionDoc.data();
-      categorias = pond.categorias || [
-        { nombre: 'Exámenes', peso: 40 },
-        { nombre: 'Proyectos', peso: 30 },
-        { nombre: 'Trabajo diario', peso: 20 },
-        { nombre: 'Actitud', peso: 10 }
-      ];
-    } else {
-      categorias = [
-        { nombre: 'Exámenes', peso: 40 },
-        { nombre: 'Proyectos', peso: 30 },
-        { nombre: 'Trabajo diario', peso: 20 },
-        { nombre: 'Actitud', peso: 10 }
-      ];
-    }
+    let categorias = ponderacionDoc.exists() ? (ponderacionDoc.data().categorias || []) : [
+      { nombre: 'Exámenes', peso: 40 }, { nombre: 'Proyectos', peso: 30 }, { nombre: 'Trabajo diario', peso: 20 }, { nombre: 'Actitud', peso: 10 }
+    ];
     
-    const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
+    const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {}, comentarioTutor: "" };
     
     let html = '';
     categorias.forEach(cat => {
-      const catNotas = notasData.categorias?.[cat.nombre] || [];
+      let catNotas = notasData.categorias?.[cat.nombre] || [];
+      // Retrocompatibilidad: Si la nota era un número antiguo [5, 7], lo pasamos a objeto [{valor:5, desc:''}]
+      catNotas = catNotas.map(n => typeof n === 'number' ? { valor: n, descripcion: '' } : n);
+
       html += `<div class="categoria-section">
         <div class="categoria-header">${cat.nombre} (${cat.peso}%)</div>
         <div id="notas-${cat.nombre.replace(/\s/g, '')}">`;
       
-      catNotas.forEach((nota, idx) => {
-        html += `<div class="nota-input-row">
-          <input type="number" min="0" max="10" step="0.1" value="${nota}" 
-            onchange="window.updateNota('${cat.nombre}', ${idx}, this.value)">
+      catNotas.forEach((notaObj, idx) => {
+        html += `<div class="nota-input-row" style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+          <input type="text" placeholder="Ej. Examen Tema 1 o Semana Abril" value="${notaObj.descripcion || ''}" 
+            onchange="window.updateNotaDetalle('${cat.nombre}', ${idx}, 'descripcion', this.value)" style="flex: 1;">
+          <input type="number" min="0" max="10" step="0.1" value="${notaObj.valor}" 
+            onchange="window.updateNotaDetalle('${cat.nombre}', ${idx}, 'valor', this.value)" style="width: 80px; text-align: center;">
           <button class="btn-icon" onclick="window.deleteNota('${cat.nombre}', ${idx})">🗑️</button>
         </div>`;
       });
@@ -1753,10 +1473,17 @@ async function loadNotas() {
       <h3>Nota Final ${state.currentTrimestre}</h3>
       <div class="nota">${notaFinal.toFixed(2)}</div>
     </div>`;
+
+    // NUEVO: SECCIÓN DE COMENTARIOS
+    const comentarioGuardado = notasData.comentarioTutor || "";
+    html += `<div class="comentarios-section">
+      <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--ink);">💬 Observaciones del Profesor</h3>
+      <textarea id="comentarioArea" rows="4" placeholder="Añade aquí observaciones sobre el progreso, comportamiento o notas para la reunión con padres...">${comentarioGuardado}</textarea>
+      <button class="btn-secondary" onclick="window.guardarComentario()" style="margin-top: 12px;">Guardar observación</button>
+    </div>`;
     
     notasContent.innerHTML = html;
   } catch (error) {
-    console.error('Error cargando notas:', error);
     notasContent.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
   }
 }
@@ -1768,7 +1495,11 @@ function calcularNotaFinal(notasData, categorias) {
   categorias.forEach(cat => {
     const catNotas = notasData.categorias?.[cat.nombre] || [];
     if (catNotas.length > 0) {
-      const promedio = catNotas.reduce((a, b) => a + b, 0) / catNotas.length;
+      // Soporta tanto array de números viejos como los nuevos objetos {valor, desc}
+      const suma = catNotas.reduce((acc, current) => {
+        return acc + (typeof current === 'number' ? current : parseFloat(current.valor || 0));
+      }, 0);
+      const promedio = suma / catNotas.length;
       notaFinal += promedio * (cat.peso / 100);
       pesoTotal += cat.peso;
     }
@@ -1779,46 +1510,48 @@ function calcularNotaFinal(notasData, categorias) {
 
 async function addNota(categoria) {
   try {
-    const alumnoRef = state.currentAlumnoId.replace('/', '-');
-    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const docId = `${state.currentAlumnoId.replace('/', '-')}-${state.currentTrimestre}`;
     const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.exists() ? notasDoc.data() : { categorias: {} };
     
-    if (!notasData.categorias[categoria]) {
-      notasData.categorias[categoria] = [];
-    }
-    notasData.categorias[categoria].push(5);
+    if (!notasData.categorias[categoria]) notasData.categorias[categoria] = [];
+    
+    // Ahora insertamos un objeto en lugar de un número
+    notasData.categorias[categoria].push({ valor: 0, descripcion: '' });
     
     await setDoc(doc(db, notasDocPath), notasData);
     loadNotas();
-  } catch (error) {
-    console.error('Error añadiendo nota:', error);
-    alert('Error al añadir nota');
-  }
+  } catch (error) { alert('Error al añadir nota'); }
 }
 
-async function updateNota(categoria, index, valor) {
+// Nueva función que reemplaza updateNota y permite guardar el valor numérico o el texto descriptivo
+async function updateNotaDetalle(categoria, index, campo, valor) {
   try {
-    const alumnoRef = state.currentAlumnoId.replace('/', '-');
-    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const docId = `${state.currentAlumnoId.replace('/', '-')}-${state.currentTrimestre}`;
     const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.data();
     
-    notasData.categorias[categoria][index] = parseFloat(valor);
+    // Si la nota antigua era un número, la convertimos a objeto antes de editar
+    if (typeof notasData.categorias[categoria][index] === 'number') {
+      notasData.categorias[categoria][index] = { valor: notasData.categorias[categoria][index], descripcion: '' };
+    }
+    
+    if (campo === 'valor') {
+      notasData.categorias[categoria][index].valor = parseFloat(valor) || 0;
+    } else {
+      notasData.categorias[categoria][index].descripcion = valor;
+    }
+    
     await setDoc(doc(db, notasDocPath), notasData);
     loadNotas();
-  } catch (error) {
-    console.error('Error actualizando nota:', error);
-    alert('Error al actualizar nota');
-  }
+  } catch (error) { alert('Error al actualizar nota'); }
 }
 
 async function deleteNota(categoria, index) {
   try {
-    const alumnoRef = state.currentAlumnoId.replace('/', '-');
-    const docId = `${alumnoRef}-${state.currentTrimestre}`;
+    const docId = `${state.currentAlumnoId.replace('/', '-')}-${state.currentTrimestre}`;
     const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
     const notasDoc = await getDoc(doc(db, notasDocPath));
     const notasData = notasDoc.data();
@@ -1826,13 +1559,25 @@ async function deleteNota(categoria, index) {
     notasData.categorias[categoria].splice(index, 1);
     await setDoc(doc(db, notasDocPath), notasData);
     loadNotas();
+  } catch (error) { alert('Error al eliminar nota'); }
+}
+
+// Nueva función para guardar el texto de comentarios de los profesores
+async function guardarComentario() {
+  try {
+    const texto = document.getElementById('comentarioArea').value;
+    const docId = `${state.currentAlumnoId.replace('/', '-')}-${state.currentTrimestre}`;
+    const notasDocPath = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`;
+    
+    // Usamos merge: true para no sobreescribir las notas, solo añadir/actualizar el campo del comentario
+    await setDoc(doc(db, notasDocPath), { comentarioTutor: texto }, { merge: true });
+    alert('✅ Observación guardada correctamente');
   } catch (error) {
-    console.error('Error eliminando nota:', error);
-    alert('Error al eliminar nota');
+    alert('Error al guardar la observación');
   }
 }
 
-// Modals Module
+// Modals Setup
 function initModals() {
   initCreateClassModal();
   initEditClassModal();
@@ -1844,249 +1589,96 @@ function initModals() {
 function initCreateClassModal() {
   const modal = document.getElementById('createClassModal');
   const form = document.getElementById('createClassForm');
-  
-  document.getElementById('newClassBtn').addEventListener('click', () => {
-    modal.classList.add('active');
-  });
-  
-  document.getElementById('cancelClassBtn').addEventListener('click', () => {
-    modal.classList.remove('active');
-    form.reset();
-  });
-  
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.classList.remove('active');
-      form.reset();
-    }
-  });
+  document.getElementById('newClassBtn').addEventListener('click', () => modal.classList.add('active'));
+  document.getElementById('cancelClassBtn').addEventListener('click', () => { modal.classList.remove('active'); form.reset(); });
+  modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); form.reset(); } });
   
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creando...';
-    
+    const btn = form.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = 'Creando...';
     try {
-      const formData = new FormData(form);
-      await createClass(formData.get('nombre'), formData.get('curso'));
-      
-      modal.classList.remove('active');
-      form.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear clase';
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear clase';
-    }
+      await createClass(new FormData(form).get('nombre'), new FormData(form).get('curso'));
+      modal.classList.remove('active'); form.reset(); btn.disabled = false; btn.textContent = 'Crear clase';
+    } catch (error) { alert(error.message); btn.disabled = false; btn.textContent = 'Crear clase'; }
   });
 }
 
-// INICIALIZADOR PARA EL MODAL DE EDITAR CLASE
 function initEditClassModal() {
   const modal = document.getElementById('editClassModal');
   const form = document.getElementById('editClassForm');
-  
-  document.getElementById('cancelEditClassBtn').addEventListener('click', () => {
-    modal.classList.remove('active');
-    form.reset();
-  });
-  
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.classList.remove('active');
-      form.reset();
-    }
-  });
+  document.getElementById('cancelEditClassBtn').addEventListener('click', () => { modal.classList.remove('active'); form.reset(); });
+  modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); form.reset(); } });
   
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Guardando...';
-    
+    const btn = form.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = 'Guardando...';
     try {
-      const formData = new FormData(form);
-      const classId = formData.get('classId');
-      const nombre = formData.get('nombre');
-      const curso = formData.get('curso');
-      
-      await updateClass(classId, nombre, curso);
-      
-      modal.classList.remove('active');
-      form.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Guardar cambios';
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Guardar cambios';
-    }
+      const fd = new FormData(form);
+      await updateClass(fd.get('classId'), fd.get('nombre'), fd.get('curso'));
+      modal.classList.remove('active'); form.reset(); btn.disabled = false; btn.textContent = 'Guardar cambios';
+    } catch (error) { alert(error.message); btn.disabled = false; btn.textContent = 'Guardar cambios'; }
   });
 }
 
 function initAddStudentModal() {
   const modal = document.getElementById('addStudentModal');
   const form = document.getElementById('addStudentForm');
-  
-  document.getElementById('newStudentBtn').addEventListener('click', () => {
-    modal.classList.add('active');
-  });
-  
-  document.getElementById('cancelStudentBtn').addEventListener('click', () => {
-    modal.classList.remove('active');
-    form.reset();
-  });
-  
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.classList.remove('active');
-      form.reset();
-    }
-  });
+  document.getElementById('newStudentBtn').addEventListener('click', () => modal.classList.add('active'));
+  document.getElementById('cancelStudentBtn').addEventListener('click', () => { modal.classList.remove('active'); form.reset(); });
+  modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); form.reset(); } });
   
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Añadiendo...';
-    
+    const btn = form.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = 'Añadiendo...';
     try {
-      const formData = new FormData(form);
-      await addStudent(formData.get('nombre'), formData.get('apellidos'));
-      
-      modal.classList.remove('active');
-      form.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Añadir alumno';
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Añadir alumno';
-    }
+      await addStudent(new FormData(form).get('nombre'), new FormData(form).get('apellidos'));
+      modal.classList.remove('active'); form.reset(); btn.disabled = false; btn.textContent = 'Añadir alumno';
+    } catch (error) { alert(error.message); btn.disabled = false; btn.textContent = 'Añadir alumno'; }
   });
 }
 
 function initCreateAsignaturaModal() {
   const modal = document.getElementById('createAsignaturaModal');
   const form = document.getElementById('createAsignaturaForm');
-  
   document.getElementById('newAsignaturaBtn').addEventListener('click', async () => {
-    const profesorSelect = document.getElementById('asignaturaProfesorSelect');
-    profesorSelect.innerHTML = '<option value="">Selecciona un profesor</option>';
-    state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(prof => {
-      profesorSelect.innerHTML += `<option value="${prof.id}">${prof.nombre || prof.id}</option>`;
-    });
-    
-    const alumnosSelection = document.getElementById('alumnosSelection');
-    alumnosSelection.innerHTML = '<div class="loading" style="padding:20px;">Cargando alumnos...</div>';
-    
-    const alumnosHTML = await loadAlumnosForSelection();
-    alumnosSelection.innerHTML = alumnosHTML;
-    
+    const pSelect = document.getElementById('asignaturaProfesorSelect');
+    pSelect.innerHTML = '<option value="">Selecciona un profesor</option>';
+    state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(prof => { pSelect.innerHTML += `<option value="${prof.id}">${prof.nombre || prof.id}</option>`; });
+    document.getElementById('alumnosSelection').innerHTML = await loadAlumnosForSelection();
     modal.classList.add('active');
   });
-  
-  document.getElementById('cancelAsignaturaBtn').addEventListener('click', () => {
-    modal.classList.remove('active');
-    form.reset();
-  });
-  
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.classList.remove('active');
-      form.reset();
-    }
-  });
+  document.getElementById('cancelAsignaturaBtn').addEventListener('click', () => { modal.classList.remove('active'); form.reset(); });
+  modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); form.reset(); } });
   
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creando...';
-    
+    const btn = form.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = 'Creando...';
     try {
-      const formData = new FormData(form);
-      const nombre = formData.get('nombre');
-      const profesorEmail = formData.get('profesorEmail');
-      
-      const selectedAlumnos = Array.from(document.querySelectorAll('input[name="alumnos"]:checked'))
-        .map(cb => cb.value);
-      
-      if (selectedAlumnos.length === 0) {
-        alert('Debes seleccionar al menos un alumno');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Crear asignatura';
-        return;
-      }
-      
-      await createAsignatura(nombre, profesorEmail, selectedAlumnos);
-      
-      alert(`✅ Asignatura "${nombre}" creada con ${selectedAlumnos.length} alumnos`);
-      
-      modal.classList.remove('active');
-      form.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear asignatura';
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear asignatura';
-    }
+      const fd = new FormData(form);
+      const alumnos = Array.from(document.querySelectorAll('input[name="alumnos"]:checked')).map(cb => cb.value);
+      if (!alumnos.length) throw new Error('Debes seleccionar al menos un alumno');
+      await createAsignatura(fd.get('nombre'), fd.get('profesorEmail'), alumnos);
+      modal.classList.remove('active'); form.reset(); btn.disabled = false; btn.textContent = 'Crear asignatura';
+    } catch (error) { alert(error.message); btn.disabled = false; btn.textContent = 'Crear asignatura'; }
   });
 }
 
 function initInviteProfesorModal() {
   const modal = document.getElementById('inviteProfesorModal');
   const form = document.getElementById('inviteProfesorForm');
-  
-  document.getElementById('inviteProfesorBtn').addEventListener('click', () => {
-    modal.classList.add('active');
-  });
-  
-  document.getElementById('cancelProfesorBtn').addEventListener('click', () => {
-    modal.classList.remove('active');
-    form.reset();
-  });
-  
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.classList.remove('active');
-      form.reset();
-    }
-  });
+  document.getElementById('inviteProfesorBtn').addEventListener('click', () => modal.classList.add('active'));
+  document.getElementById('cancelProfesorBtn').addEventListener('click', () => { modal.classList.remove('active'); form.reset(); });
+  modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); form.reset(); } });
   
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Invitando...';
-    
+    const btn = form.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = 'Invitando...';
     try {
-      const formData = new FormData(form);
-      // Evitar errores capturando el correo de forma limpia
-      const email = formData.get('email').trim().toLowerCase();
-      const nombre = formData.get('nombre').trim();
-      
-      await inviteProfesor(email, nombre);
-      
-      alert(`✅ Se ha concedido acceso a ${email}.\n\nIndícale al profesor que inicie sesión en Grade Weighting pulsando en "Iniciar sesión con Google" utilizando ese mismo correo electrónico para acceder a la plataforma.`);
-      
-      modal.classList.remove('active');
-      form.reset();
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Enviar invitación';
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Enviar invitación';
-    }
+      const fd = new FormData(form);
+      await inviteProfesor(fd.get('email').trim().toLowerCase(), fd.get('nombre').trim());
+      alert(`✅ Se ha concedido acceso a ${fd.get('email').trim().toLowerCase()}.`);
+      modal.classList.remove('active'); form.reset(); btn.disabled = false; btn.textContent = 'Enviar invitación';
+    } catch (error) { alert(error.message); btn.disabled = false; btn.textContent = 'Enviar invitación'; }
   });
 }
 
@@ -2101,8 +1693,9 @@ function initInviteProfesorModal() {
   window.showNotasView = showNotasView;
   window.switchTrimestre = switchTrimestre;
   window.addNota = addNota;
-  window.updateNota = updateNota;
+  window.updateNotaDetalle = updateNotaDetalle; // Reemplaza a updateNota antigua
   window.deleteNota = deleteNota;
+  window.guardarComentario = guardarComentario; // Nueva función
   window.selectAllFromClase = selectAllFromClase;
   window.showTrimestreDetail = showTrimestreDetail;
   window.guardarPonderacion = guardarPonderacion;
