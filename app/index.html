@@ -112,12 +112,11 @@
     .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
 
     /* ==========================================================================
-       NUEVO: PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE Y REUNIONES)
+       PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE)
        ========================================================================== */
     .report-section { background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(26,26,46,0.04); }
     .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid var(--cream); padding-bottom: 16px; }
     .report-title { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--ink); }
-    
     .chart-container { position: relative; height: 300px; width: 100%; margin-bottom: 24px; }
     
     .comments-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
@@ -126,7 +125,6 @@
     .comment-card p { font-size: 14px; color: var(--ink-light); margin: 0; font-style: italic; line-height: 1.5; }
     .profe-tag { font-size: 12px; font-weight: 500; color: var(--ink-light); background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); font-style: normal; }
 
-    /* Reglas para imprimir perfecto en PDF */
     @media print {
       .header, .nav-tabs, .trimestre-tabs, .btn-primary, .btn-secondary, .breadcrumb, .btn-icon { display: none !important; }
       body { background: white; }
@@ -157,9 +155,12 @@
     .accordion-body.active { display: block; }
     .record-row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px dashed var(--border); }
     .record-desc input { background: #fff; border: 1px solid var(--border); font-size: 14px; padding: 10px 14px; }
+    .record-val { display: flex; align-items: center; gap: 8px; }
     .record-val input { width: 68px; text-align: center; border: 1px solid var(--border); padding: 10px 4px; border-radius: var(--radius-sm); }
     .nota-final-display { background: var(--ink); border-radius: var(--radius); padding: 32px; text-align: center; margin-top: 32px; color: var(--gold); }
     .nota-final-display .nota { font-size: 64px; font-weight: 700; font-family: 'Playfair Display', serif; line-height: 1; }
+    
+    .ponderacion-config { display: flex; flex-direction: column; gap: 12px; }
     .categoria-row { display: grid; grid-template-columns: 1fr 120px 40px; gap: 12px; margin-bottom:12px; }
   </style>
 </head>
@@ -189,9 +190,9 @@
     
     <div id="directorView" class="hidden">
       <div class="nav-tabs">
-        <button class="nav-tab active" id="navClases" onclick="showDirectorView()">📚 Clases</button>
-        <button class="nav-tab" id="navAsignaturas" onclick="showAsignaturasView()">📖 Asignaturas</button>
-        <button class="nav-tab" id="navProfesores" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+        <button class="nav-tab active" onclick="window.showDirectorView()">📚 Clases</button>
+        <button class="nav-tab" onclick="window.showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab" onclick="window.showProfesoresView()">👨‍🏫 Profesores</button>
       </div>
       <div class="page-header">
         <h1>Mis clases</h1>
@@ -202,9 +203,9 @@
     
     <div id="asignaturasView" class="hidden">
       <div class="nav-tabs">
-        <button class="nav-tab" onclick="showDirectorView()">📚 Clases</button>
-        <button class="nav-tab active" onclick="showAsignaturasView()">📖 Asignaturas</button>
-        <button class="nav-tab" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+        <button class="nav-tab" onclick="window.showDirectorView()">📚 Clases</button>
+        <button class="nav-tab active" onclick="window.showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab" onclick="window.showProfesoresView()">👨‍🏫 Profesores</button>
       </div>
       <div class="page-header">
         <h1>Asignaturas</h1>
@@ -215,9 +216,9 @@
     
     <div id="profesoresView" class="hidden">
       <div class="nav-tabs">
-        <button class="nav-tab" onclick="showDirectorView()">📚 Clases</button>
-        <button class="nav-tab" onclick="showAsignaturasView()">📖 Asignaturas</button>
-        <button class="nav-tab active" onclick="showProfesoresView()">👨‍🏫 Profesores</button>
+        <button class="nav-tab" onclick="window.showDirectorView()">📚 Clases</button>
+        <button class="nav-tab" onclick="window.showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab active" onclick="window.showProfesoresView()">👨‍🏫 Profesores</button>
       </div>
       <div class="page-header">
         <h1>Profesores</h1>
@@ -229,7 +230,7 @@
     <div id="profesorAsignaturasView" class="hidden">
       <div class="nav-tabs">
         <button class="nav-tab active">📖 Mis asignaturas</button>
-        <button class="nav-tab" onclick="showProfesorClasesView()">📚 Todas las clases</button>
+        <button class="nav-tab" onclick="window.showProfesorClasesView()">📚 Todas las clases</button>
       </div>
       <div class="page-header"><h1>Mis asignaturas</h1></div>
       <div id="profesorAsignaturasList" class="loading">Cargando...</div>
@@ -237,7 +238,7 @@
 
     <div id="profesorClasesView" class="hidden">
       <div class="nav-tabs">
-        <button class="nav-tab" onclick="showProfesorAsignaturasView()">📖 Mis asignaturas</button>
+        <button class="nav-tab" onclick="window.showProfesorAsignaturasView()">📖 Mis asignaturas</button>
         <button class="nav-tab active">📚 Todas las clases</button>
       </div>
       <div class="page-header"><h1>Clases del Colegio</h1></div>
@@ -246,41 +247,41 @@
 
     <div id="claseDetailView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="backToClasesList()">← Volver a Clases</a><span>/</span><span id="claseDetailName"></span>
+        <a onclick="window.backToClasesList()">← Volver a Clases</a><span>/</span><span id="claseDetailName"></span>
       </div>
       <div class="page-header">
         <h1>Lista de Alumnos</h1>
-        <button class="btn-primary" onclick="showAsistenciaView()" style="background:var(--ink);">📅 Pasar Asistencia</button>
+        <button class="btn-primary" onclick="window.showAsistenciaView()" style="background:var(--ink);">📅 Pasar Asistencia</button>
       </div>
       <div id="claseAlumnosList" class="loading">Cargando...</div>
     </div>
 
     <div id="asistenciaView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="backToClaseDetail()">← Volver a la clase</a><span>/</span><span>Asistencia</span>
+        <a onclick="window.backToClaseDetail()">← Volver a la clase</a><span>/</span><span>Asistencia</span>
       </div>
       <div class="card" style="display:flex; justify-content:space-between; align-items:center; background:var(--ink); color:#fff;">
         <div><h2 style="font-size:20px;">Control de Asistencia</h2></div>
-        <div><input type="date" id="asistenciaDateInput" onchange="loadAsistencia(this.value)" style="padding:10px; font-size:16px; border-radius:8px;"></div>
+        <div><input type="date" id="asistenciaDateInput" onchange="window.loadAsistencia(this.value)" style="padding:10px; font-size:16px; border-radius:8px;"></div>
       </div>
       <div id="asistenciaListContainer" class="card" style="padding:0;"></div>
     </div>
 
     <div id="asignaturaDetailView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="backToAsignaturasList()">← Mis asignaturas</a><span>/</span><span id="currentAsignaturaNombre"></span>
+        <a onclick="window.backToAsignaturasList()">← Mis asignaturas</a><span>/</span><span id="currentAsignaturaNombre"></span>
       </div>
       <div class="page-header"><h1 id="asignaturaDetailTitle">Trimestres</h1></div>
       <div class="cards-grid">
-        <div class="card card-clickable" onclick="showTrimestreDetail('T1')"><div class="card-title">1º Trimestre</div></div>
-        <div class="card card-clickable" onclick="showTrimestreDetail('T2')"><div class="card-title">2º Trimestre</div></div>
-        <div class="card card-clickable" onclick="showTrimestreDetail('T3')"><div class="card-title">3º Trimestre</div></div>
+        <div class="card card-clickable" onclick="window.showTrimestreDetail('T1')"><div class="card-title">1º Trimestre</div></div>
+        <div class="card card-clickable" onclick="window.showTrimestreDetail('T2')"><div class="card-title">2º Trimestre</div></div>
+        <div class="card card-clickable" onclick="window.showTrimestreDetail('T3')"><div class="card-title">3º Trimestre</div></div>
       </div>
     </div>
 
     <div id="trimestreDetailView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="backToAsignaturaDetail()">← Volver</a><span>/</span>
+        <a onclick="window.backToAsignaturaDetail()">← Volver a la asignatura</a><span>/</span>
         <span id="trimestreDetailContext"></span><span>/</span><span id="currentTrimestre"></span>
       </div>
       <div class="page-header"><h1 id="trimestreDetailTitle">1º Trimestre</h1></div>
@@ -288,8 +289,8 @@
         <h3>⚙️ Configuración de Categorías</h3>
         <div id="categoriasConfig"></div>
         <div style="display: flex; gap: 12px; margin-top: 16px;">
-          <button class="btn-secondary" onclick="añadirCategoria()">+ Añadir categoría</button>
-          <button class="btn-primary" onclick="guardarPonderacion()">Guardar configuración</button>
+          <button class="btn-secondary" onclick="window.añadirCategoria()">+ Añadir categoría</button>
+          <button class="btn-primary" onclick="window.guardarPonderacion()">Guardar configuración</button>
         </div>
       </div>
       <h3 style="margin-bottom: 16px;">📊 Alumnos para Evaluar</h3>
@@ -298,13 +299,13 @@
 
     <div id="notasView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="backToTrimestreDetail()">← Lista de alumnos</a><span>/</span><span id="currentAlumnoNombre"></span>
+        <a onclick="window.backToTrimestreDetail()">← Lista de alumnos</a><span>/</span><span id="currentAlumnoNombre"></span>
       </div>
       <div class="page-header"><h1 id="notasViewTitle">Panel del Alumno</h1></div>
-      <div class="trimestre-tabs">
-        <button class="trimestre-tab active" onclick="switchTrimestre('T1')">1º Trimestre</button>
-        <button class="trimestre-tab" onclick="switchTrimestre('T2')">2º Trimestre</button>
-        <button class="trimestre-tab" onclick="switchTrimestre('T3')">3º Trimestre</button>
+      <div class="trimestre-tabs" id="notasTrimestreTabs">
+        <button class="trimestre-tab active" onclick="window.switchTrimestre('T1')">1º Trimestre</button>
+        <button class="trimestre-tab" onclick="window.switchTrimestre('T2')">2º Trimestre</button>
+        <button class="trimestre-tab" onclick="window.switchTrimestre('T3')">3º Trimestre</button>
       </div>
       <div id="attendanceSummary" class="attendance-summary-badge"></div>
       <div id="notasContent" class="loading">Cargando perfil...</div>
@@ -312,7 +313,7 @@
 
     <div id="expedienteView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="backToClaseDetail()">← Volver a la clase</a><span>/</span><span id="expedienteAlumnoNameBread"></span>
+        <a onclick="window.backToClaseDetail()">← Volver a la clase</a><span>/</span><span id="expedienteAlumnoNameBread"></span>
       </div>
       
       <div class="page-header">
@@ -327,25 +328,21 @@
         <div class="chart-container">
           <canvas id="progresoChart"></canvas>
         </div>
-        <p style="text-align:center; color:var(--ink-light); font-size:13px;">Media de todas las asignaturas por trimestre</p>
       </div>
 
       <div class="trimestre-tabs" id="expedienteTrimestreTabs">
-        <button class="trimestre-tab active" onclick="switchExpedienteTrimestre('T1')">1º Trimestre</button>
-        <button class="trimestre-tab" onclick="switchExpedienteTrimestre('T2')">2º Trimestre</button>
-        <button class="trimestre-tab" onclick="switchExpedienteTrimestre('T3')">3º Trimestre</button>
+        <button class="trimestre-tab active" onclick="window.switchExpedienteTrimestre('T1')">1º Trimestre</button>
+        <button class="trimestre-tab" onclick="window.switchExpedienteTrimestre('T2')">2º Trimestre</button>
+        <button class="trimestre-tab" onclick="window.switchExpedienteTrimestre('T3')">3º Trimestre</button>
       </div>
 
       <div class="report-section">
         <div class="report-header">
           <h2 class="report-title">Boletín Detallado (<span id="expLabelTrimestre"></span>)</h2>
         </div>
-        
         <div id="expedienteContentTable" class="loading">Buscando notas...</div>
-        
         <h3 style="margin-top: 40px; font-family: 'Playfair Display', serif; font-size:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">💬 Observaciones del Equipo Docente</h3>
-        <div id="expedienteContentComments" class="comments-grid">
-          </div>
+        <div id="expedienteContentComments" class="comments-grid"></div>
       </div>
     </div>
     
@@ -353,7 +350,7 @@
 </div>
 
 <div id="editClassModal" class="modal"><div class="modal-content"><h2 class="modal-header">Editar clase</h2><form id="editClassForm"><input type="hidden" id="editClassId" name="classId"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" id="editClassNombre" required></div><div class="form-group"><label>Curso *</label><input type="text" name="curso" id="editClassCurso" required></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('editClassModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Guardar</button></div></form></div></div>
-<div id="createClassModal" class="modal"><div class="modal-content"><h2 class="modal-header">Crear clase</h2><form id="createClassForm"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div><div class="form-group"><label>Curso *</label><input type="text" name="curso" required></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('createClassModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Crear</button></div></form></div></div>
+<div id="createClassModal" class="modal"><div class="modal-content"><h2 class="modal-header">Crear clase</h2><form id="createClassForm"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required placeholder="Ej. 1º ESO A"></div><div class="form-group"><label>Curso *</label><input type="text" name="curso" required placeholder="Ej. 1º ESO"></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('createClassModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Crear</button></div></form></div></div>
 <div id="addStudentModal" class="modal"><div class="modal-content"><h2 class="modal-header">Añadir alumno</h2><form id="addStudentForm"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div><div class="form-group"><label>Apellidos *</label><input type="text" name="apellidos" required></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('addStudentModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Añadir</button></div></form></div></div>
 <div id="createAsignaturaModal" class="modal"><div class="modal-content"><h2 class="modal-header">Crear asignatura</h2><form id="createAsignaturaForm"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div><div class="form-group"><label>Profesor *</label><select name="profesorEmail" required id="asignaturaProfesorSelect"></select></div><div class="form-group"><label>Alumnos *</label><div id="alumnosSelection" class="checkbox-group"></div></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('createAsignaturaModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Crear</button></div></form></div></div>
 <div id="inviteProfesorModal" class="modal"><div class="modal-content"><h2 class="modal-header">Invitar profesor</h2><form id="inviteProfesorForm"><div class="form-group"><label>Email *</label><input type="email" name="email" required></div><div class="form-group"><label>Nombre</label><input type="text" name="nombre"></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('inviteProfesorModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Invitar</button></div></form></div></div>
@@ -381,10 +378,10 @@
     currentClassId: null, currentAsignaturaId: null, currentAlumnoId: null,
     currentTrimestre: 'T1', currentExpedienteTrimestre: 'T1',
     cachedClasses: [], cachedProfesores: [], cachedAlumnos: [],
-    expedienteData: null // Cache temporal para el reporte del alumno
+    expedienteData: null
   };
 
-  let chartInstance = null; // Variable global para destruir el gráfico antes de redibujarlo
+  let chartInstance = null;
 
   function hideAllViews() {
     const views = ['directorView', 'profesorAsignaturasView', 'profesorClasesView', 'claseDetailView', 'asistenciaView', 'expedienteView', 'profesoresView', 'asignaturasView', 'asignaturaDetailView', 'notasView', 'trimestreDetailView'];
@@ -398,18 +395,29 @@
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       state.currentUser = user;
-      document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('userName').textContent = user.displayName || 'Usuario'; document.getElementById('userEmail').textContent = user.email;
-      const pDoc = await getDoc(doc(db, 'profesores', user.email));
-      if (pDoc.exists()) {
-        state.userRole = pDoc.data().rol; state.colegioId = pDoc.data().colegioId;
-        document.getElementById('roleBadge').textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
-        state.userRole === 'admin' ? window.showDirectorView() : window.showProfesorAsignaturasView();
-      } else { alert('Sin acceso.'); await signOut(auth); }
-    } else { document.getElementById('loginScreen').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); }
+      document.getElementById('loginScreen').classList.add('hidden'); 
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('userName').textContent = user.displayName || 'Usuario'; 
+      document.getElementById('userEmail').textContent = user.email;
+      
+      try {
+        const pDoc = await getDoc(doc(db, 'profesores', user.email));
+        if (pDoc.exists()) {
+          state.userRole = pDoc.data().rol; 
+          state.colegioId = pDoc.data().colegioId;
+          document.getElementById('roleBadge').textContent = state.userRole === 'admin' ? 'Director' : 'Profesor';
+          state.userRole === 'admin' ? window.showDirectorView() : window.showProfesorAsignaturasView();
+        } else {
+          alert('Sin acceso.'); await signOut(auth);
+        }
+      } catch(e) { alert(e.message); }
+    } else {
+      document.getElementById('loginScreen').classList.remove('hidden'); 
+      document.getElementById('dashboard').classList.add('hidden');
+    }
   });
 
-  // --- RUTAS COMUNES ---
+  // --- RUTAS GLOBALES ---
   window.showDirectorView = () => { hideAllViews(); document.getElementById('directorView').classList.remove('hidden'); loadClasses('classesList'); }
   window.showProfesoresView = () => { hideAllViews(); document.getElementById('profesoresView').classList.remove('hidden'); loadProfesores(); }
   window.showAsignaturasView = () => { hideAllViews(); document.getElementById('asignaturasView').classList.remove('hidden'); loadAsignaturas(); }
@@ -422,12 +430,15 @@
   window.backToAsignaturaDetail = () => { window.showAsignaturaDetail(state.currentAsignaturaId, document.getElementById('currentAsignaturaNombre').textContent); };
   window.backToTrimestreDetail = () => { window.showTrimestreDetail(state.currentTrimestre); };
 
+  // --- CARGA DE CLASES ---
   async function loadClasses(containerId, isProfesor = false) {
     const list = document.getElementById(containerId);
     list.innerHTML = '<div class="loading">Cargando clases...</div>';
     try {
       const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases`), orderBy('nombre')));
       state.cachedClasses = [];
+      if (snap.empty) return list.innerHTML = '<div class="empty-state"><p>No hay clases creadas en el colegio.</p></div>';
+      
       let html = '<div class="cards-grid">';
       snap.forEach(d => {
         state.cachedClasses.push({ id: d.id, ...d.data() });
@@ -440,14 +451,27 @@
   }
 
   window.showClaseDetail = async (classId, className) => {
-    state.currentClassId = classId; document.getElementById('claseDetailName').textContent = className;
-    hideAllViews(); document.getElementById('claseDetailView').classList.remove('hidden');
+    state.currentClassId = classId; 
+    document.getElementById('claseDetailName').textContent = className;
+    hideAllViews(); 
+    document.getElementById('claseDetailView').classList.remove('hidden');
+    
     const list = document.getElementById('claseAlumnosList');
+    list.innerHTML = '<div class="loading">Cargando alumnos...</div>';
     try {
       const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${classId}/alumnos`), orderBy('apellidos')));
-      state.cachedAlumnos = []; let html = '<div class="cards-grid">';
+      state.cachedAlumnos = []; 
+      
+      if(snap.empty) {
+        let emptyHtml = '<div class="empty-state"><p>No hay alumnos en esta clase.</p>';
+        if(state.userRole === 'admin') emptyHtml += `<button class="btn-secondary" onclick="document.getElementById('addStudentModal').classList.add('active')">+ Añadir Alumno</button>`;
+        return list.innerHTML = emptyHtml + '</div>';
+      }
+
+      let html = '<div class="cards-grid">';
       snap.forEach(d => {
-        const a = d.data(); state.cachedAlumnos.push({ id: d.id, n: a.nombre, a: a.apellidos });
+        const a = d.data(); 
+        state.cachedAlumnos.push({ id: d.id, n: a.nombre, a: a.apellidos });
         const fullName = `${a.nombre} ${a.apellidos}`.replace(/'/g, "\\'");
         html += `<div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${d.id}', '${fullName}')"><div class="card-title">${a.apellidos}, ${a.nombre}</div><div class="card-meta">Ver Expediente y Reporte →</div></div>`;
       });
@@ -457,12 +481,21 @@
   };
 
   // --- ASISTENCIA ---
-  window.showAsistenciaView = () => { hideAllViews(); document.getElementById('asistenciaView').classList.remove('hidden'); const today = new Date().toISOString().split('T')[0]; document.getElementById('asistenciaDateInput').value = today; window.loadAsistencia(today); };
+  window.showAsistenciaView = () => { 
+    hideAllViews(); 
+    document.getElementById('asistenciaView').classList.remove('hidden'); 
+    const today = new Date().toISOString().split('T')[0]; 
+    document.getElementById('asistenciaDateInput').value = today; 
+    window.loadAsistencia(today); 
+  };
+
   window.loadAsistencia = async (date) => {
-    const cont = document.getElementById('asistenciaListContainer'); cont.innerHTML = '<div class="loading">Cargando...</div>';
+    const cont = document.getElementById('asistenciaListContainer'); 
+    cont.innerHTML = '<div class="loading">Cargando...</div>';
     try {
       const d = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/asistencia/${date}`));
-      const r = d.exists() ? d.data() : {}; let html = '';
+      const r = d.exists() ? d.data() : {}; 
+      let html = '';
       state.cachedAlumnos.forEach(a => {
         const s = r[a.id] || '';
         html += `<div class="attendance-row"><div class="ast-name">${a.a}, ${a.n}</div><div class="ast-toggles"><button id="btn-ast-${a.id}-P" class="ast-btn ${s==='P'?'active P':''}" onclick="window.markAsistencia('${a.id}', 'P', '${date}')">✅</button><button id="btn-ast-${a.id}-F" class="ast-btn ${s==='F'?'active F':''}" onclick="window.markAsistencia('${a.id}', 'F', '${date}')">❌</button><button id="btn-ast-${a.id}-R" class="ast-btn ${s==='R'?'active R':''}" onclick="window.markAsistencia('${a.id}', 'R', '${date}')">⏰</button></div></div>`;
@@ -470,193 +503,143 @@
       cont.innerHTML = html;
     } catch(e){}
   };
+
   window.markAsistencia = async (id, st, date) => {
     ['P','F','R'].forEach(s => document.getElementById(`btn-ast-${id}-${s}`).className = 'ast-btn');
     document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st);
     await setDoc(doc(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true });
   };
 
-  // ==================================================================
-  // EL NUEVO EXPEDIENTE GLOBAL (DATOS + GRÁFICOS + COMENTARIOS)
-  // ==================================================================
-
-  // 1. Calculadora auxiliar pura (no asíncrona)
-  function calcFinalGrade(categorias, notasData) {
-    let notaFinal = 0; let pesoTotal = 0;
-    categorias.forEach(cat => {
-      let cNotas = notasData.categorias?.[cat.nombre] || [];
-      cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: (n>10?100:10) } : n);
-      const suma = cNotas.reduce((acc, curr) => {
-        let v = curr.valor === '' ? 0 : parseFloat(curr.valor||0);
-        let m = parseFloat(curr.maximo||10); if(m<=0)m=10;
-        return acc + ((v/m)*10);
-      }, 0);
-      if (cNotas.length > 0) { notaFinal += (suma/cNotas.length) * (cat.peso/100); pesoTotal += cat.peso; }
-    });
-    return pesoTotal > 0 ? notaFinal : null;
+  // --- CARGAS VARIAS ---
+  async function loadProfesores() { 
+    const l=document.getElementById('profesoresList'); 
+    const s=await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId))); 
+    state.cachedProfesores=[]; 
+    let h='<table class="table"><thead><tr><th>Email</th><th>Rol</th></tr></thead><tbody>'; 
+    s.forEach(d=>{state.cachedProfesores.push({id:d.id,...d.data()}); h+=`<tr><td>${d.id}</td><td>${d.data().rol}</td></tr>`;}); 
+    l.innerHTML=h+'</tbody></table>'; 
+  }
+  
+  async function loadAsignaturas() { 
+    const l=document.getElementById('asignaturasList'); 
+    const s=await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), orderBy('nombre'))); 
+    let h='<table class="table"><thead><tr><th>Asig</th><th>Profesor</th></tr></thead><tbody>'; 
+    s.forEach(d=>h+=`<tr><td>${d.data().nombre}</td><td>${d.data().profesorEmail}</td></tr>`); 
+    l.innerHTML=h+'</tbody></table>'; 
+  }
+  
+  async function loadProfesorAsignaturas() { 
+    const l=document.getElementById('profesorAsignaturasList'); 
+    const s=await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('profesorEmail', '==', state.currentUser.email))); 
+    let h='<div class="cards-grid">'; 
+    s.forEach(d=>h+=`<div class="card card-clickable" onclick="window.showAsignaturaDetail('${d.id}','${d.data().nombre}')"><div class="card-title">${d.data().nombre}</div></div>`); 
+    l.innerHTML=h+'</div>'; 
   }
 
-  // 2. Inicializar el expediente (Descarga TODO de golpe)
-  window.initExpedienteGlobal = async (studentRef, studentName) => {
-    state.currentAlumnoId = studentRef; 
-    document.getElementById('expedienteAlumnoNameBread').textContent = studentName;
-    document.getElementById('expedienteAlumnoNameTitle').textContent = studentName;
-    hideAllViews(); document.getElementById('expedienteView').classList.remove('hidden');
-    
-    document.getElementById('expedienteContentTable').innerHTML = '<div class="loading">Recopilando datos históricos de todas las asignaturas...</div>';
-    document.getElementById('expedienteContentComments').innerHTML = '';
-    
+  window.showAsignaturaDetail = (id, n) => { 
+    state.currentAsignaturaId = id; state.currentContext = 'asignatura'; 
+    document.getElementById('currentAsignaturaNombre').textContent = n; 
+    hideAllViews(); document.getElementById('asignaturaDetailView').classList.remove('hidden'); 
+  };
+
+  // --- PONDERACIONES Y ALUMNOS PARA EVALUAR ---
+  window.showTrimestreDetail = async (t) => {
+    state.currentTrimestre = t; hideAllViews(); document.getElementById('trimestreDetailView').classList.remove('hidden');
+    await window.loadPonderacion(t); await window.loadAlumnosParaEvaluar();
+    const names = { 'T1': '1º Trimestre', 'T2': '2º Trimestre', 'T3': '3º Trimestre' };
+    document.getElementById('currentTrimestre').textContent = names[t]; document.getElementById('trimestreDetailTitle').textContent = names[t];
+    document.getElementById('trimestreDetailContext').textContent = document.getElementById('currentAsignaturaNombre').textContent;
+  };
+
+  let currentCategorias = [];
+  window.loadPonderacion = async (t) => {
+    const d = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${t}`));
+    currentCategorias = d.exists() ? (d.data().categorias||[]) : [{nombre:"Exámenes",peso:40},{nombre:"Deberes",peso:60}];
+    renderCategorias(); updatePesoTotal();
+  };
+
+  function renderCategorias() {
+    let html = '<div class="ponderacion-config">';
+    currentCategorias.forEach((c, i) => {
+      html += `<div class="categoria-row"><input type="text" value="${c.nombre}" onchange="window.updateCategoriaNombre(${i},this.value)"><input type="number" value="${c.peso}" onchange="window.updateCategoriaPeso(${i},this.value)"><button class="btn-remove-cat" onclick="window.eliminarCategoria(${i})">🗑️</button></div>`;
+    });
+    document.getElementById('categoriasConfig').innerHTML = html + '</div>';
+  }
+  
+  function updatePesoTotal() {
+    const t = currentCategorias.reduce((s,c)=>s+(parseInt(c.peso)||0),0);
+    if(document.getElementById('pesoTotal')) document.getElementById('pesoTotal').textContent = t;
+    if(document.getElementById('pesoStatus')) { document.getElementById('pesoStatus').textContent = t===100?'✅ Correcto':`⚠️ Suma ${t}%`; document.getElementById('pesoStatus').style.color = t===100?'var(--green)':'var(--accent)'; }
+  }
+  
+  window.updateCategoriaNombre = (i,n) => currentCategorias[i].nombre=n;
+  window.updateCategoriaPeso = (i,p) => { currentCategorias[i].peso=parseInt(p)||0; updatePesoTotal(); };
+  window.añadirCategoria = () => { currentCategorias.push({nombre:"",peso:0}); renderCategorias(); updatePesoTotal(); };
+  window.eliminarCategoria = (i) => { if(currentCategorias.length<=1)return alert('Mínimo 1'); currentCategorias.splice(i,1); renderCategorias(); updatePesoTotal(); };
+  
+  window.guardarPonderacion = async () => {
+    const t = currentCategorias.reduce((s,c)=>s+(parseInt(c.peso)||0),0);
+    if(t!==100) return alert('Debe sumar 100%'); if(currentCategorias.some(c=>!c.nombre.trim())) return alert('Nombres requeridos');
+    await setDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`), { categorias: currentCategorias, updatedAt: serverTimestamp() }); alert('✅ Guardado');
+  };
+
+  window.loadAlumnosParaEvaluar = async () => {
+    const list = document.getElementById('trimestreAlumnosList'); list.innerHTML = '<div class="loading">Cargando...</div>';
     try {
-      const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
-      
-      // Estructura para guardar en caché y renderizar rápido
-      state.expedienteData = {
-        averages: { T1: [], T2: [], T3: [] },
-        subjects: [] // { name, profe, grades: {T1,T2,T3}, comments: {T1,T2,T3} }
-      };
-
-      for (const d of snapAsig.docs) {
-        const asig = d.data();
-        let subRecord = { name: asig.nombre, profe: asig.profesorEmail, grades: {}, comments: {} };
-        
-        for (const t of ['T1', 'T2', 'T3']) {
-          const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/ponderaciones/${t}`));
-          const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [];
-          
-          const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/notas/${studentRef.replace('/','-')}-${t}`));
-          const notasData = nDoc.exists() ? nDoc.data() : { categorias: {}, comentarioTutor: "" };
-          
-          subRecord.comments[t] = notasData.comentarioTutor || "";
-          
-          const final = calcFinalGrade(cats, notasData);
-          subRecord.grades[t] = final;
-          
-          if(final !== null) state.expedienteData.averages[t].push(final);
-        }
-        state.expedienteData.subjects.push(subRecord);
+      let alumnos = [];
+      const asig = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas`, state.currentAsignaturaId));
+      for (const ref of (asig.data()?.alumnos||[])) {
+        const [cId, aId] = ref.split('/'); const aDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${cId}/alumnos`, aId));
+        if(aDoc.exists()) alumnos.push({ id: ref, n: aDoc.data().nombre, a: aDoc.data().apellidos, classId: cId, alumId: aId });
       }
-
-      // Renderizar gráfico
-      const avgT1 = state.expedienteData.averages.T1.length ? (state.expedienteData.averages.T1.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T1.length) : null;
-      const avgT2 = state.expedienteData.averages.T2.length ? (state.expedienteData.averages.T2.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T2.length) : null;
-      const avgT3 = state.expedienteData.averages.T3.length ? (state.expedienteData.averages.T3.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T3.length) : null;
+      alumnos.sort((a,b) => (a.a||'').localeCompare(b.a||''));
       
-      renderExpedienteChart(avgT1, avgT2, avgT3);
-      
-      // Auto-seleccionar T1 por defecto
-      window.switchExpedienteTrimestre('T1');
-
-    } catch(e) { document.getElementById('expedienteContentTable').innerHTML = '<p style="color:red">Error construyendo expediente.</p>'; }
+      let html = '<div class="cards-grid">';
+      alumnos.forEach(alum => {
+        const nLimpio = (alum.n+' '+alum.a).replace(/'/g, "\\'");
+        html += `<div class="card card-clickable" onclick="window.showNotasView('${alum.id}', '${nLimpio}', '${alum.classId}', '${alum.alumId}')"><div class="card-title">${alum.a}, ${alum.n}</div><div class="card-meta">Evaluar alumno →</div></div>`;
+      });
+      list.innerHTML = html + '</div>';
+    } catch(e) {}
   };
 
-  // 3. Renderizar Gráfico
-  function renderExpedienteChart(t1, t2, t3) {
-    if (chartInstance) chartInstance.destroy();
-    const ctx = document.getElementById('progresoChart').getContext('2d');
-    
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['1º Trimestre', '2º Trimestre', '3º Trimestre'],
-        datasets: [{
-          label: 'Nota Media Global',
-          data: [t1, t2, t3],
-          borderColor: '#c84b31', // Accent
-          backgroundColor: 'rgba(200, 75, 49, 0.1)',
-          borderWidth: 3,
-          pointBackgroundColor: '#1a1a2e',
-          pointRadius: 6,
-          fill: true,
-          tension: 0.3,
-          spanGaps: true // Conecta la línea aunque falte un trimestre
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { min: 0, max: 10, ticks: { stepSize: 1 } }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: { label: (ctx) => `Media: ${ctx.raw ? ctx.raw.toFixed(2) : 'Sin notas'}` }
-          }
-        }
-      }
-    });
-  }
-
-  // 4. Cambiar Pestaña (Instantáneo)
-  window.switchExpedienteTrimestre = (t) => {
-    state.currentExpedienteTrimestre = t;
-    document.querySelectorAll('#expedienteTrimestreTabs .trimestre-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const names = { 'T1': '1º Trim', 'T2': '2º Trim', 'T3': '3º Trim' };
-    document.getElementById('expLabelTrimestre').textContent = names[t];
-
-    let htmlTable = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Nota Final</th></tr></thead><tbody>';
-    let htmlComments = '';
-
-    if(state.expedienteData.subjects.length === 0) {
-      document.getElementById('expedienteContentTable').innerHTML = '<div class="empty-state">No matriculado en asignaturas.</div>';
-      return;
-    }
-
-    let hasComments = false;
-
-    state.expedienteData.subjects.forEach(sub => {
-      // Filas de tabla
-      const grade = sub.grades[t];
-      const gradeStr = grade !== null ? grade.toFixed(2) : '—';
-      htmlTable += `<tr><td><strong>${sub.name}</strong></td><td>${sub.profe}</td><td><strong style="color:var(--accent); font-size:15px;">${gradeStr}</strong></td></tr>`;
-      
-      // Tarjetas de comentarios
-      const comment = sub.comments[t];
-      if (comment && comment.trim() !== '') {
-        hasComments = true;
-        htmlComments += `
-          <div class="comment-card">
-            <h4>${sub.name} <span class="profe-tag">Prof. ${sub.profe.split('@')[0]}</span></h4>
-            <p>"${comment}"</p>
-          </div>
-        `;
-      }
-    });
-
-    htmlTable += '</tbody></table>';
-    
-    if(!hasComments) htmlComments = '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">Los profesores no han dejado observaciones en este trimestre.</div>';
-
-    document.getElementById('expedienteContentTable').innerHTML = htmlTable;
-    document.getElementById('expedienteContentComments').innerHTML = htmlComments;
+  // --- PANEL NOTAS PROFESOR (EVALUAR) ---
+  window.showNotasView = (id, n, classId, alumId) => { 
+    state.currentAlumnoId=id; state.currentEvalClassId=classId; state.currentEvalAlumId=alumId; 
+    document.getElementById('currentAlumnoNombre').textContent=n; hideAllViews(); document.getElementById('notasView').classList.remove('hidden'); window.loadNotas(n); 
   };
-
-
-  // --- OTRAS FUNCIONES (Mantenidas y condensadas) ---
-  async function loadProfesores() { const l=document.getElementById('profesoresList'); const s=await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId))); state.cachedProfesores=[]; let h='<table class="table"><thead><tr><th>Email</th><th>Rol</th></tr></thead><tbody>'; s.forEach(d=>{state.cachedProfesores.push({id:d.id,...d.data()}); h+=`<tr><td>${d.id}</td><td>${d.data().rol}</td></tr>`;}); l.innerHTML=h+'</tbody></table>'; }
-  async function loadAsignaturas() { const l=document.getElementById('asignaturasList'); const s=await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), orderBy('nombre'))); let h='<table class="table"><thead><tr><th>Asig</th><th>Profesor</th></tr></thead><tbody>'; s.forEach(d=>h+=`<tr><td>${d.data().nombre}</td><td>${d.data().profesorEmail}</td></tr>`); l.innerHTML=h+'</tbody></table>'; }
-  async function loadProfesorAsignaturas() { const l=document.getElementById('profesorAsignaturasList'); const s=await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('profesorEmail', '==', state.currentUser.email))); let h='<div class="cards-grid">'; s.forEach(d=>h+=`<div class="card card-clickable" onclick="window.showAsignaturaDetail('${d.id}','${d.data().nombre}')"><div class="card-title">${d.data().nombre}</div></div>`); l.innerHTML=h+'</div>'; }
-  window.showAsignaturaDetail = (id, n) => { state.currentAsignaturaId = id; state.currentContext = 'asignatura'; document.getElementById('currentAsignaturaNombre').textContent = n; hideAllViews(); document.getElementById('asignaturaDetailView').classList.remove('hidden'); };
-
-  // PANEL NOTAS PROFESOR
-  window.showNotasView = (id, n, classId, alumId) => { state.currentAlumnoId=id; state.currentEvalClassId=classId; state.currentEvalAlumId=alumId; document.getElementById('currentAlumnoNombre').textContent=n; hideAllViews(); document.getElementById('notasView').classList.remove('hidden'); window.loadNotas(n); };
-  window.switchTrimestre = (t) => { state.currentTrimestre = t; document.querySelectorAll('#notasView .trimestre-tab').forEach(tab => tab.classList.remove('active')); event.target.classList.add('active'); window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); };
+  
+  window.switchTrimestre = (t) => { 
+    state.currentTrimestre = t; 
+    document.querySelectorAll('#notasView .trimestre-tab').forEach(tab => tab.classList.remove('active')); 
+    event.target.classList.add('active'); window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); 
+  };
+  
   window.loadNotas = async (nombreAlumno) => {
     const c = document.getElementById('notasContent'); c.innerHTML = '<div class="loading">Cargando...</div>';
     let f = 0; let r = 0;
-    try { const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); snapAst.forEach(doc => { const d = doc.data(); if(d[state.currentEvalAlumId]==='F')f++; if(d[state.currentEvalAlumId]==='R')r++; }); document.getElementById('attendanceSummary').innerHTML = `<div class="ast-stat">❌ Faltas acumuladas: <strong style="color:var(--accent);">${f}</strong></div><div class="ast-stat">⏰ Retrasos: <strong style="color:var(--gold);">${r}</strong></div>`; }catch(e){}
+    try { 
+      const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); 
+      snapAst.forEach(doc => { const d = doc.data(); if(d[state.currentEvalAlumId]==='F')f++; if(d[state.currentEvalAlumId]==='R')r++; }); 
+      document.getElementById('attendanceSummary').innerHTML = `<div class="ast-stat">❌ Faltas acumuladas: <strong style="color:var(--accent);">${f}</strong></div><div class="ast-stat">⏰ Retrasos: <strong style="color:var(--gold);">${r}</strong></div>`; 
+    }catch(e){}
+
     try {
       const docId = `${state.currentAlumnoId.replace('/', '-')}-${state.currentTrimestre}`;
       const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${docId}`));
       const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${state.currentTrimestre}`));
-      let cats = pDoc.exists() ? (pDoc.data().categorias || []) : [{nombre:'Exámenes',peso:40}]; const data = nDoc.exists() ? nDoc.data() : { categorias: {} };
+      
+      let cats = pDoc.exists() ? (pDoc.data().categorias || []) : []; 
+      const data = nDoc.exists() ? nDoc.data() : { categorias: {} };
+      
       let html = `<div class="professional-comment"><div class="comment-header"><strong>📝 Observaciones</strong><span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0;">Guardado ✓</span></div><textarea id="comentarioArea" rows="3" onchange="window.guardarComentario()">${data.comentarioTutor||""}</textarea></div>`;
       let nF=0; let pT=0;
+      
       cats.forEach((cat, idx) => {
         let cN = data.categorias?.[cat.nombre] || []; cN = cN.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
-        const s = cN.reduce((a,x) => a+(((parseFloat(x.valor)||0)/(parseFloat(x.maximo)||10))*10), 0); const mC = cN.length>0?(s/cN.length):0; if(cN.length>0){nF+=mC*(cat.peso/100);pT+=cat.peso;}
+        const s = cN.reduce((a,x) => a+(((parseFloat(x.valor)||0)/(parseFloat(x.maximo)||10))*10), 0); 
+        const mC = cN.length>0?(s/cN.length):0; if(cN.length>0){nF+=mC*(cat.peso/100);pT+=cat.peso;}
+        
         html += `<div class="accordion-card"><div class="accordion-header" onclick="window.toggleAccordion('acc-${idx}', 'icon-${idx}')"><div class="accordion-title">${cat.nombre} <span class="accordion-badge">${cat.peso}%</span></div><div class="accordion-stats"><span>Media: <strong>${mC.toFixed(2)}</strong>/10</span><span id="icon-${idx}" class="accordion-chevron">▼</span></div></div><div class="accordion-body" id="acc-${idx}"><div style="padding-top:15px;">`;
         cN.forEach((nObj, i) => { html += `<div class="record-row"><div class="record-desc"><input type="text" value="${nObj.descripcion||''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)"></div><div class="record-val"><input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor||''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)"><span>/</span><input type="number" class="val-max" value="${nObj.maximo||10}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)"></div><div class="record-actions"><button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button></div></div>`; });
         html += `<button class="btn-secondary btn-sm" style="margin-top:16px;" onclick="window.addNota('${cat.nombre}')">+ Añadir registro</button></div></div></div>`;
@@ -671,7 +654,150 @@
   window.updateNotaDetalle = async (cat, idx, campo, val) => { const path = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${state.currentAlumnoId.replace('/','-')}-${state.currentTrimestre}`; const d = await getDoc(doc(db, path)); const data = d.data(); if(campo==='valor'||campo==='maximo') data.categorias[cat][idx][campo] = val===''? '':(parseFloat(val)||0); else data.categorias[cat][idx][campo] = val; await setDoc(doc(db, path), data, {merge:true}); window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); };
   window.deleteNota = async (cat, idx) => { const path = `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${state.currentAlumnoId.replace('/','-')}-${state.currentTrimestre}`; const d = await getDoc(doc(db, path)); const data = d.data(); data.categorias[cat].splice(idx, 1); await setDoc(doc(db, path), data, {merge:true}); window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); };
 
-  document.addEventListener('DOMContentLoaded', () => { initLogin(); initLogout(); initAuthListener(); });
+  // --- EXPEDIENTE GLOBAL Y GRÁFICOS ---
+  function calcFinalGrade(categorias, notasData) {
+    let notaFinal = 0; let pesoTotal = 0;
+    categorias.forEach(cat => {
+      let cNotas = notasData.categorias?.[cat.nombre] || []; cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
+      const suma = cNotas.reduce((acc, curr) => acc + (((curr.valor===''?0:parseFloat(curr.valor||0))/(parseFloat(curr.maximo||10)))*10), 0);
+      if (cNotas.length > 0) { notaFinal += (suma/cNotas.length) * (cat.peso/100); pesoTotal += cat.peso; }
+    });
+    return pesoTotal > 0 ? notaFinal : null;
+  }
+
+  window.initExpedienteGlobal = async (studentRef, studentName) => {
+    state.currentAlumnoId = studentRef; 
+    document.getElementById('expedienteAlumnoNameBread').textContent = studentName;
+    document.getElementById('expedienteAlumnoNameTitle').textContent = studentName;
+    hideAllViews(); document.getElementById('expedienteView').classList.remove('hidden');
+    
+    try {
+      const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
+      state.expedienteData = { averages: { T1: [], T2: [], T3: [] }, subjects: [] };
+
+      for (const d of snapAsig.docs) {
+        const asig = d.data();
+        let subRecord = { name: asig.nombre, profe: asig.profesorEmail, grades: {}, comments: {} };
+        
+        for (const t of ['T1', 'T2', 'T3']) {
+          const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/ponderaciones/${t}`));
+          const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/notas/${studentRef.replace('/','-')}-${t}`));
+          const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [];
+          const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
+          
+          subRecord.comments[t] = notasData.comentarioTutor || "";
+          const final = calcFinalGrade(cats, notasData);
+          subRecord.grades[t] = final;
+          if(final !== null) state.expedienteData.averages[t].push(final);
+        }
+        state.expedienteData.subjects.push(subRecord);
+      }
+
+      const avgT1 = state.expedienteData.averages.T1.length ? (state.expedienteData.averages.T1.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T1.length) : null;
+      const avgT2 = state.expedienteData.averages.T2.length ? (state.expedienteData.averages.T2.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T2.length) : null;
+      const avgT3 = state.expedienteData.averages.T3.length ? (state.expedienteData.averages.T3.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T3.length) : null;
+      
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(document.getElementById('progresoChart').getContext('2d'), {
+        type: 'line',
+        data: { labels: ['1º Trimestre', '2º Trimestre', '3º Trimestre'], datasets: [{ data: [avgT1, avgT2, avgT3], borderColor: '#c84b31', backgroundColor: 'rgba(200, 75, 49, 0.1)', borderWidth: 3, pointBackgroundColor: '#1a1a2e', pointRadius: 6, fill: true, tension: 0.3, spanGaps: true }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 10, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+      });
+      
+      window.switchExpedienteTrimestre('T1');
+    } catch(e) {}
+  };
+
+  window.switchExpedienteTrimestre = (t) => {
+    state.currentExpedienteTrimestre = t;
+    document.querySelectorAll('#expedienteTrimestreTabs .trimestre-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.getElementById('expLabelTrimestre').textContent = { 'T1': '1º Trim', 'T2': '2º Trim', 'T3': '3º Trim' }[t];
+    let htmlTable = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Nota Final</th></tr></thead><tbody>';
+    let htmlComments = ''; let hasComments = false;
+
+    if(state.expedienteData.subjects.length === 0) return document.getElementById('expedienteContentTable').innerHTML = '<div class="empty-state">No matriculado.</div>';
+
+    state.expedienteData.subjects.forEach(sub => {
+      const grade = sub.grades[t];
+      htmlTable += `<tr><td><strong>${sub.name}</strong></td><td>${sub.profe}</td><td><strong style="color:var(--accent); font-size:15px;">${grade !== null ? grade.toFixed(2) : '—'}</strong></td></tr>`;
+      if (sub.comments[t] && sub.comments[t].trim() !== '') {
+        hasComments = true;
+        htmlComments += `<div class="comment-card"><h4>${sub.name} <span class="profe-tag">Prof. ${sub.profe.split('@')[0]}</span></h4><p>"${sub.comments[t]}"</p></div>`;
+      }
+    });
+
+    document.getElementById('expedienteContentTable').innerHTML = htmlTable + '</tbody></table>';
+    document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">Sin observaciones.</div>';
+  };
+
+  // --- MODALES EVENT LISTENERS (AHORA SÍ FUNCIONAN) ---
+  document.addEventListener('DOMContentLoaded', () => {
+    
+    // Crear Clase
+    document.getElementById('newClassBtn')?.addEventListener('click', () => document.getElementById('createClassModal').classList.add('active'));
+    document.getElementById('createClassForm')?.addEventListener('submit', async(e)=>{ 
+      e.preventDefault(); const b=e.target.querySelector('button[type="submit"]'); b.disabled=true; 
+      await addDoc(collection(db, `colegios/${state.colegioId}/clases`), {nombre:e.target.nombre.value, curso:e.target.curso.value, numAlumnos:0, createdAt:serverTimestamp(), createdBy:state.currentUser.email}); 
+      loadClasses('classesList'); document.getElementById('createClassModal').classList.remove('active'); e.target.reset(); b.disabled=false; 
+    });
+    
+    // Editar Clase
+    document.getElementById('editClassForm')?.addEventListener('submit', async(e)=>{ 
+      e.preventDefault(); const b=e.target.querySelector('button[type="submit"]'); b.disabled=true; 
+      await updateDoc(doc(db, `colegios/${state.colegioId}/clases`, e.target.classId.value), {nombre:e.target.nombre.value, curso:e.target.curso.value}); 
+      loadClasses('classesList'); document.getElementById('editClassModal').classList.remove('active'); b.disabled=false; 
+    });
+
+    // Añadir Alumno
+    document.getElementById('addStudentForm')?.addEventListener('submit', async(e)=>{ 
+      e.preventDefault(); const b=e.target.querySelector('button[type="submit"]'); b.disabled=true; 
+      const c = (await getDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId))).data().numAlumnos||0;
+      await addDoc(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), {nombre:e.target.nombre.value, apellidos:e.target.apellidos.value, orden:c+1, createdAt:serverTimestamp()});
+      await setDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId), {numAlumnos:c+1}, {merge:true});
+      document.getElementById('addStudentModal').classList.remove('active'); e.target.reset(); window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent); b.disabled=false; 
+    });
+
+    // Crear Asignatura
+    document.getElementById('newAsignaturaBtn')?.addEventListener('click', async () => {
+      document.getElementById('asignaturaProfesorSelect').innerHTML = '<option value="">Selecciona profesor</option>' + state.cachedProfesores.filter(p=>p.rol==='profesor').map(p=>`<option value="${p.id}">${p.nombre||p.id}</option>`).join('');
+      
+      let html = '';
+      for(const c of state.cachedClasses) {
+        const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${c.id}/alumnos`), orderBy('apellidos')));
+        if(!snap.empty) {
+          html += `<div class="clase-group"><div class="clase-group-header"><span>${c.nombre}</span><span class="select-all-btn" onclick="window.selectAllFromClase('${c.id}')">Todos</span></div>`;
+          snap.forEach(d => { html += `<div class="checkbox-item"><input type="checkbox" value="${c.id}/${d.id}" name="alumnos"><label>${d.data().apellidos}, ${d.data().nombre}</label></div>`; });
+          html += '</div>';
+        }
+      }
+      document.getElementById('alumnosSelection').innerHTML = html || 'Sin alumnos disponibles.';
+      document.getElementById('createAsignaturaModal').classList.add('active');
+    });
+
+    document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e)=>{ 
+      e.preventDefault(); const b=e.target.querySelector('button[type="submit"]'); b.disabled=true;
+      const a = Array.from(document.querySelectorAll('input[name="alumnos"]:checked')).map(cb=>cb.value); 
+      if(!a.length) { alert('Selecciona alumnos'); b.disabled=false; return; }
+      const ref = await addDoc(collection(db, `colegios/${state.colegioId}/asignaturas`), {nombre:e.target.nombre.value, profesorEmail:e.target.profesorEmail.value, alumnos:a, trimestres:['T1','T2','T3'], createdAt:serverTimestamp()});
+      await updateDoc(doc(db, 'profesores', e.target.profesorEmail.value), {asignaturas:arrayUnion(ref.id)}); 
+      loadAsignaturas(); document.getElementById('createAsignaturaModal').classList.remove('active'); e.target.reset(); b.disabled=false;
+    });
+
+    // Invitar Profesor
+    document.getElementById('inviteProfesorBtn')?.addEventListener('click', () => document.getElementById('inviteProfesorModal').classList.add('active'));
+    document.getElementById('inviteProfesorForm')?.addEventListener('submit', async(e)=>{ 
+      e.preventDefault(); const b=e.target.querySelector('button[type="submit"]'); b.disabled=true;
+      try {
+        const email = e.target.email.value.trim().toLowerCase(); const ref = doc(db, 'profesores', email); const d = await getDoc(ref);
+        if(d.exists()) { if(d.data().colegioId===state.colegioId) throw new Error('Ya añadido'); else throw new Error('Registrado en otro colegio'); }
+        await setDoc(ref, {nombre:e.target.nombre.value||'', colegioId:state.colegioId, rol:'profesor', asignaturas:[], createdAt:serverTimestamp()}); 
+        loadProfesores(); alert('Invitado'); document.getElementById('inviteProfesorModal').classList.remove('active'); e.target.reset();
+      } catch(err) { alert(err.message); } b.disabled=false;
+    });
+
+  });
 </script>
 </body>
 </html>
