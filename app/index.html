@@ -102,13 +102,19 @@
     input, select, textarea { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink); background: var(--cream); transition: all 0.2s; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
 
-    /* GRUPOS DE CHECKBOX */
+    /* GRUPOS DE CHECKBOX Y ACORDEONES DE SELECCIÓN */
     .checkbox-group { max-height: 300px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--cream); }
     .clase-group { margin-bottom: 16px; padding: 12px; background: var(--paper); border-radius: var(--radius-sm); }
-    .clase-group-header { font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .clase-group-header { font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s; }
+    .clase-group-header:hover { color: var(--accent); }
+    .clase-group-body { display: none; padding-top: 12px; margin-top: 12px; border-top: 1px dashed var(--border); }
+    .clase-group-body.active { display: block; }
+    
     .select-all-btn { font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: 400; }
     .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 6px; }
     .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
+    .checkbox-item label { cursor: pointer; flex: 1; user-select: none; }
 
     /* ESTADOS */
     .hidden { display: none !important; }
@@ -423,7 +429,7 @@
         <div id="asignaturaProfesoresSelection" class="checkbox-group" style="margin-bottom:12px;"></div>
       </div>
       <div class="form-group">
-        <label>Alumnos *</label>
+        <label>Alumnos de la Asignatura *</label>
         <div id="alumnosSelection" class="checkbox-group"></div>
       </div>
       <div class="modal-actions">
@@ -509,7 +515,6 @@
       document.getElementById('userEmail').textContent = user.email;
       
       try {
-        // 🎯 APLICADA CORRECCIÓN DE MAYÚSCULAS AQUÍ
         const emailSeguro = user.email.trim().toLowerCase();
         const pDoc = await getDoc(doc(db, 'profesores', emailSeguro));
         
@@ -859,7 +864,7 @@
         <div class="categoria-row">
           <input type="text" value="${cat.nombre}" onchange="window.updateCategoriaNombre(${i}, this.value)" placeholder="Categoría">
           <input type="number" value="${cat.peso}" onchange="window.updateCategoriaPeso(${i}, this.value)">
-          <button class="btn-remove-cat" onclick="window.eliminarCategoria(${i})">🗑️</button>
+          <button class="btn-remove-cat" onclick="window.eliminarCategoria(${i})" title="Borrar">🗑️</button>
         </div>`;
     });
     document.getElementById('categoriasConfig').innerHTML = html + '</div>';
@@ -960,6 +965,7 @@
     const container = document.getElementById('notasContent'); 
     container.innerHTML = '<div class="loading">Cargando perfil de evaluación...</div>';
     
+    // Resumen Asistencia Automática
     let faltas = 0; let retrasos = 0;
     try { 
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); 
@@ -1188,7 +1194,7 @@
     document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones del equipo docente en este trimestre.</div>';
   };
 
-  // --- 10. MODALES (PREPARACIÓN DINÁMICA DE OPCIONES) ---
+  // --- 10. MODALES (PREPARACIÓN DINÁMICA DE ACORDEONES) ---
   window.openCreateClassModal = async () => {
     const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
     let html = '<option value="">Selecciona un profesor como tutor</option>';
@@ -1212,37 +1218,55 @@
     document.getElementById('editClassModal').classList.add('active'); 
   };
 
+  // 🎯 AQUI ESTÁ EL ACORDEÓN DE CLASES PARA CREAR ASIGNATURA
   window.openCreateAsignaturaModal = async () => {
     let profesHtml = '';
     state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(p => {
-      profesHtml += `<div class="checkbox-item"><input type="checkbox" value="${p.id}" name="profesoresAsig"><label>${p.nombre || p.id}</label></div>`;
+      profesHtml += `<div class="checkbox-item"><input type="checkbox" value="${p.id}" name="profesoresAsig" id="prof-${p.id}"><label for="prof-${p.id}">${p.nombre || p.id}</label></div>`;
     });
     document.getElementById('asignaturaProfesoresSelection').innerHTML = profesHtml || '<p style="font-size:13px;">No hay profesores disponibles.</p>';
 
     const alumList = document.getElementById('alumnosSelection');
-    alumList.innerHTML = '<div class="loading">Cargando alumnos...</div>';
+    alumList.innerHTML = '<div class="loading">Cargando clases...</div>';
+    
     if(!state.cachedClasses.length) await loadClasses('classesList', false);
     
     let html = '';
     for(const c of state.cachedClasses) {
       const snap = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${c.id}/alumnos`), orderBy('apellidos')));
       if(!snap.empty) {
-        html += `<div class="clase-group"><div class="clase-group-header"><span>${c.nombre}</span><span class="select-all-btn" onclick="window.selectAllFromClase('${c.id}')">Seleccionar todos</span></div>`;
-        snap.forEach(d => { html += `<div class="checkbox-item"><input type="checkbox" value="${c.id}/${d.id}" name="alumnos"><label>${d.data().apellidos}, ${d.data().nombre}</label></div>`; });
-        html += '</div>';
+        html += `
+          <div class="clase-group">
+            <div class="clase-group-header" onclick="window.toggleClaseAccordion('${c.id}')">
+              <span>📁 ${c.nombre} ▾</span>
+              <span class="select-all-btn" onclick="event.stopPropagation(); window.selectAllFromClase('${c.id}')">Seleccionar todos</span>
+            </div>
+            <div class="clase-group-body" id="acc-clase-${c.id}">
+        `;
+        snap.forEach(d => { 
+          html += `<div class="checkbox-item"><input type="checkbox" value="${c.id}/${d.id}" name="alumnos" class="chk-clase-${c.id}" id="al-${d.id}"><label for="al-${d.id}">${d.data().apellidos}, ${d.data().nombre}</label></div>`; 
+        });
+        html += `</div></div>`;
       }
     }
     alumList.innerHTML = html || '<div class="empty-state"><p>No hay alumnos disponibles para asignar</p></div>';
+    
     document.getElementById('createAsignaturaModal').classList.add('active');
   };
 
+  window.toggleClaseAccordion = (id) => {
+    const body = document.getElementById(`acc-clase-${id}`);
+    if(body.classList.contains('active')) body.classList.remove('active');
+    else body.classList.add('active');
+  };
+
   window.selectAllFromClase = (id) => { 
-    const cbs = document.querySelectorAll(`input[value^="${id}/"]`); 
+    const cbs = document.querySelectorAll(`.chk-clase-${id}`); 
     const allChecked = Array.from(cbs).every(cb => cb.checked); 
     cbs.forEach(cb => cb.checked = !allChecked); 
   };
 
-  // --- 11. EVENT LISTENERS DE FORMULARIOS (GUARDADO DE DATOS) ---
+  // --- 11. EVENT LISTENERS DE FORMULARIOS AL CARGAR DOM ---
   document.addEventListener('DOMContentLoaded', () => {
     
     // Crear Clase
