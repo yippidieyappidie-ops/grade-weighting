@@ -21,13 +21,7 @@
       --green-light: #d8f3dc; --border: #e2ddd6; --radius: 12px; --radius-sm: 8px;
     }
 
-    body { 
-      font-family: 'DM Sans', sans-serif; 
-      background: var(--cream); 
-      color: var(--ink); 
-      min-height: 100vh; 
-      margin: 0; 
-    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; margin: 0; }
 
     /* PANTALLA DE LOGIN */
     .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -51,7 +45,7 @@
 
     /* LAYOUT PRINCIPAL */
     .main { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
     .page-header h1 { font-family: 'Playfair Display', serif; font-size: 32px; }
     .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-light); margin-bottom: 16px; }
     .breadcrumb a { color: var(--accent); text-decoration: none; cursor: pointer; font-weight: 500; }
@@ -126,7 +120,7 @@
     .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
 
     /* ==========================================================================
-       PANEL DE ANÁLISIS INTELIGENTE (DASHBOARD)
+       PANEL DE ANÁLISIS INTELIGENTE POR ASIGNATURA
        ========================================================================== */
     .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
     @media(max-width: 768px) { .analytics-grid { grid-template-columns: 1fr; } }
@@ -141,6 +135,13 @@
     .chart-box { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px; }
     .chart-box h3 { font-size: 16px; margin-bottom: 16px; text-align: center; }
     .chart-wrapper { position: relative; height: 300px; width: 100%; }
+
+    /* Estilo para el selector de asignatura en Analytics */
+    .analytics-subject-select {
+      padding: 10px 16px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600;
+      border: 2px solid var(--ink); border-radius: var(--radius-sm); background: #fff; color: var(--ink);
+      cursor: pointer; min-width: 250px;
+    }
 
     /* ==========================================================================
        PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE DE ALUMNO)
@@ -163,11 +164,11 @@
       .report-section { border: none; box-shadow: none; padding: 0; margin-bottom: 40px; page-break-inside: avoid; }
       .card { page-break-inside: avoid; border: 1px solid #ccc; }
       .comment-card { border-left-color: #000; background: #f9f9f9; }
-      .chart-container { height: 250px; }
+      .chart-container, .chart-wrapper { height: 250px; }
     }
 
     /* ==========================================================================
-       RESTO DE ESTILOS (ASISTENCIA Y NOTAS X/Y)
+       RESTO DE ESTILOS (NOTAS, ACORDEONES, ASISTENCIA)
        ========================================================================== */
     .attendance-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); background: #fff; }
     .ast-name { font-weight: 600; font-size: 15px; }
@@ -295,10 +296,13 @@
 
     <div id="classAnalyticsView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span>Análisis Inteligente</span>
+        <a onclick="window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span>Análisis por Asignatura</span>
       </div>
       <div class="page-header">
         <h1>📊 Rendimiento: <span id="analyticsClassName" style="color:var(--accent);"></span></h1>
+        
+        <select id="analyticsSubjectSelect" class="analytics-subject-select" onchange="window.renderAnalyticsData()">
+        </select>
       </div>
       
       <div class="trimestre-tabs" id="analyticsTrimestreTabs">
@@ -307,7 +311,7 @@
         <button class="trimestre-tab" onclick="window.switchAnalyticsTrimestre('T3', this)">3º Trimestre</button>
       </div>
 
-      <div id="analyticsContent" class="loading">Procesando miles de datos con el algoritmo...</div>
+      <div id="analyticsContent" class="loading">Recopilando datos de las asignaturas...</div>
     </div>
 
     <div id="asistenciaView" class="hidden">
@@ -518,11 +522,11 @@
   const state = {
     currentUser: null, userRole: null, colegioId: null,
     currentClassId: null, currentAsignaturaId: null, currentAlumnoId: null,
-    currentTrimestre: 'T1', currentExpedienteTrimestre: 'T1',
-    currentContext: null, // Puede ser 'asignatura' o 'tutoria'
+    currentTrimestre: 'T1', currentExpedienteTrimestre: 'T1', currentAnalyticsTrimestre: 'T1',
+    currentContext: null,
     cachedClasses: [], cachedProfesores: [], cachedAlumnos: [],
     expedienteData: null,
-    analyticsData: null // Novedad: Caché para el análisis inteligente
+    analyticsData: null // Cache para el análisis inteligente
   };
 
   let chartInstance = null;
@@ -1011,6 +1015,7 @@
     const container = document.getElementById('notasContent'); 
     container.innerHTML = '<div class="loading">Cargando perfil de evaluación...</div>';
     
+    // Resumen Asistencia Automática
     let faltas = 0; let retrasos = 0;
     try { 
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); 
@@ -1158,6 +1163,7 @@
     try {
       state.expedienteData = { averages: { T1: [], T2: [], T3: [] }, subjects: [] };
       
+      // 1. Extraer Tutoría
       const [classId, alumnoId] = studentRef.split('/');
       const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}`));
       if (classDoc.exists()) {
@@ -1174,6 +1180,7 @@
         state.expedienteData.subjects.push(tutRecord);
       }
 
+      // 2. Extraer Asignaturas
       const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
       for (const d of snapAsig.docs) {
         const asig = d.data();
@@ -1236,29 +1243,18 @@
     document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones del equipo docente en este trimestre.</div>';
   };
 
-  // --- 10. NUEVO: ANÁLISIS INTELIGENTE DE CLASE ---
-  function calcCategoryAverage(notasArr) {
-    if (!notasArr || notasArr.length === 0) return null;
-    let validNotas = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
-    const suma = validNotas.reduce((acc, obj) => {
-      let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0);
-      let max = parseFloat(obj.maximo || 10); if (max <= 0) max = 10;
-      return acc + ((val / max) * 10);
-    }, 0);
-    return suma / validNotas.length;
-  }
-
+  // --- 10. 🎯 NUEVO: ANÁLISIS INTELIGENTE POR ASIGNATURA ---
   window.showClassAnalytics = async () => {
     document.getElementById('analyticsClassName').textContent = document.getElementById('claseDetailName').textContent;
     hideAllViews(); document.getElementById('classAnalyticsView').classList.remove('hidden');
-    document.getElementById('analyticsContent').innerHTML = '<div class="loading">⏳ Recopilando y analizando datos de todas las asignaturas...</div>';
+    document.getElementById('analyticsContent').innerHTML = '<div class="loading">⏳ Recopilando datos de las asignaturas...</div>';
     
     try {
       let alumnos = [];
       const snapAlumnos = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`)));
       snapAlumnos.forEach(d => alumnos.push({ id: d.id, name: `${d.data().nombre} ${d.data().apellidos}` }));
       
-      if(alumnos.length === 0) return document.getElementById('analyticsContent').innerHTML = '<div class="empty-state">No hay alumnos en la clase para analizar.</div>';
+      if(alumnos.length === 0) return document.getElementById('analyticsContent').innerHTML = '<div class="empty-state">No hay alumnos en la clase.</div>';
 
       const asignaturasClase = [];
       const snapAsig = await getDocs(collection(db, `colegios/${state.colegioId}/asignaturas`));
@@ -1269,9 +1265,24 @@
         if(match) asignaturasClase.push({ id: docAsig.id, nombre: data.nombre });
       });
 
-      state.analyticsData = { T1: [], T2: [], T3: [] };
+      if (asignaturasClase.length === 0) {
+        document.getElementById('analyticsSubjectSelect').innerHTML = '<option>Sin asignaturas</option>';
+        return document.getElementById('analyticsContent').innerHTML = '<div class="empty-state">La clase no tiene asignaturas asociadas.</div>';
+      }
+
+      // Llenar el selector de asignaturas
+      const selectEl = document.getElementById('analyticsSubjectSelect');
+      selectEl.innerHTML = '';
+      asignaturasClase.forEach(asig => {
+        selectEl.innerHTML += `<option value="${asig.id}">${asig.nombre}</option>`;
+      });
+
+      // Recopilar datos de todas las asignaturas
+      state.analyticsData = {};
 
       for (const asig of asignaturasClase) {
+        state.analyticsData[asig.id] = { T1: [], T2: [], T3: [] };
+        
         for (const t of ['T1', 'T2', 'T3']) {
           const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${asig.id}/ponderaciones/${t}`));
           const catsPond = pDoc.exists() ? (pDoc.data().categorias || []) : [];
@@ -1284,8 +1295,17 @@
               let catsAverages = {};
 
               catsPond.forEach(cat => {
-                const avgCat = calcCategoryAverage(dataNotas[cat.nombre]);
-                if (avgCat !== null) {
+                let notasArr = dataNotas[cat.nombre] || [];
+                notasArr = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
+                
+                if (notasArr.length > 0) {
+                  const sumaBase10 = notasArr.reduce((acc, obj) => {
+                    let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0);
+                    let max = parseFloat(obj.maximo || 10); if (max <= 0) max = 10;
+                    return acc + ((val / max) * 10);
+                  }, 0);
+                  const avgCat = sumaBase10 / notasArr.length;
+                  
                   finalGrade += avgCat * (cat.peso / 100);
                   totalPeso += cat.peso;
                   catsAverages[cat.nombre] = avgCat;
@@ -1293,10 +1313,9 @@
               });
 
               if (totalPeso > 0) {
-                state.analyticsData[t].push({
+                state.analyticsData[asig.id][t].push({
                   studentId: al.id,
                   studentName: al.name,
-                  subject: asig.nombre,
                   finalGrade: finalGrade,
                   categories: catsAverages
                 });
@@ -1306,21 +1325,35 @@
         }
       }
 
+      state.currentAnalyticsTrimestre = 'T1';
       const btn1 = document.querySelector('#analyticsTrimestreTabs .trimestre-tab');
-      window.switchAnalyticsTrimestre('T1', btn1);
+      document.querySelectorAll('#analyticsTrimestreTabs .trimestre-tab').forEach(t=>t.classList.remove('active'));
+      if(btn1) btn1.classList.add('active');
+      
+      window.renderAnalyticsData();
 
     } catch(e) { console.error(e); document.getElementById('analyticsContent').innerHTML = '<p style="color:red">Error procesando el análisis.</p>'; }
   };
 
   window.switchAnalyticsTrimestre = (t, btnElement) => {
+    state.currentAnalyticsTrimestre = t;
     document.querySelectorAll('#analyticsTrimestreTabs .trimestre-tab').forEach(tab => tab.classList.remove('active'));
     if(btnElement) btnElement.classList.add('active');
+    window.renderAnalyticsData();
+  };
 
-    const dataT = state.analyticsData[t];
+  window.renderAnalyticsData = () => {
+    const subjectId = document.getElementById('analyticsSubjectSelect').value;
+    const t = state.currentAnalyticsTrimestre;
+    
+    // Fallback si por alguna razón no hay datos cacheados
+    if (!state.analyticsData || !state.analyticsData[subjectId]) return;
+
+    const dataT = state.analyticsData[subjectId][t];
     const content = document.getElementById('analyticsContent');
 
     if (!dataT || dataT.length === 0) {
-      content.innerHTML = '<div class="empty-state">No hay notas registradas en este trimestre para generar el análisis.</div>';
+      content.innerHTML = '<div class="empty-state">No hay notas registradas en esta asignatura para este trimestre.</div>';
       return;
     }
 
@@ -1378,13 +1411,13 @@
           <div class="insight-icon">🏆</div>
           <div class="insight-title">Alumno Destacado</div>
           <div class="insight-value insight-highlight">${topStudent.name}</div>
-          <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Media global más alta (${topStudent.avg.toFixed(2)}).</p>
+          <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Mejor media de la clase (${topStudent.avg.toFixed(2)}).</p>
         </div>
         <div class="insight-card">
           <div class="insight-icon">💪</div>
           <div class="insight-title">Punto Fuerte</div>
           <div class="insight-value insight-good">${bestCat.name}</div>
-          <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Destreza principal de la clase (Media: ${bestCat.avg.toFixed(2)}).</p>
+          <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Categoría con nota más alta (Media: ${bestCat.avg.toFixed(2)}).</p>
         </div>
         <div class="insight-card">
           <div class="insight-icon">⚠️</div>
@@ -1414,7 +1447,7 @@
     chartPieInstance = new Chart(document.getElementById('pieChartDistribucion').getContext('2d'), {
       type: 'doughnut',
       data: {
-        labels: ['Sobresaliente', 'Notable', 'Aprobado', 'Suspenso'],
+        labels: ['Sobresaliente (9-10)', 'Notable (7-8.9)', 'Aprobado (5-6.9)', 'Suspenso (<5)'],
         datasets: [{
           data: [distribution.Sobresaliente, distribution.Notable, distribution.Aprobado, distribution.Suspenso],
           backgroundColor: ['#2d6a4f', '#e8a838', '#4a4a6a', '#c84b31'],
@@ -1428,13 +1461,13 @@
       type: 'bar',
       data: {
         labels: catLabels,
-        datasets: [{ label: 'Media', data: catData, backgroundColor: '#1a1a2e', borderRadius: 4 }]
+        datasets: [{ label: 'Nota Media', data: catData, backgroundColor: '#1a1a2e', borderRadius: 4 }]
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 10 } }, plugins: { legend: { display: false } } }
     });
   };
 
-  // --- 11. MODALES ---
+  // --- 11. MODALES (PREPARACIÓN) ---
   window.openCreateClassModal = async () => {
     const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
     let html = '<option value="">Selecciona un profesor como tutor</option>';
