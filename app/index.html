@@ -21,7 +21,13 @@
       --green-light: #d8f3dc; --border: #e2ddd6; --radius: 12px; --radius-sm: 8px;
     }
 
-    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; margin: 0; }
+    body { 
+      font-family: 'DM Sans', sans-serif; 
+      background: var(--cream); 
+      color: var(--ink); 
+      min-height: 100vh; 
+      margin: 0; 
+    }
 
     /* PANTALLA DE LOGIN */
     .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -105,12 +111,10 @@
     /* GRUPOS DE CHECKBOX Y ACORDEONES DE SELECCIÓN */
     .checkbox-group { max-height: 300px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--cream); }
     .clase-group { margin-bottom: 16px; padding: 12px; background: var(--paper); border-radius: var(--radius-sm); }
-    
     .clase-group-header { font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s; }
     .clase-group-header:hover { color: var(--accent); }
     .clase-group-body { display: none; padding-top: 12px; margin-top: 12px; border-top: 1px dashed var(--border); }
     .clase-group-body.active { display: block; }
-    
     .select-all-btn { font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: 400; }
     .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 6px; }
     .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
@@ -122,7 +126,24 @@
     .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
 
     /* ==========================================================================
-       PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE)
+       PANEL DE ANÁLISIS INTELIGENTE (DASHBOARD)
+       ========================================================================== */
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    @media(max-width: 768px) { .analytics-grid { grid-template-columns: 1fr; } }
+    
+    .insight-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; justify-content: center; }
+    .insight-icon { font-size: 32px; margin-bottom: 12px; }
+    .insight-title { font-size: 13px; text-transform: uppercase; font-weight: 700; color: var(--ink-light); margin-bottom: 8px; letter-spacing: 1px; }
+    .insight-value { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--ink); line-height: 1.3; }
+    .insight-highlight { color: var(--accent); font-weight: bold; }
+    .insight-good { color: var(--green); font-weight: bold; }
+    
+    .chart-box { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px; }
+    .chart-box h3 { font-size: 16px; margin-bottom: 16px; text-align: center; }
+    .chart-wrapper { position: relative; height: 300px; width: 100%; }
+
+    /* ==========================================================================
+       PANEL DE REPORTES Y GRÁFICOS (EXPEDIENTE DE ALUMNO)
        ========================================================================== */
     .report-section { background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(26,26,46,0.04); }
     .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid var(--cream); padding-bottom: 16px; }
@@ -146,7 +167,7 @@
     }
 
     /* ==========================================================================
-       RESTO DE ESTILOS (NOTAS, ACORDEONES, ASISTENCIA)
+       RESTO DE ESTILOS (ASISTENCIA Y NOTAS X/Y)
        ========================================================================== */
     .attendance-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); background: #fff; }
     .ast-name { font-weight: 600; font-size: 15px; }
@@ -160,13 +181,15 @@
     .professional-comment { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
     .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .accordion-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
-    .accordion-header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .accordion-header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; }
     .accordion-body { display: none; padding: 0 20px 20px 20px; border-top: 1px solid var(--border); background: var(--cream); }
     .accordion-body.active { display: block; }
     .record-row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px dashed var(--border); }
     .record-desc input { background: #fff; border: 1px solid var(--border); font-size: 14px; padding: 10px 14px; }
     .record-val { display: flex; align-items: center; gap: 8px; }
     .record-val input { width: 68px; text-align: center; border: 1px solid var(--border); padding: 10px 4px; border-radius: var(--radius-sm); }
+    .val-nota { font-weight: 700; color: var(--accent); }
+    .val-max { font-weight: 500; color: var(--ink-light); background: var(--cream); }
     .nota-final-display { background: var(--ink); border-radius: var(--radius); padding: 32px; text-align: center; margin-top: 32px; color: var(--gold); }
     .nota-final-display .nota { font-size: 64px; font-weight: 700; font-family: 'Playfair Display', serif; line-height: 1; }
     
@@ -262,14 +285,34 @@
       </div>
       <div class="page-header">
         <h1>Lista de Alumnos</h1>
-        <button class="btn-primary" onclick="window.showAsistenciaView()" style="background:var(--ink);">📅 Pasar Asistencia</button>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn-secondary" onclick="window.showClassAnalytics()" style="border-color: var(--accent); color: var(--accent);">📊 Análisis de la Clase</button>
+          <button class="btn-primary" onclick="window.showAsistenciaView()" style="background:var(--ink);">📅 Pasar Asistencia</button>
+        </div>
       </div>
       <div id="claseAlumnosList" class="loading">Cargando alumnos...</div>
     </div>
 
+    <div id="classAnalyticsView" class="hidden">
+      <div class="breadcrumb">
+        <a onclick="window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span>Análisis Inteligente</span>
+      </div>
+      <div class="page-header">
+        <h1>📊 Rendimiento: <span id="analyticsClassName" style="color:var(--accent);"></span></h1>
+      </div>
+      
+      <div class="trimestre-tabs" id="analyticsTrimestreTabs">
+        <button class="trimestre-tab active" onclick="window.switchAnalyticsTrimestre('T1', this)">1º Trimestre</button>
+        <button class="trimestre-tab" onclick="window.switchAnalyticsTrimestre('T2', this)">2º Trimestre</button>
+        <button class="trimestre-tab" onclick="window.switchAnalyticsTrimestre('T3', this)">3º Trimestre</button>
+      </div>
+
+      <div id="analyticsContent" class="loading">Procesando miles de datos con el algoritmo...</div>
+    </div>
+
     <div id="asistenciaView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.backToClaseDetail()">← Volver a la clase</a><span>/</span><span>Asistencia Diaria</span>
+        <a onclick="window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span>Asistencia Diaria</span>
       </div>
       <div class="card" style="display:flex; justify-content:space-between; align-items:center; background:var(--ink); color:#fff;">
         <div>
@@ -285,7 +328,7 @@
 
     <div id="expedienteView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.backToClaseDetail()">← Volver a la clase</a><span>/</span><span id="expedienteAlumnoNameBread"></span>
+        <a onclick="window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span id="expedienteAlumnoNameBread"></span>
       </div>
       <div class="page-header">
         <h1>Informe Académico: <span id="expedienteAlumnoNameTitle" style="color:var(--accent);"></span></h1>
@@ -478,10 +521,13 @@
     currentTrimestre: 'T1', currentExpedienteTrimestre: 'T1',
     currentContext: null, // Puede ser 'asignatura' o 'tutoria'
     cachedClasses: [], cachedProfesores: [], cachedAlumnos: [],
-    expedienteData: null
+    expedienteData: null,
+    analyticsData: null // Novedad: Caché para el análisis inteligente
   };
 
   let chartInstance = null;
+  let chartPieInstance = null;
+  let chartBarInstance = null;
 
   // UTILIDAD: Ocultar todas las vistas
   function hideAllViews() {
@@ -489,7 +535,7 @@
       'directorView', 'profesorAsignaturasView', 'profesorClasesView', 
       'claseDetailView', 'asistenciaView', 'expedienteView', 
       'profesoresView', 'asignaturasView', 'asignaturaDetailView', 
-      'notasView', 'trimestreDetailView'
+      'notasView', 'trimestreDetailView', 'classAnalyticsView'
     ];
     views.forEach(id => {
       const element = document.getElementById(id);
@@ -965,7 +1011,6 @@
     const container = document.getElementById('notasContent'); 
     container.innerHTML = '<div class="loading">Cargando perfil de evaluación...</div>';
     
-    // Resumen Asistencia Automática
     let faltas = 0; let retrasos = 0;
     try { 
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); 
@@ -1113,7 +1158,6 @@
     try {
       state.expedienteData = { averages: { T1: [], T2: [], T3: [] }, subjects: [] };
       
-      // 1. Extraer Tutoría Primero (si tiene)
       const [classId, alumnoId] = studentRef.split('/');
       const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}`));
       if (classDoc.exists()) {
@@ -1130,7 +1174,6 @@
         state.expedienteData.subjects.push(tutRecord);
       }
 
-      // 2. Extraer Asignaturas
       const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
       for (const d of snapAsig.docs) {
         const asig = d.data();
@@ -1149,7 +1192,6 @@
         state.expedienteData.subjects.push(subRecord);
       }
 
-      // Gráfico
       const avgT1 = state.expedienteData.averages.T1.length ? (state.expedienteData.averages.T1.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T1.length) : null;
       const avgT2 = state.expedienteData.averages.T2.length ? (state.expedienteData.averages.T2.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T2.length) : null;
       const avgT3 = state.expedienteData.averages.T3.length ? (state.expedienteData.averages.T3.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T3.length) : null;
@@ -1194,7 +1236,205 @@
     document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones del equipo docente en este trimestre.</div>';
   };
 
-  // --- 10. MODALES (PREPARACIÓN DINÁMICA DE ACORDEONES) ---
+  // --- 10. NUEVO: ANÁLISIS INTELIGENTE DE CLASE ---
+  function calcCategoryAverage(notasArr) {
+    if (!notasArr || notasArr.length === 0) return null;
+    let validNotas = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
+    const suma = validNotas.reduce((acc, obj) => {
+      let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0);
+      let max = parseFloat(obj.maximo || 10); if (max <= 0) max = 10;
+      return acc + ((val / max) * 10);
+    }, 0);
+    return suma / validNotas.length;
+  }
+
+  window.showClassAnalytics = async () => {
+    document.getElementById('analyticsClassName').textContent = document.getElementById('claseDetailName').textContent;
+    hideAllViews(); document.getElementById('classAnalyticsView').classList.remove('hidden');
+    document.getElementById('analyticsContent').innerHTML = '<div class="loading">⏳ Recopilando y analizando datos de todas las asignaturas...</div>';
+    
+    try {
+      let alumnos = [];
+      const snapAlumnos = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`)));
+      snapAlumnos.forEach(d => alumnos.push({ id: d.id, name: `${d.data().nombre} ${d.data().apellidos}` }));
+      
+      if(alumnos.length === 0) return document.getElementById('analyticsContent').innerHTML = '<div class="empty-state">No hay alumnos en la clase para analizar.</div>';
+
+      const asignaturasClase = [];
+      const snapAsig = await getDocs(collection(db, `colegios/${state.colegioId}/asignaturas`));
+      snapAsig.forEach(docAsig => {
+        const data = docAsig.data();
+        const alumnosAsig = data.alumnos || [];
+        const match = alumnos.some(al => alumnosAsig.includes(`${state.currentClassId}/${al.id}`));
+        if(match) asignaturasClase.push({ id: docAsig.id, nombre: data.nombre });
+      });
+
+      state.analyticsData = { T1: [], T2: [], T3: [] };
+
+      for (const asig of asignaturasClase) {
+        for (const t of ['T1', 'T2', 'T3']) {
+          const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${asig.id}/ponderaciones/${t}`));
+          const catsPond = pDoc.exists() ? (pDoc.data().categorias || []) : [];
+          
+          for (const al of alumnos) {
+            const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${asig.id}/notas/${state.currentClassId}-${al.id}-${t}`));
+            if (nDoc.exists()) {
+              const dataNotas = nDoc.data().categorias || {};
+              let finalGrade = 0; let totalPeso = 0;
+              let catsAverages = {};
+
+              catsPond.forEach(cat => {
+                const avgCat = calcCategoryAverage(dataNotas[cat.nombre]);
+                if (avgCat !== null) {
+                  finalGrade += avgCat * (cat.peso / 100);
+                  totalPeso += cat.peso;
+                  catsAverages[cat.nombre] = avgCat;
+                }
+              });
+
+              if (totalPeso > 0) {
+                state.analyticsData[t].push({
+                  studentId: al.id,
+                  studentName: al.name,
+                  subject: asig.nombre,
+                  finalGrade: finalGrade,
+                  categories: catsAverages
+                });
+              }
+            }
+          }
+        }
+      }
+
+      const btn1 = document.querySelector('#analyticsTrimestreTabs .trimestre-tab');
+      window.switchAnalyticsTrimestre('T1', btn1);
+
+    } catch(e) { console.error(e); document.getElementById('analyticsContent').innerHTML = '<p style="color:red">Error procesando el análisis.</p>'; }
+  };
+
+  window.switchAnalyticsTrimestre = (t, btnElement) => {
+    document.querySelectorAll('#analyticsTrimestreTabs .trimestre-tab').forEach(tab => tab.classList.remove('active'));
+    if(btnElement) btnElement.classList.add('active');
+
+    const dataT = state.analyticsData[t];
+    const content = document.getElementById('analyticsContent');
+
+    if (!dataT || dataT.length === 0) {
+      content.innerHTML = '<div class="empty-state">No hay notas registradas en este trimestre para generar el análisis.</div>';
+      return;
+    }
+
+    let sumaClase = 0;
+    let distribution = { Sobresaliente: 0, Notable: 0, Aprobado: 0, Suspenso: 0 };
+    let categoryAverages = {}; 
+    let studentAverages = {}; 
+
+    dataT.forEach(record => {
+      sumaClase += record.finalGrade;
+      
+      if(!studentAverages[record.studentId]) studentAverages[record.studentId] = { name: record.studentName, sum: 0, count: 0 };
+      studentAverages[record.studentId].sum += record.finalGrade;
+      studentAverages[record.studentId].count += 1;
+
+      if (record.finalGrade >= 9) distribution.Sobresaliente++;
+      else if (record.finalGrade >= 7) distribution.Notable++;
+      else if (record.finalGrade >= 5) distribution.Aprobado++;
+      else distribution.Suspenso++;
+
+      for (const [catName, val] of Object.entries(record.categories)) {
+        if(!categoryAverages[catName]) categoryAverages[catName] = { sum: 0, count: 0 };
+        categoryAverages[catName].sum += val;
+        categoryAverages[catName].count += 1;
+      }
+    });
+
+    const mediaGlobalClase = sumaClase / dataT.length;
+
+    let topStudent = { name: '-', avg: 0 };
+    for (const [id, data] of Object.entries(studentAverages)) {
+      const avg = data.sum / data.count;
+      if (avg > topStudent.avg) topStudent = { name: data.name, avg: avg };
+    }
+
+    let bestCat = { name: '-', avg: 0 };
+    let worstCat = { name: '-', avg: 10 };
+    let catLabels = []; let catData = [];
+    
+    for (const [catName, data] of Object.entries(categoryAverages)) {
+      const avg = data.sum / data.count;
+      catLabels.push(catName); catData.push(avg.toFixed(2));
+      if (avg > bestCat.avg) bestCat = { name: catName, avg: avg };
+      if (avg < worstCat.avg) worstCat = { name: catName, avg: avg };
+    }
+
+    let html = `
+      <div class="analytics-grid">
+        <div class="insight-card">
+          <div class="insight-icon">🎯</div>
+          <div class="insight-title">Media de la Clase</div>
+          <div class="insight-value">${mediaGlobalClase.toFixed(2)} / 10</div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-icon">🏆</div>
+          <div class="insight-title">Alumno Destacado</div>
+          <div class="insight-value insight-highlight">${topStudent.name}</div>
+          <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Media global más alta (${topStudent.avg.toFixed(2)}).</p>
+        </div>
+        <div class="insight-card">
+          <div class="insight-icon">💪</div>
+          <div class="insight-title">Punto Fuerte</div>
+          <div class="insight-value insight-good">${bestCat.name}</div>
+          <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Destreza principal de la clase (Media: ${bestCat.avg.toFixed(2)}).</p>
+        </div>
+        <div class="insight-card">
+          <div class="insight-icon">⚠️</div>
+          <div class="insight-title">Punto de Mejora</div>
+          <div class="insight-value" style="color:var(--accent); font-weight:bold;">${worstCat.name}</div>
+          <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Categoría con más dificultades (Media: ${worstCat.avg.toFixed(2)}).</p>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="chart-box">
+          <h3>Distribución de Notas</h3>
+          <div class="chart-wrapper"><canvas id="pieChartDistribucion"></canvas></div>
+        </div>
+        <div class="chart-box">
+          <h3>Rendimiento por Categorías</h3>
+          <div class="chart-wrapper"><canvas id="barChartCategorias"></canvas></div>
+        </div>
+      </div>
+    `;
+
+    content.innerHTML = html;
+
+    if(chartPieInstance) chartPieInstance.destroy();
+    if(chartBarInstance) chartBarInstance.destroy();
+
+    chartPieInstance = new Chart(document.getElementById('pieChartDistribucion').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Sobresaliente', 'Notable', 'Aprobado', 'Suspenso'],
+        datasets: [{
+          data: [distribution.Sobresaliente, distribution.Notable, distribution.Aprobado, distribution.Suspenso],
+          backgroundColor: ['#2d6a4f', '#e8a838', '#4a4a6a', '#c84b31'],
+          borderWidth: 2
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    chartBarInstance = new Chart(document.getElementById('barChartCategorias').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: catLabels,
+        datasets: [{ label: 'Media', data: catData, backgroundColor: '#1a1a2e', borderRadius: 4 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 10 } }, plugins: { legend: { display: false } } }
+    });
+  };
+
+  // --- 11. MODALES ---
   window.openCreateClassModal = async () => {
     const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
     let html = '<option value="">Selecciona un profesor como tutor</option>';
@@ -1218,7 +1458,6 @@
     document.getElementById('editClassModal').classList.add('active'); 
   };
 
-  // 🎯 AQUI ESTÁ EL ACORDEÓN DE CLASES PARA CREAR ASIGNATURA
   window.openCreateAsignaturaModal = async () => {
     let profesHtml = '';
     state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(p => {
@@ -1266,7 +1505,7 @@
     cbs.forEach(cb => cb.checked = !allChecked); 
   };
 
-  // --- 11. EVENT LISTENERS DE FORMULARIOS AL CARGAR DOM ---
+  // --- 12. EVENT LISTENERS DE FORMULARIOS ---
   document.addEventListener('DOMContentLoaded', () => {
     
     // Crear Clase
@@ -1299,7 +1538,7 @@
       } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Añadir"; }
     });
 
-    // Crear Asignatura (Múltiples Profesores)
+    // Crear Asignatura
     document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e) => { 
       e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Creando...";
       const alumnosChecked = Array.from(document.querySelectorAll('input[name="alumnos"]:checked')).map(cb => cb.value); 
@@ -1310,7 +1549,6 @@
       
       try {
         const ref = await addDoc(collection(db, `colegios/${state.colegioId}/asignaturas`), { nombre: e.target.nombre.value, profesorEmails: profesChecked, alumnos: alumnosChecked, trimestres: ['T1','T2','T3'], createdAt: serverTimestamp() });
-        // Actualizamos a todos los profesores involucrados
         for(const p of profesChecked) { await updateDoc(doc(db, 'profesores', p), { asignaturas: arrayUnion(ref.id) }); }
         
         loadAsignaturas(); document.getElementById('createAsignaturaModal').classList.remove('active'); e.target.reset(); 
