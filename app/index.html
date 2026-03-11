@@ -136,7 +136,6 @@
     .chart-box h3 { font-size: 16px; margin-bottom: 16px; text-align: center; }
     .chart-wrapper { position: relative; height: 300px; width: 100%; }
 
-    /* Estilo para el selector de asignatura en Analytics */
     .analytics-subject-select {
       padding: 10px 16px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600;
       border: 2px solid var(--ink); border-radius: var(--radius-sm); background: #fff; color: var(--ink);
@@ -296,13 +295,11 @@
 
     <div id="classAnalyticsView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span>Análisis por Asignatura</span>
+        <a onclick="window.backToClaseDetail()">← Volver a la clase</a><span>/</span><span>Análisis por Asignatura</span>
       </div>
       <div class="page-header">
         <h1>📊 Rendimiento: <span id="analyticsClassName" style="color:var(--accent);"></span></h1>
-        
-        <select id="analyticsSubjectSelect" class="analytics-subject-select" onchange="window.renderAnalyticsData()">
-        </select>
+        <select id="analyticsSubjectSelect" class="analytics-subject-select" onchange="window.renderAnalyticsData()"></select>
       </div>
       
       <div class="trimestre-tabs" id="analyticsTrimestreTabs">
@@ -316,7 +313,7 @@
 
     <div id="asistenciaView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span>Asistencia Diaria</span>
+        <a onclick="window.backToClaseDetail()">← Volver a la clase</a><span>/</span><span>Asistencia Diaria</span>
       </div>
       <div class="card" style="display:flex; justify-content:space-between; align-items:center; background:var(--ink); color:#fff;">
         <div>
@@ -332,7 +329,7 @@
 
     <div id="expedienteView" class="hidden">
       <div class="breadcrumb">
-        <a onclick="window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent)">← Volver a la clase</a><span>/</span><span id="expedienteAlumnoNameBread"></span>
+        <a onclick="window.backToClaseDetail()">← Volver a la clase</a><span>/</span><span id="expedienteAlumnoNameBread"></span>
       </div>
       <div class="page-header">
         <h1>Informe Académico: <span id="expedienteAlumnoNameTitle" style="color:var(--accent);"></span></h1>
@@ -406,9 +403,7 @@
         <button class="trimestre-tab" onclick="window.switchTrimestre('T3', this)">3º Trimestre</button>
       </div>
       
-      <div id="attendanceSummary" class="attendance-summary-badge">
-        </div>
-      
+      <div id="attendanceSummary" class="attendance-summary-badge"></div>
       <div id="notasContent" class="loading">Cargando perfil...</div>
     </div>
     
@@ -526,14 +521,13 @@
     currentContext: null,
     cachedClasses: [], cachedProfesores: [], cachedAlumnos: [],
     expedienteData: null,
-    analyticsData: null // Cache para el análisis inteligente
+    analyticsData: null
   };
 
   let chartInstance = null;
   let chartPieInstance = null;
   let chartBarInstance = null;
 
-  // UTILIDAD: Ocultar todas las vistas
   function hideAllViews() {
     const views = [
       'directorView', 'profesorAsignaturasView', 'profesorClasesView', 
@@ -597,7 +591,10 @@
   window.showProfesorClasesView = () => { hideAllViews(); document.getElementById('profesorClasesView').classList.remove('hidden'); loadClasses('profesorClasesList', true); };
 
   window.backToClasesList = () => { state.userRole === 'admin' ? window.showDirectorView() : window.showProfesorClasesView(); };
+  
+  // 🎯 REPARADO: Volver a la clase
   window.backToClaseDetail = () => { window.showClaseDetail(state.currentClassId, document.getElementById('claseDetailName').textContent); };
+  
   window.backToAsignaturasList = () => { state.userRole === 'admin' ? window.showAsignaturasView() : window.showProfesorAsignaturasView(); };
   
   window.backToAsignaturaDetailBreadcrumb = () => { 
@@ -696,7 +693,7 @@
     } catch(e) { console.error(e); }
   };
 
-  // --- BORRADOS (CLASES, ALUMNOS, ASIGNATURAS, PROFESORES) ---
+  // --- BORRADOS ---
   window.deleteClass = async (id, nombre) => {
     if(confirm(`⚠️ ¿Seguro que quieres borrar la clase "${nombre}"?`)) {
       try { await deleteDoc(doc(db, `colegios/${state.colegioId}/clases/${id}`)); loadClasses('classesList', false); } 
@@ -805,7 +802,7 @@
     } catch(e) {}
   }
 
-  // --- 6. VISTA DEL PROFESOR: ASIGNATURAS Y TUTORÍAS ---
+  // --- 6. VISTA DEL PROFESOR ---
   async function loadProfesorAsignaturas() { 
     const list = document.getElementById('profesorAsignaturasList'); 
     list.innerHTML = '<div class="loading">Buscando tus asignaturas...</div>';
@@ -1015,7 +1012,6 @@
     const container = document.getElementById('notasContent'); 
     container.innerHTML = '<div class="loading">Cargando perfil de evaluación...</div>';
     
-    // Resumen Asistencia Automática
     let faltas = 0; let retrasos = 0;
     try { 
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); 
@@ -1346,7 +1342,6 @@
     const subjectId = document.getElementById('analyticsSubjectSelect').value;
     const t = state.currentAnalyticsTrimestre;
     
-    // Fallback si por alguna razón no hay datos cacheados
     if (!state.analyticsData || !state.analyticsData[subjectId]) return;
 
     const dataT = state.analyticsData[subjectId][t];
@@ -1467,7 +1462,7 @@
     });
   };
 
-  // --- 11. MODALES (PREPARACIÓN) ---
+  // --- 11. MODALES ---
   window.openCreateClassModal = async () => {
     const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
     let html = '<option value="">Selecciona un profesor como tutor</option>';
