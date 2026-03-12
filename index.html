@@ -3,7 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grade Weighting</title>
+  
+  <title>Calculadora de Notas Ponderadas Online | Grade Weighting</title>
+  <meta name="description" content="Calculadora de notas y medias ponderadas gratuita para profesores y alumnos. Calcula tus promedios, añade categorías, exporta a PDF o Excel y descubre nuestro software para colegios." />
+  <meta name="keywords" content="calculadora de notas, media ponderada, calcular promedio, notas ponderadas, software colegios, calcular nota final, grade calculator, weighted grade" />
+  <meta name="author" content="Grade Weighting" />
+  <link rel="canonical" href="https://gradeweighting.com/" />
+
+  <meta property="og:title" content="Calculadora de Notas Ponderadas | Grade Weighting" />
+  <meta property="og:description" content="Calcula la nota media de tus alumnos en segundos. Añade pesos a tus exámenes, trabajos y exporta el boletín." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gradeweighting.com/" />
+  <meta property="og:image" content="https://gradeweighting.com/og-image.jpg" /> <meta name="twitter:card" content="summary_large_image" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Grade Weighting Calculator",
+    "operatingSystem": "WebBrowser",
+    "applicationCategory": "EducationalApplication",
+    "description": "Calculadora gratuita para profesores que permite obtener la nota final ponderada de los alumnos y exportar los resultados a PDF y Excel.",
+    "url": "https://gradeweighting.com/",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    }
+  }
+  </script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -11,9 +40,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4993636752756332" crossorigin="anonymous"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -404,8 +433,48 @@
     /* FOOTER */
     .footer { text-align: center; padding: 32px; color: var(--ink-light); font-size: 12px; }
 
+    /* ==========================================================================
+       NUEVO: ESTILOS PARA LA SECCIÓN SEO (TEXTO)
+       ========================================================================== */
+    .seo-content {
+      background: var(--paper);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 40px;
+      margin-bottom: 40px;
+      box-shadow: var(--shadow);
+    }
+    .seo-content h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+    .seo-content h2 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 20px;
+      color: var(--accent);
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+    .seo-content p {
+      font-size: 15px;
+      color: var(--ink-light);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .seo-content ul {
+      margin-left: 20px;
+      margin-bottom: 24px;
+      color: var(--ink-light);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .seo-content li { margin-bottom: 8px; }
+    .seo-content strong { color: var(--ink); }
+
     @media print {
-      .header, .btn, .btn-row, .export-row { display: none !important; }
+      .header, .btn, .btn-row, .export-row, .seo-content { display: none !important; }
     }
   </style>
 </head>
@@ -438,7 +507,6 @@ function calcNotaFinal(categorias, subitems, notas, escalaMax, usePercent) {
     const totalSubPeso = subs.reduce((a,s) => a + s.peso, 0) || 1;
     for (const sub of subs) {
       let nota = notas?.[cat.id]?.[sub.id] ?? 0;
-      // si el profesor introduce en %, convertimos a la escala real
       if (usePercent) nota = nota / 100 * escalaMax;
       mediaCat += nota * (sub.peso / totalSubPeso);
     }
@@ -447,7 +515,6 @@ function calcNotaFinal(categorias, subitems, notas, escalaMax, usePercent) {
   return total;
 }
 
-// Normaliza una nota a escala 0-10 para los colores del badge
 function notaBadge(nota, escalaMax) {
   const n = parseFloat(nota) / escalaMax * 10;
   if (n >= 7) return "nota-high";
@@ -460,7 +527,6 @@ const TRANSLATIONS = {
   es: {
     tagline: "Calculadora de ponderaciones para profesores",
     tabs: ["⚙️ Configuración", "📝 Notas", "📊 Resultados"],
-    // Escala
     scaleStep: "Escala de notas",
     scaleTitle: "¿Sobre cuánto puntúas?",
     scaleDesc: "Escribe el valor máximo de tu escala o elige uno rápido. El cálculo y la exportación se adaptan automáticamente.",
@@ -469,14 +535,12 @@ const TRANSLATIONS = {
     scaleActive: "Escala activa",
     scaleRange: "Las notas se introducirán entre",
     scaleDisplay: "La nota final se mostrará en la misma escala",
-    // Categorías
     catStep: "Categorías de evaluación",
     catTitle: "¿Qué evalúas?",
     catDesc: "Selecciona las categorías que usarás y ajusta el peso de cada una en la nota final.",
     catEmpty: "Selecciona al menos una categoría",
     weightOk: "Pesos correctos — suman 100%",
     weightWarn: (n) => `¡Los pesos no suman 100%! Suma: ${n}%`,
-    // Sub-items
     subStep: "Elementos por categoría",
     subTitle: "Detalla cada categoría",
     subDesc: "Añade los elementos individuales de cada categoría y su peso relativo dentro de ella.",
@@ -486,21 +550,18 @@ const TRANSLATIONS = {
     subSum: "Suma",
     subElements: (n) => `${n} elemento${n!==1?'s':''}`,
     subOf: "de la nota",
-    // Alumnos
     studentStep: "Alumnos y notas",
     studentTitle: "Introduce las notas",
     studentDesc: (max) => `Notas de 0 a ${max}. Modifica los nombres haciendo clic sobre ellos.`,
     studentAdd: "+ Alumno",
     studentEmpty: "Añade alumnos para empezar",
     studentOf: "% de la nota final",
-    // Resultados
     resultsStep: "Resultados",
     resultsTitle: "Notas finales ponderadas",
     resultsDesc: "Cálculo automático. La nota final siempre la decide el profesor — esta herramienta solo calcula.",
     resultsEmpty: "No hay alumnos registrados",
     colStudent: "Alumno",
     colFinal: "Nota Final",
-    // Botones
     btnContinue: "Continuar → Introducir notas",
     btnAdjust: "Ajusta los pesos antes de continuar",
     btnBack: "← Volver",
@@ -513,24 +574,33 @@ const TRANSLATIONS = {
     exportFileNamePlaceholder: "ej. clase_3A_trimestre1",
     percentMode: "Introducir notas en porcentaje (0–100%)",
     percentModeDesc: "Actívalo para evaluar siempre sobre 100, independientemente de la escala máxima.",
-    // PDF
     pdfTitle: "Grade Weighting — Informe de Notas",
     pdfGenerated: (d) => `Generado el ${d}`,
     pdfCategories: "Categorías",
     pdfScale: "Escala de notas",
     pdfDetail: "Detalle por sub-items",
     pdfFinal: "Nota Final",
-    // Excel sheets
     xlsxSheet1: "Resumen Notas",
     xlsxSheet2: "Notas Detalladas",
     xlsxStudent: (max) => `Alumno (escala 0–${max})`,
     xlsxFinal: "NOTA FINAL",
-    // Default names
     defaultStudent: (n) => `Alumno ${n}`,
     defaultSubitem: (n) => `Elemento ${n}`,
     defaultCats: ["Exámenes","Proyectos","Trabajo diario","Actitud","Participación","Deberes","Lectura"],
     defaultSubNames: { 1: ["Examen 1","Examen 2"], 2: ["Proyecto trimestral"], 3: ["Ejercicios diarios"], 4: ["Comportamiento"] },
     footer: "Grade Weighting · Calculadora de ponderaciones para profesores · La nota siempre la decide el profesor.",
+    // NUEVO: TEXTOS SEO
+    seoH1: "Calculadora de Notas Ponderadas para Profesores",
+    seoP1: "Grade Weighting es la herramienta online definitiva diseñada específicamente para que docentes y estudiantes calculen sus notas finales de forma rápida, precisa y sin complicaciones matemáticas.",
+    seoH2_1: "¿Qué es una media ponderada?",
+    seoP2: "A diferencia de una media aritmética normal (donde todos los exámenes valen lo mismo), una media ponderada asigna un porcentaje de importancia (peso) distinto a cada criterio de evaluación. Por ejemplo, en tu programación didáctica, los Exámenes pueden suponer el 60% de la calificación final, los Trabajos el 30% y la Actitud el 10%.",
+    seoH2_2: "¿Cómo funciona esta calculadora de notas?",
+    seoLi1: "Configura tu escala: Elige si evalúas sobre 10, sobre 100, o introduce notas en formato porcentaje.",
+    seoLi2: "Añade tus categorías: Define tus criterios (Exámenes, Deberes, Proyectos) y asígnales un porcentaje hasta sumar el 100%.",
+    seoLi3: "Introduce las notas: Escribe las calificaciones de tus alumnos.",
+    seoLi4: "Exporta los resultados: El sistema calcula todo automáticamente. Descarga el informe en Excel (.xlsx) o genera un PDF profesional para tus actas o reuniones con padres.",
+    seoH2_3: "Software de gestión para Colegios",
+    seoP3: "Si eres parte del equipo directivo de un centro educativo y necesitas centralizar las evaluaciones de todos tus profesores, generar expedientes de alumnos con gráficos de rendimiento y llevar un control de asistencia diario, descubre nuestra plataforma Premium para instituciones."
   },
   en: {
     tagline: "Grade weighting calculator for teachers",
@@ -597,6 +667,18 @@ const TRANSLATIONS = {
     defaultCats: ["Exams","Projects","Daily work","Attitude","Participation","Homework","Reading"],
     defaultSubNames: { 1: ["Exam 1","Exam 2"], 2: ["Term project"], 3: ["Daily exercises"], 4: ["Behaviour"] },
     footer: "Grade Weighting · Grade calculator for teachers · The final grade is always the teacher's decision.",
+    // NUEVO: TEXTOS SEO EN INGLÉS
+    seoH1: "Weighted Grade Calculator for Teachers",
+    seoP1: "Grade Weighting is the ultimate online tool specifically designed for educators and students to calculate their final grades quickly, accurately, and without mathematical headaches.",
+    seoH2_1: "What is a weighted grade?",
+    seoP2: "Unlike a standard arithmetic mean (where all exams are worth the same), a weighted average assigns a different percentage of importance (weight) to each evaluation criteria. For example, in your syllabus, Exams might account for 60% of the final grade, Projects for 30%, and Attitude for 10%.",
+    seoH2_2: "How does this grade calculator work?",
+    seoLi1: "Set your scale: Choose if you grade out of 10, out of 100, or enter grades as percentages.",
+    seoLi2: "Add your categories: Define your criteria (Exams, Homework, Projects) and assign them a percentage until they add up to 100%.",
+    seoLi3: "Input grades: Type in the scores for your students.",
+    seoLi4: "Export results: The system calculates everything automatically. Download the report as an Excel (.xlsx) file or generate a professional PDF for your records or parent meetings.",
+    seoH2_3: "School Management Software",
+    seoP3: "If you are part of a school's management team and need to centralize grading across all your teachers, generate student transcripts with performance charts, and track daily attendance, discover our Premium platform for institutions."
   }
 };
 
@@ -607,7 +689,7 @@ function App() {
   const [escalaMax, setEscalaMax] = useState(10);
   const [escalaInput, setEscalaInput] = useState("10");
   const [exportFileName, setExportFileName] = useState("notas_clase");
-  const [usePercent, setUsePercent] = useState(false); // introduce notas en % siempre
+  const [usePercent, setUsePercent] = useState(false);
 
   const t = TRANSLATIONS[lang];
 
@@ -810,7 +892,6 @@ function App() {
       }
     });
 
-    // Sub-items detail table
     const subHeaders = [t.colStudent];
     for (const cat of catsActivas) {
       for (const sub of (subitems[cat.id]||[])) {
@@ -901,7 +982,6 @@ function App() {
               <h2>{t.scaleTitle}</h2>
               <p style={{color:'var(--ink-light)',fontSize:13,marginBottom:18}}>{t.scaleDesc}</p>
 
-              {/* INPUT LIBRE */}
               <div style={{display:'flex',alignItems:'flex-end',gap:12,marginBottom:16,flexWrap:'wrap'}}>
                 <div style={{flex:'0 0 160px'}}>
                   <label>{t.scaleMax}</label>
@@ -942,7 +1022,6 @@ function App() {
                 &nbsp;·&nbsp; {t.scaleDisplay}
               </div>
 
-              {/* MODO PORCENTAJE */}
               <div style={{marginTop:14,padding:'14px 16px',background: usePercent ? 'rgba(200,75,49,0.06)' : 'var(--cream)',borderRadius:'var(--radius-sm)',border:`1.5px solid ${usePercent ? 'var(--accent)' : 'var(--border)'}`,display:'flex',alignItems:'flex-start',gap:12,cursor:'pointer'}}
                 onClick={() => { setUsePercent(p => !p); setNotas({}); }}>
                 <div style={{marginTop:2,width:20,height:20,borderRadius:4,border:`2px solid ${usePercent ? 'var(--accent)' : 'var(--border)'}`,background: usePercent ? 'var(--accent)' : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
@@ -1230,14 +1309,40 @@ function App() {
           </div>
         )}
 
+        {/* 🎯 NUEVA SECCIÓN DE TEXTO SEO (VISIBLE PARA GOOGLE Y USUARIOS) */}
+        <article className="seo-content">
+          <h1>{t.seoH1}</h1>
+          <p>{t.seoP1}</p>
+          
+          <h2>{t.seoH2_1}</h2>
+          <p>{t.seoP2}</p>
+          
+          <h2>{t.seoH2_2}</h2>
+          <ul>
+            <li><strong>{t.seoLi1.split(':')[0]}:</strong> {t.seoLi1.split(':')[1]}</li>
+            <li><strong>{t.seoLi2.split(':')[0]}:</strong> {t.seoLi2.split(':')[1]}</li>
+            <li><strong>{t.seoLi3.split(':')[0]}:</strong> {t.seoLi3.split(':')[1]}</li>
+            <li><strong>{t.seoLi4.split(':')[0]}:</strong> {t.seoLi4.split(':')[1]}</li>
+          </ul>
+
+          <h2>{t.seoH2_3}</h2>
+          <p>{t.seoP3}</p>
+        </article>
+
       </main>
 
       {/* BANNER COLEGIOS */}
       <div style={{background:"linear-gradient(135deg, #c84b31 0%, #a83a22 100%)", padding:"24px 32px", textAlign:"center", color:"#fff", borderTop:"3px solid #a83a22"}}>
         <div style={{maxWidth:900, margin:"0 auto"}}>
-          <div style={{fontSize:19, fontWeight:600, marginBottom:8}}>¿Tu colegio necesita gestionar notas de todos los profesores?</div>
-          <div style={{fontSize:14, opacity:0.95, marginBottom:16}}>Analytics · Progresión de alumnos · Colaboración entre profesores</div>
-          <a href="/colegios" style={{display:"inline-block", background:"#fff", color:"#c84b31", padding:"10px 24px", borderRadius:8, fontWeight:600, textDecoration:"none", fontSize:14}}>Más información →</a>
+          <div style={{fontSize:19, fontWeight:600, marginBottom:8}}>
+            {lang === 'es' ? '¿Tu colegio necesita gestionar notas de todos los profesores?' : 'Does your school need to manage grades across all teachers?'}
+          </div>
+          <div style={{fontSize:14, opacity:0.95, marginBottom:16}}>
+            Analytics · Progresión de alumnos · Colaboración entre profesores
+          </div>
+          <a href="/app" style={{display:"inline-block", background:"#fff", color:"#c84b31", padding:"10px 24px", borderRadius:8, fontWeight:600, textDecoration:"none", fontSize:14}}>
+            {lang === 'es' ? 'Más información →' : 'Learn more →'}
+          </a>
         </div>
       </div>
 
