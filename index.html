@@ -14,7 +14,8 @@
   <meta property="og:description" content="Calcula la nota media de tus alumnos en segundos. Añade pesos a tus exámenes, trabajos y exporta el boletín." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gradeweighting.com/" />
-  <meta property="og:image" content="https://gradeweighting.com/og-image.jpg" /> <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:image" content="https://gradeweighting.com/og-image.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
 
   <script type="application/ld+json">
   {
@@ -433,9 +434,7 @@
     /* FOOTER */
     .footer { text-align: center; padding: 32px; color: var(--ink-light); font-size: 12px; }
 
-    /* ==========================================================================
-       NUEVO: ESTILOS PARA LA SECCIÓN SEO (TEXTO)
-       ========================================================================== */
+    /* ESTILOS PARA LA SECCIÓN SEO (TEXTO) */
     .seo-content {
       background: var(--paper);
       border-radius: var(--radius);
@@ -483,7 +482,7 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useCallback, useMemo } = React;
+const { useState, useCallback, useMemo, useEffect } = React;
 
 // ─── CONSTANTES ──────────────────────────────────────────────────────
 const CATEGORIAS_DEFAULT = [
@@ -589,7 +588,6 @@ const TRANSLATIONS = {
     defaultCats: ["Exámenes","Proyectos","Trabajo diario","Actitud","Participación","Deberes","Lectura"],
     defaultSubNames: { 1: ["Examen 1","Examen 2"], 2: ["Proyecto trimestral"], 3: ["Ejercicios diarios"], 4: ["Comportamiento"] },
     footer: "Grade Weighting · Calculadora de ponderaciones para profesores · La nota siempre la decide el profesor.",
-    // NUEVO: TEXTOS SEO
     seoH1: "Calculadora de Notas Ponderadas para Profesores",
     seoP1: "Grade Weighting es la herramienta online definitiva diseñada específicamente para que docentes y estudiantes calculen sus notas finales de forma rápida, precisa y sin complicaciones matemáticas.",
     seoH2_1: "¿Qué es una media ponderada?",
@@ -667,7 +665,6 @@ const TRANSLATIONS = {
     defaultCats: ["Exams","Projects","Daily work","Attitude","Participation","Homework","Reading"],
     defaultSubNames: { 1: ["Exam 1","Exam 2"], 2: ["Term project"], 3: ["Daily exercises"], 4: ["Behaviour"] },
     footer: "Grade Weighting · Grade calculator for teachers · The final grade is always the teacher's decision.",
-    // NUEVO: TEXTOS SEO EN INGLÉS
     seoH1: "Weighted Grade Calculator for Teachers",
     seoP1: "Grade Weighting is the ultimate online tool specifically designed for educators and students to calculate their final grades quickly, accurately, and without mathematical headaches.",
     seoH2_1: "What is a weighted grade?",
@@ -682,16 +679,38 @@ const TRANSLATIONS = {
   }
 };
 
+// ─── LÓGICA DE IDIOMA AUTOMÁTICA ───
+const getInitialLang = () => {
+  if (typeof navigator !== 'undefined' && navigator.language) {
+    return navigator.language.toLowerCase().startsWith('es') ? 'es' : 'en';
+  }
+  return 'es';
+};
+
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 function App() {
   const [tab, setTab] = useState(0);
-  const [lang, setLang] = useState("es");
+  const [lang, setLang] = useState(getInitialLang);
   const [escalaMax, setEscalaMax] = useState(10);
   const [escalaInput, setEscalaInput] = useState("10");
   const [exportFileName, setExportFileName] = useState("notas_clase");
   const [usePercent, setUsePercent] = useState(false);
 
   const t = TRANSLATIONS[lang];
+
+  // 🎯 NUEVO: Hook para actualizar el SEO dinámicamente según el idioma
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    if (lang === 'en') {
+      document.title = "Weighted Grade Calculator Online | Grade Weighting";
+      document.querySelector('meta[name="description"]')?.setAttribute("content", "Free weighted grade and average calculator for teachers and students. Calculate your averages, add categories, export to PDF or Excel, and discover our school software.");
+      document.querySelector('meta[name="keywords"]')?.setAttribute("content", "grade calculator, weighted grade, calculate average, teacher grading tool, school software, final grade calculator");
+    } else {
+      document.title = "Calculadora de Notas Ponderadas Online | Grade Weighting";
+      document.querySelector('meta[name="description"]')?.setAttribute("content", "Calculadora de notas y medias ponderadas gratuita para profesores y alumnos. Calcula tus promedios, añade categorías, exporta a PDF o Excel y descubre nuestro software para colegios.");
+      document.querySelector('meta[name="keywords"]')?.setAttribute("content", "calculadora de notas, media ponderada, calcular promedio, notas ponderadas, software colegios, calcular nota final, grade calculator, weighted grade");
+    }
+  }, [lang]);
 
   // CATEGORÍAS
   const [categorias, setCategorias] = useState(CATEGORIAS_DEFAULT);
@@ -802,7 +821,6 @@ function App() {
   function exportExcel() {
     const wb = XLSX.utils.book_new();
 
-    // Hoja resumen
     const headerRow = [t.xlsxStudent(escalaMax), ...catsActivas.map(c => `${c.nombre} (${c.peso}%)`), t.xlsxFinal];
     const rows = resultados.map(r => [
       r.nombre,
@@ -814,7 +832,6 @@ function App() {
     ws["!cols"] = [{ wch: 22 }, ...catsActivas.map(() => ({ wch: 16 })), { wch: 14 }];
     XLSX.utils.book_append_sheet(wb, ws, t.xlsxSheet1);
 
-    // Hoja detallada por sub-items
     const cols2 = [t.colStudent];
     for (const cat of catsActivas) {
       for (const sub of (subitems[cat.id]||[])) {
@@ -929,7 +946,6 @@ function App() {
     doc.save(`${exportFileName}.pdf`);
   }
 
-  // ── RENDER TABS ──
   const tabs = t.tabs;
 
   return (
@@ -976,7 +992,6 @@ function App() {
         {/* ══════════ TAB 0: CONFIGURACIÓN ══════════ */}
         {tab===0 && (
           <>
-            {/* ESCALA DE NOTAS */}
             <div className="card" style={{paddingBottom:24}}>
               <div className="section-label"><span className="step">0</span>{t.scaleStep}</div>
               <h2>{t.scaleTitle}</h2>
@@ -1034,7 +1049,6 @@ function App() {
               </div>
             </div>
 
-            {/* CATEGORÍAS */}
             <div className="card">
               <div className="section-label"><span className="step">1</span>{t.catStep}</div>
               <h2>{t.catTitle}</h2>
@@ -1090,7 +1104,6 @@ function App() {
               )}
             </div>
 
-            {/* SUB-ITEMS */}
             {catsActivas.length > 0 && (
               <div className="card">
                 <div className="section-label"><span className="step">2</span>{t.subStep}</div>
@@ -1166,7 +1179,6 @@ function App() {
               {' '}{lang==='es' ? 'Modifica los nombres haciendo clic sobre ellos.' : 'Click any name to rename.'}
             </p>
 
-            {/* GESTIÓN ALUMNOS */}
             <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:20}}>
               {alumnos.map(a => (
                 <div key={a.id} style={{display:'flex',alignItems:'center',gap:6,background:'var(--cream)',border:'1.5px solid var(--border)',borderRadius:8,padding:'6px 10px'}}>
@@ -1183,7 +1195,6 @@ function App() {
 
             <hr className="divider" />
 
-            {/* TABLA DE NOTAS */}
             {alumnos.length === 0
               ? <div className="empty"><div className="icon">👤</div>{t.studentEmpty}</div>
               : catsActivas.map(cat => {
@@ -1196,7 +1207,6 @@ function App() {
                     </div>
                     <div className="scroll-x">
                       <div className="student-grid" style={{gridTemplateColumns:`160px repeat(${subs.length}, 1fr)`}}>
-                        {/* Header */}
                         <div className="sg-cell sg-header">{t.colStudent}</div>
                         {subs.map(sub => (
                           <div key={sub.id} className="sg-cell sg-header" title={`${sub.peso}% in ${cat.nombre}`}>
@@ -1204,7 +1214,6 @@ function App() {
                             <div style={{fontWeight:300,opacity:0.7,fontSize:10}}>{sub.peso}%</div>
                           </div>
                         ))}
-                        {/* Rows */}
                         {alumnos.map(a => (
                           <React.Fragment key={a.id}>
                             <div className="sg-cell sg-name">{a.nombre}</div>
@@ -1279,7 +1288,6 @@ function App() {
 
             <hr className="divider" />
 
-            {/* EXPORT */}
             <div className="export-row">
               <div style={{width:'100%',marginBottom:12}}>
                 <label>{t.exportFileName}</label>
@@ -1331,14 +1339,13 @@ function App() {
 
       </main>
 
-      {/* BANNER COLEGIOS */}
       <div style={{background:"linear-gradient(135deg, #c84b31 0%, #a83a22 100%)", padding:"24px 32px", textAlign:"center", color:"#fff", borderTop:"3px solid #a83a22"}}>
         <div style={{maxWidth:900, margin:"0 auto"}}>
           <div style={{fontSize:19, fontWeight:600, marginBottom:8}}>
             {lang === 'es' ? '¿Tu colegio necesita gestionar notas de todos los profesores?' : 'Does your school need to manage grades across all teachers?'}
           </div>
           <div style={{fontSize:14, opacity:0.95, marginBottom:16}}>
-            Analytics · Progresión de alumnos · Colaboración entre profesores
+            Analytics · {lang === 'es' ? 'Progresión de alumnos' : 'Student progression'} · {lang === 'es' ? 'Colaboración entre profesores' : 'Teacher collaboration'}
           </div>
           <a href="/app" style={{display:"inline-block", background:"#fff", color:"#c84b31", padding:"10px 24px", borderRadius:8, fontWeight:600, textDecoration:"none", fontSize:14}}>
             {lang === 'es' ? 'Más información →' : 'Learn more →'}
