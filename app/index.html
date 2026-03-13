@@ -16,18 +16,9 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #1a1a2e; 
-      --ink-light: #4a4a6a; 
-      --cream: #faf8f3; 
-      --paper: #ffffff;
-      --accent: #c84b31; 
-      --accent-light: #f5ede9; 
-      --gold: #e8a838; 
-      --green: #2d6a4f;
-      --green-light: #d8f3dc; 
-      --border: #e2ddd6; 
-      --radius: 12px; 
-      --radius-sm: 8px;
+      --ink: #1a1a2e; --ink-light: #4a4a6a; --cream: #faf8f3; --paper: #ffffff;
+      --accent: #c84b31; --accent-light: #f5ede9; --gold: #e8a838; --green: #2d6a4f;
+      --green-light: #d8f3dc; --border: #e2ddd6; --radius: 12px; --radius-sm: 8px;
     }
 
     body { 
@@ -77,8 +68,8 @@
     .btn-icon:hover { background: var(--cream); color: var(--accent); }
 
     /* PESTAÑAS DE NAVEGACIÓN */
-    .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
-    .nav-tab { background: transparent; color: var(--ink-light); border: 2px solid transparent; padding: 10px 20px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--border); padding-bottom: 16px; overflow-x: auto; }
+    .nav-tab { background: transparent; color: var(--ink-light); border: 2px solid transparent; padding: 10px 20px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .nav-tab:hover { background: var(--cream); }
     .nav-tab.active { background: var(--ink); color: #fff; border-color: var(--ink); }
     
@@ -114,8 +105,8 @@
     .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
     .form-group { margin-bottom: 20px; }
     label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-light); text-transform: uppercase; margin-bottom: 6px; }
-    input, select, textarea { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink); background: var(--cream); transition: all 0.2s; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
+    input, select, textarea { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink); background: var(--cream); transition: all 0.2s; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; }
 
     /* GRUPOS DE CHECKBOX Y ACORDEONES DE SELECCIÓN */
     .checkbox-group { max-height: 300px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--cream); }
@@ -171,15 +162,21 @@
     .comment-card p { font-size: 14px; color: var(--ink-light); margin: 0; font-style: italic; line-height: 1.5; }
     .profe-tag { font-size: 12px; font-weight: 500; color: var(--ink-light); background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); font-style: normal; }
 
-    @media print {
-      .header, .nav-tabs, .trimestre-tabs, .btn-primary, .btn-secondary, .breadcrumb, .btn-icon, .btn-delete-card, .btn-edit-card { display: none !important; }
-      body { background: white; }
-      .main { padding: 0; max-width: 100%; }
-      .report-section { border: none; box-shadow: none; padding: 0; margin-bottom: 40px; page-break-inside: avoid; }
-      .card { page-break-inside: avoid; border: 1px solid #ccc; }
-      .comment-card { border-left-color: #000; background: #f9f9f9; }
-      .chart-container, .chart-wrapper { height: 250px; }
-    }
+    /* ==========================================================================
+       ESTILOS PARA HORARIOS (TIMETABLE)
+       ========================================================================== */
+    .timetable { width: 100%; border-collapse: collapse; background: #fff; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); table-layout: fixed; }
+    .timetable th { background: var(--ink); color: #fff; padding: 16px; text-align: center; font-weight: 600; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.1); width: 16.66%; }
+    .timetable td { border: 1px solid var(--border); height: 80px; padding: 8px; vertical-align: top; }
+    .tt-hour { background: var(--cream); text-align: center; font-weight: 700; color: var(--ink-light); vertical-align: middle !important; font-size: 13px; border-right: 2px solid var(--border) !important; }
+    
+    .tt-slot { background: var(--accent-light); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px; height: 100%; display: flex; flex-direction: column; justify-content: center; transition: all 0.2s; }
+    .tt-slot:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(200,75,49,0.15); }
+    .tt-subject { font-weight: 700; font-size: 13px; color: var(--ink); line-height: 1.2; margin-bottom: 4px; }
+    .tt-teacher { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; }
+    
+    .schedule-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 100px; gap: 12px; align-items: end; background: var(--cream); padding: 24px; border-radius: var(--radius); border: 1.5px dashed var(--border); margin-bottom: 32px; }
+    @media(max-width: 768px) { .schedule-form-grid { grid-template-columns: 1fr; } }
 
     /* ==========================================================================
        RESTO DE ESTILOS (NOTAS, ACORDEONES, ASISTENCIA)
@@ -210,6 +207,16 @@
     
     .ponderacion-config { display: flex; flex-direction: column; gap: 12px; }
     .categoria-row { display: grid; grid-template-columns: 1fr 120px 40px; gap: 12px; margin-bottom:12px; }
+
+    @media print {
+      .header, .nav-tabs, .trimestre-tabs, .btn-primary, .btn-secondary, .breadcrumb, .btn-icon, .btn-delete-card, .btn-edit-card, .schedule-form-grid, #btnExportarNotas { display: none !important; }
+      body { background: white; }
+      .main { padding: 0; max-width: 100%; }
+      .report-section { border: none; box-shadow: none; padding: 0; margin-bottom: 40px; page-break-inside: avoid; }
+      .card { page-break-inside: avoid; border: 1px solid #ccc; }
+      .comment-card { border-left-color: #000; background: #f9f9f9; }
+      .chart-container, .chart-wrapper { height: 250px; }
+    }
   </style>
 </head>
 <body>
@@ -217,7 +224,7 @@
 <div id="loginScreen" class="login-screen">
   <div class="login-card">
     <h1>Grade <span style="color: var(--gold);">Weighting</span></h1>
-    <p class="subtitle">Sistema de gestión de notas para colegios</p>
+    <p class="subtitle">Software de gestión integral para colegios</p>
     <button class="btn-google" id="loginBtn">Iniciar sesión con Google</button>
   </div>
 </div>
@@ -241,6 +248,7 @@
         <button class="nav-tab active" onclick="window.showDirectorView()">📚 Clases</button>
         <button class="nav-tab" onclick="window.showAsignaturasView()">📖 Asignaturas</button>
         <button class="nav-tab" onclick="window.showProfesoresView()">👨‍🏫 Profesores</button>
+        <button class="nav-tab" onclick="window.showHorariosView()">🗓️ Horarios</button>
       </div>
       <div class="page-header">
         <h1>Mis clases</h1>
@@ -254,6 +262,7 @@
         <button class="nav-tab" onclick="window.showDirectorView()">📚 Clases</button>
         <button class="nav-tab active" onclick="window.showAsignaturasView()">📖 Asignaturas</button>
         <button class="nav-tab" onclick="window.showProfesoresView()">👨‍🏫 Profesores</button>
+        <button class="nav-tab" onclick="window.showHorariosView()">🗓️ Horarios</button>
       </div>
       <div class="page-header">
         <h1>Asignaturas</h1>
@@ -267,12 +276,70 @@
         <button class="nav-tab" onclick="window.showDirectorView()">📚 Clases</button>
         <button class="nav-tab" onclick="window.showAsignaturasView()">📖 Asignaturas</button>
         <button class="nav-tab active" onclick="window.showProfesoresView()">👨‍🏫 Profesores</button>
+        <button class="nav-tab" onclick="window.showHorariosView()">🗓️ Horarios</button>
       </div>
       <div class="page-header">
         <h1>Profesores</h1>
         <button class="btn-primary" onclick="document.getElementById('inviteProfesorModal').classList.add('active')">+ Invitar profesor</button>
       </div>
       <div id="profesoresList" class="loading">Cargando profesores...</div>
+    </div>
+
+    <div id="horariosView" class="hidden">
+      <div class="nav-tabs">
+        <button class="nav-tab" onclick="window.showDirectorView()">📚 Clases</button>
+        <button class="nav-tab" onclick="window.showAsignaturasView()">📖 Asignaturas</button>
+        <button class="nav-tab" onclick="window.showProfesoresView()">👨‍🏫 Profesores</button>
+        <button class="nav-tab active" onclick="window.showHorariosView()">🗓️ Horarios</button>
+      </div>
+      
+      <div class="page-header">
+        <h1>Generador de Horarios</h1>
+        <button class="btn-primary" onclick="window.generarHorariosAutomaticos()" style="background: var(--ink);">
+          ✨ Generar Horario Automático
+        </button>
+      </div>
+
+      <div class="card" style="margin-bottom: 40px;">
+        <h2 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:8px;">1. Configurar Carga Lectiva</h2>
+        <p style="color:var(--ink-light); font-size:14px; margin-bottom:24px;">Define cuántas horas a la semana imparte cada profesor a cada clase. El algoritmo encajará las piezas automáticamente.</p>
+        
+        <form id="cargaLectivaForm" class="schedule-form-grid" onsubmit="window.addCargaLectiva(event)">
+          <div>
+            <label>Clase</label>
+            <select id="schClase" required></select>
+          </div>
+          <div>
+            <label>Asignatura (Nombre)</label>
+            <input type="text" id="schAsignatura" placeholder="Ej. Matemáticas" required>
+          </div>
+          <div>
+            <label>Profesor Titular</label>
+            <select id="schProfesor" required></select>
+          </div>
+          <div>
+            <label>Horas / Sem.</label>
+            <input type="number" id="schHoras" min="1" max="10" value="3" required>
+          </div>
+          <button type="submit" class="btn-primary" style="height: 48px;">Añadir</button>
+        </form>
+
+        <div id="cargaLectivaList" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+          </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+          <h2 style="font-family:'Playfair Display',serif; font-size:22px; margin:0;">2. Visor de Horarios Generados</h2>
+          <select id="visorHorarioSelect" onchange="window.renderTimetableClase(this.value)" style="width:250px; padding:8px 12px; font-weight:600;">
+            <option value="">Selecciona una clase...</option>
+          </select>
+        </div>
+        
+        <div id="timetableContainer" style="overflow-x: auto;">
+          <div class="empty-state">Selecciona una clase arriba para ver su horario, o pulsa "Generar Horario Automático".</div>
+        </div>
+      </div>
     </div>
 
     <div id="profesorAsignaturasView" class="hidden">
@@ -384,7 +451,10 @@
         <a onclick="window.backToAsignaturaDetail()">← Volver a la asignatura</a><span>/</span>
         <span id="trimestreDetailContext"></span><span>/</span><span id="currentTrimestre"></span>
       </div>
-      <div class="page-header"><h1 id="trimestreDetailTitle">1º Trimestre</h1></div>
+      
+      <div class="page-header">
+        <h1 id="trimestreDetailTitle">1º Trimestre</h1>
+      </div>
       
       <div class="card" style="margin-bottom: 32px;">
         <h3 style="margin-bottom:16px;">⚙️ Configuración de Categorías</h3>
@@ -399,7 +469,11 @@
         </div>
       </div>
       
-      <h3 style="margin-bottom: 16px;">📊 Alumnos para Evaluar</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3>📊 Alumnos para Evaluar</h3>
+        <button id="btnExportarNotas" class="btn-secondary" style="border-color: var(--green); color: var(--green);" onclick="window.exportarNotasCSV()">📥 Exportar a Excel (CSV)</button>
+      </div>
+
       <div id="trimestreAlumnosList" class="loading">Cargando alumnos...</div>
     </div>
 
@@ -427,8 +501,14 @@
     <h2 class="modal-header">Editar clase</h2>
     <form id="editClassForm">
       <input type="hidden" id="editClassId" name="classId">
-      <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" id="editClassNombre" required></div>
-      <div class="form-group"><label>Curso *</label><input type="text" name="curso" id="editClassCurso" required></div>
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" id="editClassNombre" required>
+      </div>
+      <div class="form-group">
+        <label>Curso *</label>
+        <input type="text" name="curso" id="editClassCurso" required>
+      </div>
       <div class="form-group">
         <label>Tutor de la Clase *</label>
         <select name="tutorEmail" id="editClassTutor" required></select>
@@ -445,8 +525,14 @@
   <div class="modal-content">
     <h2 class="modal-header">Crear clase</h2>
     <form id="createClassForm">
-      <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required placeholder="Ej. 1º ESO A"></div>
-      <div class="form-group"><label>Curso *</label><input type="text" name="curso" required placeholder="Ej. 1º ESO"></div>
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" required placeholder="Ej. 1º ESO A">
+      </div>
+      <div class="form-group">
+        <label>Curso *</label>
+        <input type="text" name="curso" required placeholder="Ej. 1º ESO">
+      </div>
       <div class="form-group">
         <label>Tutor de la Clase *</label>
         <select name="tutorEmail" id="createClassTutor" required></select>
@@ -463,8 +549,14 @@
   <div class="modal-content">
     <h2 class="modal-header">Añadir alumno</h2>
     <form id="addStudentForm">
-      <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div>
-      <div class="form-group"><label>Apellidos *</label><input type="text" name="apellidos" required></div>
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" required>
+      </div>
+      <div class="form-group">
+        <label>Apellidos *</label>
+        <input type="text" name="apellidos" required>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" onclick="document.getElementById('addStudentModal').classList.remove('active')">Cancelar</button>
         <button type="submit" class="btn-primary">Añadir</button>
@@ -477,7 +569,10 @@
   <div class="modal-content">
     <h2 class="modal-header">Crear asignatura</h2>
     <form id="createAsignaturaForm">
-      <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div>
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" required>
+      </div>
       <div class="form-group">
         <label>Profesores de la Asignatura *</label>
         <div id="asignaturaProfesoresSelection" class="checkbox-group" style="margin-bottom:12px;"></div>
@@ -498,8 +593,14 @@
   <div class="modal-content">
     <h2 class="modal-header">Invitar profesor</h2>
     <form id="inviteProfesorForm">
-      <div class="form-group"><label>Email de Google *</label><input type="email" name="email" required></div>
-      <div class="form-group"><label>Nombre (opcional)</label><input type="text" name="nombre"></div>
+      <div class="form-group">
+        <label>Email de Google *</label>
+        <input type="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label>Nombre (opcional)</label>
+        <input type="text" name="nombre">
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" onclick="document.getElementById('inviteProfesorModal').classList.remove('active')">Cancelar</button>
         <button type="submit" class="btn-primary">Invitar</button>
@@ -516,10 +617,7 @@
   const firebaseConfig = {
     apiKey: "AIzaSyC0trECUS1g7CpQjGQtvjFim5QgcKVBfUs",
     authDomain: "grade-weighting.firebaseapp.com",
-    projectId: "grade-weighting",
-    storageBucket: "grade-weighting.firebasestorage.app",
-    messagingSenderId: "567298019231",
-    appId: "1:567298019231:web:18c435e0a6808b7bd5f7aa"
+    projectId: "grade-weighting"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -540,8 +638,11 @@
     cachedClasses: [], 
     cachedProfesores: [], 
     cachedAlumnos: [],
+    currentAlumnosList: [], 
     expedienteData: null,
-    analyticsData: null
+    analyticsData: null,
+    cargaLectiva: [], 
+    horariosGenerados: null
   };
 
   let chartInstance = null;
@@ -556,7 +657,7 @@
       'directorView', 'profesorAsignaturasView', 'profesorClasesView', 
       'claseDetailView', 'asistenciaView', 'expedienteView', 
       'profesoresView', 'asignaturasView', 'asignaturaDetailView', 
-      'notasView', 'trimestreDetailView', 'classAnalyticsView'
+      'notasView', 'trimestreDetailView', 'classAnalyticsView', 'horariosView'
     ];
     views.forEach(id => {
       const element = document.getElementById(id);
@@ -667,10 +768,10 @@
   };
   
   window.backToAsignaturaDetailBreadcrumb = () => { 
-    if (state.userRole === 'admin') { 
-      window.showAsignaturasView(); 
-    } else { 
-      window.showProfesorAsignaturasView(); 
+    if (state.userRole === 'admin') {
+      window.showAsignaturasView();
+    } else {
+      window.showProfesorAsignaturasView();
     }
   };
 
@@ -684,6 +785,247 @@
   
   window.backToTrimestreDetail = () => { 
     window.showTrimestreDetail(state.currentTrimestre); 
+  };
+
+  // --- 🎯 NUEVA LÓGICA DE HORARIOS ---
+  window.showHorariosView = async () => {
+    hideAllViews();
+    document.getElementById('horariosView').classList.remove('hidden');
+    
+    if(state.cachedClasses.length === 0) {
+      const snapC = await getDocs(collection(db, `colegios/${state.colegioId}/clases`));
+      state.cachedClasses = snapC.docs.map(d => ({id: d.id, ...d.data()}));
+    }
+    if(state.cachedProfesores.length === 0) {
+      const snapP = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
+      state.cachedProfesores = snapP.docs.map(d => ({id: d.id, ...d.data()}));
+    }
+
+    let clsHtml = '<option value="">Selecciona clase...</option>';
+    state.cachedClasses.forEach(c => {
+      clsHtml += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+    
+    document.getElementById('schClase').innerHTML = clsHtml;
+    document.getElementById('visorHorarioSelect').innerHTML = clsHtml;
+
+    let profHtml = '<option value="">Selecciona profesor...</option>';
+    state.cachedProfesores.forEach(p => {
+      profHtml += `<option value="${p.id}">${p.nombre || p.id}</option>`;
+    });
+    document.getElementById('schProfesor').innerHTML = profHtml;
+
+    await loadCargaLectiva();
+    await loadHorariosGuardados();
+  };
+
+  async function loadCargaLectiva() {
+    const list = document.getElementById('cargaLectivaList');
+    list.innerHTML = '<div style="padding:20px; text-align:center;">Cargando...</div>';
+    
+    const snap = await getDocs(collection(db, `colegios/${state.colegioId}/carga_lectiva`));
+    state.cargaLectiva = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (state.cargaLectiva.length === 0) {
+      list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--ink-light);">No hay asignaciones creadas. Añade la primera arriba.</div>';
+      return;
+    }
+
+    let html = '<table class="table"><thead><tr><th>Clase</th><th>Asignatura</th><th>Profesor</th><th>Horas/Sem</th><th></th></tr></thead><tbody>';
+    state.cargaLectiva.forEach(carga => {
+      const claseInfo = state.cachedClasses.find(c => c.id === carga.claseId);
+      const profInfo = state.cachedProfesores.find(p => p.id === carga.profesorId);
+      
+      html += `
+        <tr>
+          <td><strong>${claseInfo ? claseInfo.nombre : 'Desc.'}</strong></td>
+          <td>${carga.asignatura}</td>
+          <td>${profInfo ? (profInfo.nombre || profInfo.id) : carga.profesorId}</td>
+          <td>${carga.horas} h</td>
+          <td style="text-align:right;"><button class="btn-icon" onclick="window.borrarCarga('${carga.id}')">🗑️</button></td>
+        </tr>
+      `;
+    });
+    list.innerHTML = html + '</tbody></table>';
+  }
+
+  window.addCargaLectiva = async (e) => {
+    e.preventDefault();
+    const claseId = document.getElementById('schClase').value;
+    const asignatura = document.getElementById('schAsignatura').value;
+    const profesorId = document.getElementById('schProfesor').value;
+    const horas = parseInt(document.getElementById('schHoras').value);
+
+    try {
+      await addDoc(collection(db, `colegios/${state.colegioId}/carga_lectiva`), {
+        claseId, asignatura, profesorId, horas, createdAt: serverTimestamp()
+      });
+      document.getElementById('schAsignatura').value = '';
+      loadCargaLectiva();
+    } catch(err) { 
+      alert("Error al añadir carga lectiva."); 
+    }
+  };
+
+  window.borrarCarga = async (id) => {
+    try {
+      await deleteDoc(doc(db, `colegios/${state.colegioId}/carga_lectiva/${id}`));
+      loadCargaLectiva();
+    } catch(err) {
+      alert("Error al borrar");
+    }
+  };
+
+  window.generarHorariosAutomaticos = async () => {
+    if (state.cargaLectiva.length === 0) {
+      return alert("Primero debes añadir la carga lectiva.");
+    }
+    
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    const numHoras = 6;
+    let scheduleClase = {};
+    let scheduleProfe = {};
+
+    state.cachedClasses.forEach(c => {
+        scheduleClase[c.id] = {};
+        dias.forEach(d => scheduleClase[c.id][d] = Array(numHoras).fill(null));
+    });
+    
+    state.cachedProfesores.forEach(p => {
+        scheduleProfe[p.id] = {};
+        dias.forEach(d => scheduleProfe[p.id][d] = Array(numHoras).fill(null));
+    });
+
+    let cargas = [...state.cargaLectiva].sort((a,b) => b.horas - a.horas);
+    let conflictos = 0;
+
+    cargas.forEach(carga => {
+      let horasColocadas = 0;
+      let intentos = 0;
+
+      while(horasColocadas < carga.horas && intentos < 100) {
+        let colocado = false;
+
+        for (let d of dias) {
+          if (colocado) break;
+          let yaTieneHoy = scheduleClase[carga.claseId][d].some(s => s && s.asignatura === carga.asignatura);
+          
+          if (!yaTieneHoy) {
+            for (let h = 0; h < numHoras; h++) {
+              if (!scheduleClase[carga.claseId][d][h] && !scheduleProfe[carga.profesorId][d][h]) {
+                scheduleClase[carga.claseId][d][h] = { asignatura: carga.asignatura, profesorId: carga.profesorId };
+                scheduleProfe[carga.profesorId][d][h] = carga.claseId;
+                colocado = true;
+                horasColocadas++;
+                break;
+              }
+            }
+          }
+        }
+
+        if (!colocado) {
+          for (let d of dias) {
+            if (colocado) break;
+            for (let h = 0; h < numHoras; h++) {
+              if (!scheduleClase[carga.claseId][d][h] && !scheduleProfe[carga.profesorId][d][h]) {
+                scheduleClase[carga.claseId][d][h] = { asignatura: carga.asignatura, profesorId: carga.profesorId };
+                scheduleProfe[carga.profesorId][d][h] = carga.claseId;
+                colocado = true;
+                horasColocadas++;
+                break;
+              }
+            }
+          }
+        }
+
+        if(!colocado) {
+          conflictos++;
+          break;
+        }
+        intentos++;
+      }
+    });
+
+    state.horariosGenerados = scheduleClase;
+    
+    try {
+      await setDoc(doc(db, `colegios/${state.colegioId}/horarios/actual`), {
+        clases: scheduleClase,
+        updatedAt: serverTimestamp()
+      });
+
+      if(conflictos > 0) {
+        alert(`⚠️ Algoritmo terminado, pero hubo ${conflictos} hora(s) que no se pudieron colocar porque el profesor o la clase ya estaban ocupados a todas horas.`);
+      } else {
+        alert('✅ ¡Horario generado con éxito sin solapamientos!');
+      }
+      
+      const currentClaseSelect = document.getElementById('visorHorarioSelect').value;
+      if(currentClaseSelect) {
+        window.renderTimetableClase(currentClaseSelect);
+      }
+    } catch(err) {
+      alert("Error al guardar el horario");
+    }
+  };
+
+  async function loadHorariosGuardados() {
+    try {
+      const docRef = await getDoc(doc(db, `colegios/${state.colegioId}/horarios/actual`));
+      if (docRef.exists()) {
+        state.horariosGenerados = docRef.data().clases;
+      }
+    } catch(err) {
+      console.error("No se pudo cargar el horario", err);
+    }
+  }
+
+  window.renderTimetableClase = (claseId) => {
+    const container = document.getElementById('timetableContainer');
+    
+    if (!claseId) {
+      container.innerHTML = '<div class="empty-state">Selecciona una clase arriba.</div>';
+      return;
+    }
+    if (!state.horariosGenerados || !state.horariosGenerados[claseId]) {
+      container.innerHTML = '<div class="empty-state">No hay horario generado para esta clase. Pulsa Generar Automático.</div>';
+      return;
+    }
+
+    const horario = state.horariosGenerados[claseId];
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    const tiempos = ['1ª Hora (8:00)', '2ª Hora (9:00)', '3ª Hora (10:00)', '4ª Hora (11:30)', '5ª Hora (12:30)', '6ª Hora (13:30)'];
+
+    let html = '<table class="timetable"><thead><tr><th style="width:100px;">Hora</th>';
+    dias.forEach(d => {
+      html += `<th>${d}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    for (let h = 0; h < 6; h++) {
+      html += `<tr><td class="tt-hour">${tiempos[h]}</td>`;
+      for (let d of dias) {
+        const bloque = horario[d][h];
+        if (bloque) {
+          const profInfo = state.cachedProfesores.find(p => p.id === bloque.profesorId);
+          const profName = profInfo ? (profInfo.nombre || profInfo.id.split('@')[0]) : 'Profesor';
+          html += `
+            <td>
+              <div class="tt-slot">
+                <div class="tt-subject">${bloque.asignatura}</div>
+                <div class="tt-teacher">${profName}</div>
+              </div>
+            </td>
+          `;
+        } else {
+          html += `<td style="background: var(--cream); border: 1px dashed var(--border);"></td>`;
+        }
+      }
+      html += '</tr>';
+    }
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
   };
 
   // --- 3. CARGA DE CLASES Y ALUMNOS ---
@@ -726,7 +1068,6 @@
       list.innerHTML = html + '</div>';
     } catch(e) { 
       console.error(e); 
-      list.innerHTML = '<p style="color:red">Error cargando clases.</p>'; 
     }
   }
 
@@ -784,7 +1125,6 @@
     }
   };
 
-  // --- BORRADOS ---
   window.deleteClass = async (id, nombre) => {
     if(confirm(`⚠️ ¿Seguro que quieres borrar la clase "${nombre}"?`)) {
       try { 
@@ -881,7 +1221,11 @@
     });
     document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st);
     
-    await setDoc(doc(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true });
+    try {
+      await setDoc(doc(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true });
+    } catch(e) {
+      console.error("Error guardando asistencia");
+    }
   };
 
   // --- 5. CARGAS GENERALES DEL DIRECTOR ---
@@ -917,7 +1261,9 @@
         `; 
       }); 
       list.innerHTML = html + '</tbody></table>'; 
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+      console.error(e); 
+    }
   }
   
   async function loadAsignaturas() { 
@@ -947,7 +1293,9 @@
         `; 
       }); 
       list.innerHTML = html + '</tbody></table>'; 
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+      console.error(e); 
+    }
   }
 
   // --- 6. VISTA DEL PROFESOR: ASIGNATURAS Y TUTORÍAS ---
@@ -994,59 +1342,12 @@
       }
       
       list.innerHTML = html; 
-    } catch(e) { console.error(e); }
-  }
-
-  window.showAsignaturaDetail = (id, nombre) => { 
-    state.currentAsignaturaId = id; 
-    state.currentContext = 'asignatura'; 
-    document.getElementById('currentAsignaturaNombre').textContent = nombre; 
-    hideAllViews(); 
-    document.getElementById('asignaturaDetailView').classList.remove('hidden'); 
-  };
-
-  window.showTutoriaDetail = (classId, className) => {
-    state.currentClassId = classId; 
-    state.currentContext = 'tutoria'; 
-    document.getElementById('currentAsignaturaNombre').textContent = 'Tutoría - ' + className; 
-    document.getElementById('asignaturaDetailTitle').textContent = `Trimestres`;
-    hideAllViews(); 
-    document.getElementById('asignaturaDetailView').classList.remove('hidden');
-  };
-
-  function getPonderacionPath(t) {
-    if (state.currentContext === 'tutoria') {
-      return `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderacionesTutoria/${t}`;
-    } else {
-      return `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${t}`;
-    }
-  }
-  
-  function getNotasPath(studentRefStr, t) {
-    if (state.currentContext === 'tutoria') {
-      return `colegios/${state.colegioId}/clases/${state.currentClassId}/notasTutoria/${studentRefStr}-${t}`;
-    } else {
-      return `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`;
+    } catch(e) { 
+      console.error(e); 
     }
   }
 
   // --- 7. PONDERACIÓN Y ALUMNOS PARA EVALUAR ---
-  window.showTrimestreDetail = async (t) => {
-    state.currentTrimestre = t; 
-    hideAllViews(); 
-    document.getElementById('trimestreDetailView').classList.remove('hidden');
-    
-    await window.loadPonderacion(t); 
-    await window.loadAlumnosParaEvaluar();
-    
-    const names = { 'T1': '1º Trimestre', 'T2': '2º Trimestre', 'T3': '3º Trimestre' };
-    document.getElementById('currentTrimestre').textContent = names[t]; 
-    document.getElementById('trimestreDetailTitle').textContent = names[t];
-    document.getElementById('trimestreDetailContext').textContent = document.getElementById('currentAsignaturaNombre').textContent;
-  };
-
-  let currentCategorias = [];
-  
   window.loadPonderacion = async (t) => {
     try {
       const d = await getDoc(doc(db, getPonderacionPath(t)));
@@ -1059,7 +1360,9 @@
       
       renderCategorias(); 
       updatePesoTotal();
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+      console.error(e); 
+    }
   };
 
   function renderCategorias() {
@@ -1161,7 +1464,8 @@
       }
 
       alumnos.sort((a,b) => (a.a || '').localeCompare(b.a || ''));
-      
+      state.currentAlumnosList = alumnos;
+
       let html = '<div class="cards-grid">';
       alumnos.forEach(alum => {
         const nLimpio = (alum.n + ' ' + alum.a).replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -1179,30 +1483,81 @@
     }
   };
 
+  // 🎯 EXPORTAR LAS NOTAS A EXCEL (CSV)
+  window.exportarNotasCSV = async () => {
+    const btn = document.getElementById('btnExportarNotas');
+    if (btn) {
+      btn.textContent = '⏳ Generando Excel...';
+      btn.disabled = true;
+    }
+
+    try {
+      const subjectName = document.getElementById('currentAsignaturaNombre').textContent;
+      const trimName = state.currentTrimestre;
+      
+      const pDoc = await getDoc(doc(db, getPonderacionPath(state.currentTrimestre)));
+      const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [];
+
+      let csvContent = "\uFEFF" + "Apellidos;Nombre;Asignatura;Trimestre;Nota Final;Observaciones\n";
+
+      for (const alum of state.currentAlumnosList) {
+        const nDoc = await getDoc(doc(db, getNotasPath(alum.id, state.currentTrimestre)));
+        const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
+        
+        let finalGrade = 0; 
+        let pesoTotal = 0;
+        
+        cats.forEach(cat => {
+          let cNotas = notasData.categorias?.[cat.nombre] || []; 
+          cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
+          
+          if (cNotas.length > 0) {
+            const suma = cNotas.reduce((acc, curr) => {
+              let v = curr.valor === '' ? 0 : parseFloat(curr.valor || 0);
+              let m = parseFloat(curr.maximo || 10); 
+              if(m <= 0) m = 10;
+              return acc + ((v/m) * 10);
+            }, 0);
+            finalGrade += (suma/cNotas.length) * (cat.peso/100); 
+            pesoTotal += cat.peso; 
+          }
+        });
+        
+        const notaFinalStr = pesoTotal > 0 ? finalGrade.toFixed(2).replace('.', ',') : 'Sin evaluar';
+        
+        const obsRaw = notasData.comentarioTutor || "";
+        const obsLimpia = obsRaw.replace(/\n/g, " ").replace(/;/g, ",");
+        
+        csvContent += `"${alum.a}";"${alum.n}";"${subjectName}";"${trimName}";"${notaFinalStr}";"${obsLimpia}"\n`;
+      }
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Plantilla_Notas_${subjectName}_${trimName}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (e) {
+      console.error(e);
+      alert("Hubo un error exportando las notas.");
+    } finally {
+      if (btn) {
+        btn.textContent = '📥 Exportar a Excel (CSV)';
+        btn.disabled = false;
+      }
+    }
+  };
+
   // --- 8. PANEL DE NOTAS X/Y Y COMENTARIOS ---
-  window.showNotasView = (id, nombreAlumno, classId, alumId) => { 
-    state.currentAlumnoId = id; 
-    state.currentEvalClassId = classId; 
-    state.currentEvalAlumId = alumId; 
-    document.getElementById('currentAlumnoNombre').textContent = nombreAlumno; 
-    hideAllViews(); 
-    document.getElementById('notasView').classList.remove('hidden'); 
-    window.loadNotas(nombreAlumno); 
-  };
-  
-  window.switchTrimestre = (t, btnElement) => { 
-    state.currentTrimestre = t; 
-    document.querySelectorAll('#notasView .trimestre-tab').forEach(tab => tab.classList.remove('active')); 
-    if(btnElement) btnElement.classList.add('active'); 
-    window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); 
-  };
-  
   window.loadNotas = async () => {
     const container = document.getElementById('notasContent'); 
     container.innerHTML = '<div class="loading">Cargando perfil de evaluación...</div>';
     
-    // Resumen Asistencia Automática
-    let faltas = 0; let retrasos = 0;
+    let faltas = 0; 
+    let retrasos = 0;
     try { 
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${state.currentEvalClassId}/asistencia`)); 
       snapAst.forEach(docSnap => { 
@@ -1235,7 +1590,8 @@
         </div>
       `;
 
-      let notaFinalGlobal = 0; let pesoTotalGlobal = 0;
+      let notaFinalGlobal = 0; 
+      let pesoTotalGlobal = 0;
       
       cats.forEach((cat, idx) => {
         let notasArr = data.categorias?.[cat.nombre] || []; 
@@ -1259,9 +1615,13 @@
           <div class="accordion-card">
             <div class="accordion-header" onclick="window.toggleAccordion('acc-${idx}', 'icon-${idx}')">
               <div class="accordion-title">${cat.nombre} <span class="accordion-badge">${cat.peso}%</span></div>
-              <div class="accordion-stats"><span class="accordion-media">Media: <strong>${mediaCategoria.toFixed(2)}</strong> / 10</span><span id="icon-${idx}" class="accordion-chevron">▼</span></div>
+              <div class="accordion-stats">
+                <span class="accordion-media">Media: <strong>${mediaCategoria.toFixed(2)}</strong> / 10</span>
+                <span id="icon-${idx}" class="accordion-chevron">▼</span>
+              </div>
             </div>
-            <div class="accordion-body" id="acc-${idx}"><div style="padding-top:15px;">
+            <div class="accordion-body" id="acc-${idx}">
+              <div style="padding-top:15px;">
         `;
         
         if (notasArr.length === 0) {
@@ -1271,22 +1631,36 @@
         notasArr.forEach((nObj, i) => {
           html += `
             <div class="record-row">
-              <div class="record-desc"><input type="text" placeholder="Concepto (ej. Examen 1)" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)"></div>
+              <div class="record-desc">
+                <input type="text" placeholder="Concepto (ej. Examen 1)" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)">
+              </div>
               <div class="record-val">
                 <input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor !== undefined ? nObj.valor : ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)">
                 <span style="font-weight:600;">/</span>
                 <input type="number" class="val-max" min="0.1" step="0.1" value="${nObj.maximo || 10}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)">
               </div>
-              <div class="record-actions"><button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button></div>
+              <div class="record-actions">
+                <button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button>
+              </div>
             </div>
           `; 
         });
         
-        html += `<button class="btn-secondary btn-sm" style="margin-top:16px;" onclick="window.addNota('${cat.nombre}')">+ Añadir registro</button></div></div></div>`;
+        html += `
+                <button class="btn-secondary btn-sm" style="margin-top:16px;" onclick="window.addNota('${cat.nombre}')">+ Añadir registro</button>
+              </div>
+            </div>
+          </div>
+        `;
       });
       
       const calculoFinalSeguro = pesoTotalGlobal > 0 ? notaFinalGlobal : 0;
-      html += `<div class="nota-final-display"><h3>Nota Global Ponderada</h3><div class="nota">${calculoFinalSeguro.toFixed(2)}</div></div>`; 
+      html += `
+        <div class="nota-final-display">
+          <h3>Nota Global Ponderada</h3>
+          <div class="nota">${calculoFinalSeguro.toFixed(2)}</div>
+        </div>
+      `; 
       
       container.innerHTML = html;
     } catch(e) { 
@@ -1308,7 +1682,10 @@
   
   window.guardarComentario = async () => { 
     try {
-      await setDoc(doc(db, getNotasPath(state.currentAlumnoId, state.currentTrimestre)), { comentarioTutor: document.getElementById('comentarioArea').value }, { merge:true }); 
+      await setDoc(doc(db, getNotasPath(state.currentAlumnoId, state.currentTrimestre)), { 
+        comentarioTutor: document.getElementById('comentarioArea').value 
+      }, { merge:true }); 
+      
       const i = document.getElementById('saveStatusIndicator'); 
       i.style.opacity = 1; 
       setTimeout(() => i.style.opacity = 0, 2000); 
@@ -1322,7 +1699,11 @@
       const p = getNotasPath(state.currentAlumnoId, state.currentTrimestre);
       const d = await getDoc(doc(db, p)); 
       const data = d.exists() ? d.data() : {categorias:{}}; 
-      if(!data.categorias[cat]) data.categorias[cat] = []; 
+      
+      if(!data.categorias[cat]) {
+        data.categorias[cat] = []; 
+      }
+      
       data.categorias[cat].push({valor: '', maximo: 10, descripcion: ''}); 
       await setDoc(doc(db, p), data, {merge:true}); 
       window.loadNotas(); 
@@ -1359,6 +1740,7 @@
       const p = getNotasPath(state.currentAlumnoId, state.currentTrimestre);
       const d = await getDoc(doc(db, p)); 
       const data = d.data(); 
+      
       data.categorias[cat].splice(idx, 1); 
       await setDoc(doc(db, p), data, {merge:true}); 
       window.loadNotas(); 
@@ -1367,27 +1749,7 @@
     }
   };
 
-  // --- 9. EXPEDIENTE GLOBAL DEL ALUMNO (NUEVO DASHBOARD) ---
-  function calcFinalGradeForChart(categorias, notasData) {
-    let notaFinal = 0; 
-    let pesoTotal = 0;
-    categorias.forEach(cat => {
-      let cNotas = notasData.categorias?.[cat.nombre] || []; 
-      cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
-      const suma = cNotas.reduce((acc, curr) => {
-        let v = curr.valor === '' ? 0 : parseFloat(curr.valor || 0);
-        let m = parseFloat(curr.maximo || 10); 
-        if(m <= 0) m = 10;
-        return acc + ((v/m) * 10);
-      }, 0);
-      if (cNotas.length > 0) { 
-        notaFinal += (suma/cNotas.length) * (cat.peso/100); 
-        pesoTotal += cat.peso; 
-      }
-    });
-    return pesoTotal > 0 ? notaFinal : null;
-  }
-
+  // --- 9. EXPEDIENTE GLOBAL DEL ALUMNO ---
   window.initExpedienteGlobal = async (studentRef, studentName) => {
     state.currentAlumnoId = studentRef; 
     document.getElementById('expedienteAlumnoNameBread').textContent = studentName;
@@ -1402,7 +1764,6 @@
       
       const [classId, alumnoId] = studentRef.split('/');
 
-      // Recuperar Asistencia Total
       const snapAst = await getDocs(collection(db, `colegios/${state.colegioId}/clases/${classId}/asistencia`)); 
       snapAst.forEach(docSnap => { 
         const d = docSnap.data(); 
@@ -1410,7 +1771,6 @@
         if(d[alumnoId] === 'R') state.expedienteData.attendance.R++; 
       }); 
 
-      // Tutoría
       const classDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}`));
       if (classDoc.exists()) {
         let tutRecord = { name: "🎓 Tutoría y Actitud", profe: classDoc.data().tutorEmail || 'Sin Tutor', grades: {}, comments: {} };
@@ -1419,28 +1779,32 @@
           const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases/${classId}/notasTutoria/${alumnoId}-${t}`));
           const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [];
           const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
+          
           tutRecord.comments[t] = notasData.comentarioTutor || "";
-          const final = calcFinalGradeForChart(cats, notasData);
-          tutRecord.grades[t] = final;
+          tutRecord.grades[t] = calcFinalGradeForChart(cats, notasData);
         }
         state.expedienteData.subjects.push(tutRecord);
       }
 
-      // Asignaturas
       const snapAsig = await getDocs(query(collection(db, `colegios/${state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
       for (const d of snapAsig.docs) {
         const asig = d.data();
         const profeStr = asig.profesorEmails ? asig.profesorEmails.join(', ') : asig.profesorEmail;
         let subRecord = { name: asig.nombre, profe: profeStr, grades: {}, comments: {} };
+        
         for (const t of ['T1', 'T2', 'T3']) {
           const pDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/ponderaciones/${t}`));
           const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${d.id}/notas/${studentRef.replace('/','-')}-${t}`));
           const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [];
           const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
+          
           subRecord.comments[t] = notasData.comentarioTutor || "";
           const final = calcFinalGradeForChart(cats, notasData);
           subRecord.grades[t] = final;
-          if (final !== null) state.expedienteData.averages[t].push(final);
+          
+          if (final !== null) {
+            state.expedienteData.averages[t].push(final);
+          }
         }
         state.expedienteData.subjects.push(subRecord);
       }
@@ -1464,28 +1828,46 @@
       return;
     }
 
-    // Construcción del Dashboard y Gráficos
-    let sum = 0; let count = 0;
-    let best = { name: '-', grade: -1 }; let worst = { name: '-', grade: 11 };
-    let radarLabels = []; let radarData = [];
+    let sum = 0; 
+    let count = 0;
+    let best = { name: '-', grade: -1 }; 
+    let worst = { name: '-', grade: 11 };
+    let radarLabels = []; 
+    let radarData = [];
 
     let htmlTable = '<table class="table"><thead><tr><th>Asignatura</th><th>Profesor</th><th>Nota Final</th></tr></thead><tbody>';
-    let htmlComments = ''; let hasComments = false;
+    let htmlComments = ''; 
+    let hasComments = false;
 
     state.expedienteData.subjects.forEach(sub => {
       const grade = sub.grades[t];
       
       if (grade !== null) {
-        sum += grade; count++;
-        radarLabels.push(sub.name); radarData.push(grade.toFixed(2));
-        if (grade > best.grade) best = { name: sub.name, grade };
-        if (grade < worst.grade) worst = { name: sub.name, grade };
+        sum += grade; 
+        count++;
+        radarLabels.push(sub.name); 
+        radarData.push(grade.toFixed(2));
+        
+        if (grade > best.grade) { best = { name: sub.name, grade }; }
+        if (grade < worst.grade) { worst = { name: sub.name, grade }; }
       }
 
-      htmlTable += `<tr><td><strong>${sub.name}</strong></td><td>${sub.profe}</td><td><strong style="color:var(--accent); font-size:15px;">${grade !== null ? grade.toFixed(2) : '—'}</strong></td></tr>`;
+      htmlTable += `
+        <tr>
+          <td><strong>${sub.name}</strong></td>
+          <td>${sub.profe}</td>
+          <td><strong style="color:var(--accent); font-size:15px;">${grade !== null ? grade.toFixed(2) : '—'}</strong></td>
+        </tr>
+      `;
+      
       if (sub.comments[t] && sub.comments[t].trim() !== '') {
         hasComments = true;
-        htmlComments += `<div class="comment-card"><h4>${sub.name} <span class="profe-tag">Prof. ${sub.profe.split('@')[0]}</span></h4><p>"${sub.comments[t]}"</p></div>`;
+        htmlComments += `
+          <div class="comment-card">
+            <h4>${sub.name} <span class="profe-tag">Prof. ${sub.profe.split('@')[0]}</span></h4>
+            <p>"${sub.comments[t]}"</p>
+          </div>
+        `;
       }
     });
 
@@ -1496,21 +1878,25 @@
     let dashboardHtml = `
       <div class="analytics-grid">
         <div class="insight-card">
-          <div class="insight-icon">📊</div><div class="insight-title">Media del Trimestre</div>
+          <div class="insight-icon">📊</div>
+          <div class="insight-title">Media del Trimestre</div>
           <div class="insight-value">${mediaTrimestre} / 10</div>
         </div>
         <div class="insight-card">
-          <div class="insight-icon">🏆</div><div class="insight-title">Mejor Asignatura</div>
+          <div class="insight-icon">🏆</div>
+          <div class="insight-title">Mejor Asignatura</div>
           <div class="insight-value insight-good">${best.name}</div>
           <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Nota más alta: ${best.grade !== -1 ? best.grade.toFixed(2) : '-'}</p>
         </div>
         <div class="insight-card">
-          <div class="insight-icon">⚠️</div><div class="insight-title">Área de Mejora</div>
+          <div class="insight-icon">⚠️</div>
+          <div class="insight-title">Área de Mejora</div>
           <div class="insight-value" style="color:var(--accent); font-weight:bold;">${worst.name}</div>
           <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Nota más baja: ${worst.grade !== 11 ? worst.grade.toFixed(2) : '-'}</p>
         </div>
         <div class="insight-card">
-          <div class="insight-icon">📅</div><div class="insight-title">Asistencia Acumulada</div>
+          <div class="insight-icon">📅</div>
+          <div class="insight-title">Asistencia Acumulada</div>
           <div class="insight-value">${faltas} Faltas</div>
           <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Retrasos registrados: ${retrasos}</p>
         </div>
@@ -1532,25 +1918,32 @@
     document.getElementById('expedienteContentTable').innerHTML = htmlTable + '</tbody></table>';
     document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones del equipo docente en este trimestre.</div>';
 
-    // Gráficos del Alumno
-    if (expRadarChartInstance) expRadarChartInstance.destroy();
-    if (expLineChartInstance) expLineChartInstance.destroy();
+    if (expRadarChartInstance) { expRadarChartInstance.destroy(); }
+    if (expLineChartInstance) { expLineChartInstance.destroy(); }
 
-    // Radar
     expRadarChartInstance = new Chart(document.getElementById('expRadarChart').getContext('2d'), {
       type: 'radar',
       data: {
         labels: radarLabels,
         datasets: [{
-          label: 'Nota Final', data: radarData,
-          backgroundColor: 'rgba(45, 106, 79, 0.2)', borderColor: '#2d6a4f',
-          pointBackgroundColor: '#2d6a4f', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#2d6a4f'
+          label: 'Nota Final', 
+          data: radarData,
+          backgroundColor: 'rgba(45, 106, 79, 0.2)', 
+          borderColor: '#2d6a4f',
+          pointBackgroundColor: '#2d6a4f', 
+          pointBorderColor: '#fff', 
+          pointHoverBackgroundColor: '#fff', 
+          pointHoverBorderColor: '#2d6a4f'
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 10 } }, plugins: { legend: { display: false } } }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 10 } }, 
+        plugins: { legend: { display: false } } 
+      }
     });
 
-    // Línea Anual
     const avgT1 = state.expedienteData.averages.T1.length ? (state.expedienteData.averages.T1.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T1.length) : null;
     const avgT2 = state.expedienteData.averages.T2.length ? (state.expedienteData.averages.T2.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T2.length) : null;
     const avgT3 = state.expedienteData.averages.T3.length ? (state.expedienteData.averages.T3.reduce((a,b)=>a+b,0)/state.expedienteData.averages.T3.length) : null;
@@ -1560,12 +1953,24 @@
       data: {
         labels: ['1º Trimestre', '2º Trimestre', '3º Trimestre'],
         datasets: [{
-          label: 'Media Global', data: [avgT1, avgT2, avgT3],
-          borderColor: '#c84b31', backgroundColor: 'rgba(200, 75, 49, 0.1)', borderWidth: 3,
-          pointBackgroundColor: '#1a1a2e', pointRadius: 6, fill: true, tension: 0.3, spanGaps: true
+          label: 'Media Global', 
+          data: [avgT1, avgT2, avgT3],
+          borderColor: '#c84b31', 
+          backgroundColor: 'rgba(200, 75, 49, 0.1)', 
+          borderWidth: 3,
+          pointBackgroundColor: '#1a1a2e', 
+          pointRadius: 6, 
+          fill: true, 
+          tension: 0.3, 
+          spanGaps: true
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 10 } }, plugins: { legend: { display: false } } }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        scales: { y: { min: 0, max: 10 } }, 
+        plugins: { legend: { display: false } } 
+      }
     });
   };
 
@@ -1579,10 +1984,13 @@
     try {
       let alumnos = [];
       const snapAlumnos = await getDocs(query(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`)));
-      snapAlumnos.forEach(d => alumnos.push({ id: d.id, name: `${d.data().nombre} ${d.data().apellidos}` }));
+      snapAlumnos.forEach(d => {
+        alumnos.push({ id: d.id, name: `${d.data().nombre} ${d.data().apellidos}` });
+      });
       
       if(alumnos.length === 0) {
-        return document.getElementById('analyticsContent').innerHTML = '<div class="empty-state">No hay alumnos en la clase.</div>';
+        document.getElementById('analyticsContent').innerHTML = '<div class="empty-state">No hay alumnos en la clase.</div>';
+        return;
       }
 
       const asignaturasClase = [];
@@ -1591,12 +1999,15 @@
         const data = docAsig.data();
         const alumnosAsig = data.alumnos || [];
         const match = alumnos.some(al => alumnosAsig.includes(`${state.currentClassId}/${al.id}`));
-        if(match) asignaturasClase.push({ id: docAsig.id, nombre: data.nombre });
+        if(match) {
+          asignaturasClase.push({ id: docAsig.id, nombre: data.nombre });
+        }
       });
 
       if (asignaturasClase.length === 0) {
         document.getElementById('analyticsSubjectSelect').innerHTML = '<option>Sin asignaturas</option>';
-        return document.getElementById('analyticsContent').innerHTML = '<div class="empty-state">La clase no tiene asignaturas asociadas.</div>';
+        document.getElementById('analyticsContent').innerHTML = '<div class="empty-state">La clase no tiene asignaturas asociadas.</div>';
+        return;
       }
 
       const selectEl = document.getElementById('analyticsSubjectSelect'); 
@@ -1616,6 +2027,7 @@
           
           for (const al of alumnos) {
             const nDoc = await getDoc(doc(db, `colegios/${state.colegioId}/asignaturas/${asig.id}/notas/${state.currentClassId}-${al.id}-${t}`));
+            
             if (nDoc.exists()) {
               const dataNotas = nDoc.data().categorias || {};
               let finalGrade = 0; 
@@ -1696,17 +2108,21 @@
     dataT.forEach(record => {
       sumaClase += record.finalGrade;
       
-      if(!studentAverages[record.studentId]) studentAverages[record.studentId] = { name: record.studentName, sum: 0, count: 0 };
+      if(!studentAverages[record.studentId]) {
+        studentAverages[record.studentId] = { name: record.studentName, sum: 0, count: 0 };
+      }
       studentAverages[record.studentId].sum += record.finalGrade;
       studentAverages[record.studentId].count += 1;
 
-      if (record.finalGrade >= 9) distribution.Sobresaliente++;
-      else if (record.finalGrade >= 7) distribution.Notable++;
-      else if (record.finalGrade >= 5) distribution.Aprobado++;
-      else distribution.Suspenso++;
+      if (record.finalGrade >= 9) { distribution.Sobresaliente++; }
+      else if (record.finalGrade >= 7) { distribution.Notable++; }
+      else if (record.finalGrade >= 5) { distribution.Aprobado++; }
+      else { distribution.Suspenso++; }
 
       for (const [catName, val] of Object.entries(record.categories)) {
-        if(!categoryAverages[catName]) categoryAverages[catName] = { sum: 0, count: 0 };
+        if(!categoryAverages[catName]) {
+          categoryAverages[catName] = { sum: 0, count: 0 };
+        }
         categoryAverages[catName].sum += val;
         categoryAverages[catName].count += 1;
       }
@@ -1717,18 +2133,23 @@
     let topStudent = { name: '-', avg: 0 };
     for (const [id, data] of Object.entries(studentAverages)) {
       const avg = data.sum / data.count;
-      if (avg > topStudent.avg) topStudent = { name: data.name, avg: avg };
+      if (avg > topStudent.avg) {
+        topStudent = { name: data.name, avg: avg };
+      }
     }
 
     let bestCat = { name: '-', avg: 0 };
     let worstCat = { name: '-', avg: 10 };
-    let catLabels = []; let catData = [];
+    let catLabels = []; 
+    let catData = [];
     
     for (const [catName, data] of Object.entries(categoryAverages)) {
       const avg = data.sum / data.count;
-      catLabels.push(catName); catData.push(avg.toFixed(2));
-      if (avg > bestCat.avg) bestCat = { name: catName, avg: avg };
-      if (avg < worstCat.avg) worstCat = { name: catName, avg: avg };
+      catLabels.push(catName); 
+      catData.push(avg.toFixed(2));
+      
+      if (avg > bestCat.avg) { bestCat = { name: catName, avg: avg }; }
+      if (avg < worstCat.avg) { worstCat = { name: catName, avg: avg }; }
     }
 
     let html = `
@@ -1772,8 +2193,8 @@
 
     content.innerHTML = html;
 
-    if(chartPieInstance) chartPieInstance.destroy();
-    if(chartBarInstance) chartBarInstance.destroy();
+    if(chartPieInstance) { chartPieInstance.destroy(); }
+    if(chartBarInstance) { chartBarInstance.destroy(); }
 
     chartPieInstance = new Chart(document.getElementById('pieChartDistribucion').getContext('2d'), {
       type: 'doughnut',
@@ -1785,20 +2206,34 @@
           borderWidth: 2
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { position: 'bottom' } } 
+      }
     });
 
     chartBarInstance = new Chart(document.getElementById('barChartCategorias').getContext('2d'), {
       type: 'bar',
       data: {
         labels: catLabels,
-        datasets: [{ label: 'Nota Media', data: catData, backgroundColor: '#1a1a2e', borderRadius: 4 }]
+        datasets: [{ 
+          label: 'Nota Media', 
+          data: catData, 
+          backgroundColor: '#1a1a2e', 
+          borderRadius: 4 
+        }]
       },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 10 } }, plugins: { legend: { display: false } } }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        scales: { y: { min: 0, max: 10 } }, 
+        plugins: { legend: { display: false } } 
+      }
     });
   };
 
-  // --- 11. MODALES ---
+  // --- 11. MODALES EVENTOS ---
   window.openCreateClassModal = async () => {
     const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
     let html = '<option value="">Selecciona un profesor como tutor</option>';
@@ -1827,14 +2262,21 @@
   window.openCreateAsignaturaModal = async () => {
     let profesHtml = '';
     state.cachedProfesores.filter(p => p.rol === 'profesor').forEach(p => {
-      profesHtml += `<div class="checkbox-item"><input type="checkbox" value="${p.id}" name="profesoresAsig" id="prof-${p.id}"><label for="prof-${p.id}">${p.nombre || p.id}</label></div>`;
+      profesHtml += `
+        <div class="checkbox-item">
+          <input type="checkbox" value="${p.id}" name="profesoresAsig" id="prof-${p.id}">
+          <label for="prof-${p.id}">${p.nombre || p.id}</label>
+        </div>
+      `;
     });
     document.getElementById('asignaturaProfesoresSelection').innerHTML = profesHtml || '<p style="font-size:13px;">No hay profesores disponibles.</p>';
 
     const alumList = document.getElementById('alumnosSelection');
     alumList.innerHTML = '<div class="loading">Cargando clases...</div>';
     
-    if(!state.cachedClasses.length) await loadClasses('classesList', false);
+    if(!state.cachedClasses.length) {
+      await loadClasses('classesList', false);
+    }
     
     let html = '';
     for(const c of state.cachedClasses) {
@@ -1849,7 +2291,12 @@
             <div class="clase-group-body" id="acc-clase-${c.id}">
         `;
         snap.forEach(d => { 
-          html += `<div class="checkbox-item"><input type="checkbox" value="${c.id}/${d.id}" name="alumnos" class="chk-clase-${c.id}" id="al-${d.id}"><label for="al-${d.id}">${d.data().apellidos}, ${d.data().nombre}</label></div>`; 
+          html += `
+            <div class="checkbox-item">
+              <input type="checkbox" value="${c.id}/${d.id}" name="alumnos" class="chk-clase-${c.id}" id="al-${d.id}">
+              <label for="al-${d.id}">${d.data().apellidos}, ${d.data().nombre}</label>
+            </div>
+          `; 
         });
         html += `</div></div>`;
       }
@@ -1877,7 +2324,6 @@
   // --- 12. EVENT LISTENERS DE FORMULARIOS ---
   document.addEventListener('DOMContentLoaded', () => {
     
-    // Crear Clase
     document.getElementById('createClassForm')?.addEventListener('submit', async(e) => { 
       e.preventDefault(); 
       const btn = e.target.querySelector('button[type="submit"]'); 
@@ -1900,7 +2346,6 @@
       btn.disabled = false; 
     });
     
-    // Editar Clase
     document.getElementById('editClassForm')?.addEventListener('submit', async(e) => { 
       e.preventDefault(); 
       const btn = e.target.querySelector('button[type="submit"]'); 
@@ -1919,7 +2364,6 @@
       btn.disabled = false; 
     });
 
-    // Añadir Alumno
     document.getElementById('addStudentForm')?.addEventListener('submit', async(e) => { 
       e.preventDefault(); 
       const btn = e.target.querySelector('button[type="submit"]'); 
@@ -1928,12 +2372,14 @@
       try {
         const cDoc = await getDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId));
         const c = cDoc.data().numAlumnos || 0;
+        
         await addDoc(collection(db, `colegios/${state.colegioId}/clases/${state.currentClassId}/alumnos`), { 
           nombre: e.target.nombre.value, 
           apellidos: e.target.apellidos.value, 
           orden: c + 1, 
           createdAt: serverTimestamp() 
         });
+        
         await setDoc(doc(db, `colegios/${state.colegioId}/clases`, state.currentClassId), { 
           numAlumnos: c + 1 
         }, { merge: true });
@@ -1949,7 +2395,6 @@
       }
     });
 
-    // Crear Asignatura
     document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e) => { 
       e.preventDefault(); 
       const btn = e.target.querySelector('button[type="submit"]'); 
@@ -1965,6 +2410,7 @@
         btn.textContent = "Crear"; 
         return; 
       }
+      
       if(profesChecked.length === 0) { 
         alert('Selecciona al menos un profesor.'); 
         btn.disabled = false; 
@@ -1996,7 +2442,6 @@
       }
     });
 
-    // Invitar Profesor
     document.getElementById('inviteProfesorForm')?.addEventListener('submit', async(e) => { 
       e.preventDefault(); 
       const btn = e.target.querySelector('button[type="submit"]'); 
@@ -2009,8 +2454,11 @@
         const d = await getDoc(ref);
         
         if(d.exists()) { 
-          if(d.data().colegioId === state.colegioId) throw new Error('Ya añadido a tu colegio.'); 
-          else throw new Error('Registrado en otro colegio.'); 
+          if(d.data().colegioId === state.colegioId) {
+            throw new Error('Ya añadido a tu colegio.'); 
+          } else {
+            throw new Error('Registrado en otro colegio.'); 
+          }
         }
         
         await setDoc(ref, { 
