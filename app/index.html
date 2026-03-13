@@ -174,6 +174,9 @@
     .tt-slot:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(200,75,49,0.15); }
     .tt-subject { font-weight: 700; font-size: 13px; color: var(--ink); line-height: 1.2; margin-bottom: 4px; }
     .tt-teacher { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; }
+
+    /* Estilo especial para cuando el algoritmo inserta un Recreo o Comida */
+    .tt-break { background: #f0f0f0; border-left: 4px solid #888; border-radius: 6px; padding: 8px; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 700; font-size: 13px; color: #555; text-transform: uppercase; letter-spacing: 1px; }
     
     .schedule-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 100px; gap: 12px; align-items: end; background: var(--cream); padding: 24px; border-radius: var(--radius); border: 1.5px dashed var(--border); margin-bottom: 32px; }
     @media(max-width: 768px) { .schedule-form-grid { grid-template-columns: 1fr; } }
@@ -304,28 +307,31 @@
       </div>
 
       <div id="horariosConfigArea">
-        <div class="cards-grid" style="grid-template-columns: 1fr 1fr; align-items: start;">
+        <div class="card" style="margin-bottom: 24px;">
+          <h2 style="font-family:'Playfair Display',serif; font-size:20px; margin-bottom:8px;">Paso 1: Configurar las Horas del Colegio</h2>
+          <p style="color:var(--ink-light); font-size:13px; margin-bottom:16px;">
+            Añade todos los bloques de tiempo que existan en el día (clases de 55 min, recreos de 30 min, comedor, etc.). 
+            No te preocupes si no todas las clases tienen recreo a la misma hora, lo configuraremos en el paso 3.
+          </p>
           
-          <div class="card">
-            <h2 style="font-family:'Playfair Display',serif; font-size:20px; margin-bottom:8px;">Paso 1: Horas del Centro</h2>
-            <p style="color:var(--ink-light); font-size:13px; margin-bottom:16px;">Define cuántos periodos hay en un día y su etiqueta de tiempo (Ej. "8:00 - 9:00" o "Recreo").</p>
-            
-            <div id="configTramosContainer">
-              </div>
-            
-            <div style="display: flex; gap: 12px; margin-top: 16px;">
-              <button class="btn-secondary btn-sm" onclick="window.addTramoUI()">+ Añadir hora</button>
-              <button class="btn-primary btn-sm" onclick="window.saveTramosDB()">Guardar horas del colegio</button>
+          <div id="configTramosContainer">
             </div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn-secondary btn-sm" onclick="window.addTramoUI()">+ Añadir hueco de tiempo</button>
+            <button class="btn-primary btn-sm" onclick="window.saveTramosDB()">Guardar estructura de horas</button>
           </div>
+        </div>
 
-          <div class="card">
-            <h2 style="font-family:'Playfair Display',serif; font-size:20px; margin-bottom:8px;">Paso 2: Restricciones de Profesores</h2>
-            <p style="color:var(--ink-light); font-size:13px; margin-bottom:16px;">Si un profesor no puede venir a una hora concreta, márcala aquí para que el algoritmo lo sepa.</p>
+        <div class="cards-grid" style="grid-template-columns: 1fr 1fr; align-items: start; margin-bottom: 24px;">
+          
+          <div class="card" style="margin-bottom: 0;">
+            <h2 style="font-family:'Playfair Display',serif; font-size:20px; margin-bottom:8px;">Paso 2: Ausencias de Profesores</h2>
+            <p style="color:var(--ink-light); font-size:13px; margin-bottom:16px;">Marca si algún profesor NO está disponible un día a una hora concreta.</p>
             
             <form id="bloqueoProfesorForm" onsubmit="window.addBloqueo(event)" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
               <select id="bloqProf" required style="flex:1; padding: 8px;"></select>
-              <select id="bloqDia" required style="width:120px; padding: 8px;">
+              <select id="bloqDia" required style="width:110px; padding: 8px;">
                 <option value="Lunes">Lunes</option>
                 <option value="Martes">Martes</option>
                 <option value="Miércoles">Miércoles</option>
@@ -336,14 +342,38 @@
               <button type="submit" class="btn-secondary" style="padding: 8px 12px; color: var(--accent);">Bloquear</button>
             </form>
 
-            <div id="bloqueosList" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; background: var(--cream);">
-              </div>
+            <div id="bloqueosList" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; background: var(--cream);">
+            </div>
           </div>
+
+          <div class="card" style="margin-bottom: 0; border-color: var(--gold);">
+            <h2 style="font-family:'Playfair Display',serif; font-size:20px; margin-bottom:8px;">Paso 3: Recreos y Comedor (Por Clase)</h2>
+            <p style="color:var(--ink-light); font-size:13px; margin-bottom:16px;">Define en qué horas tienen el patio o la comida las distintas clases. El algoritmo dejará esos huecos libres.</p>
+            
+            <form id="bloqueoClaseForm" onsubmit="window.addBloqueoClase(event)" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+              <select id="bloqClaseId" required style="flex:1; padding: 8px;"></select>
+              <select id="bloqClaseDia" required style="width:110px; padding: 8px;">
+                <option value="Todos">Todos los días</option>
+                <option value="Lunes">Lunes</option>
+                <option value="Martes">Martes</option>
+                <option value="Miércoles">Miércoles</option>
+                <option value="Jueves">Jueves</option>
+                <option value="Viernes">Viernes</option>
+              </select>
+              <select id="bloqClaseTramo" required style="width:120px; padding: 8px;"></select>
+              <input type="text" id="bloqClaseMotivo" placeholder="Ej. Recreo" required style="width: 100px; padding: 8px;">
+              <button type="submit" class="btn-secondary" style="padding: 8px 12px; color: var(--gold);">Fijar</button>
+            </form>
+
+            <div id="bloqueosClasesList" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; background: var(--cream);">
+            </div>
+          </div>
+
         </div>
 
         <div class="card" style="margin-bottom: 40px;">
-          <h2 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:8px;">Paso 3: Configurar Carga Lectiva</h2>
-          <p style="color:var(--ink-light); font-size:14px; margin-bottom:24px;">Define cuántas horas a la semana imparte cada profesor a cada clase.</p>
+          <h2 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:8px;">Paso 4: Asignar Carga Lectiva</h2>
+          <p style="color:var(--ink-light); font-size:14px; margin-bottom:24px;">Define cuántas horas de clase imparte cada profesor a cada grupo.</p>
           
           <form id="cargaLectivaForm" class="schedule-form-grid" onsubmit="window.addCargaLectiva(event)">
             <div>
@@ -360,26 +390,26 @@
             </div>
             <div>
               <label>Horas / Sem.</label>
-              <input type="number" id="schHoras" min="1" max="10" value="3" required>
+              <input type="number" id="schHoras" min="1" max="15" value="3" required>
             </div>
-            <button type="submit" class="btn-primary" style="height: 48px;">Añadir</button>
+            <button type="submit" class="btn-primary" style="height: 48px;">Añadir al horario</button>
           </form>
 
           <div id="cargaLectivaList" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
-            </div>
+          </div>
         </div>
       </div>
 
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
-          <h2 style="font-family:'Playfair Display',serif; font-size:22px; margin:0;">Paso 4: Visor de Horarios Generados</h2>
+          <h2 style="font-family:'Playfair Display',serif; font-size:22px; margin:0;">Paso 5: Visor de Horarios Finales</h2>
           <select id="visorHorarioSelect" onchange="window.renderTimetableClase(this.value)" style="width:250px; padding:8px 12px; font-weight:600;">
             <option value="">Selecciona una clase...</option>
           </select>
         </div>
         
         <div id="timetableContainer" style="overflow-x: auto;">
-          <div class="empty-state">Selecciona una clase arriba para ver su horario, o pulsa "Generar Horario Automático".</div>
+          <div class="empty-state">Selecciona una clase arriba para ver su horario, o pulsa "Generar Horario Automático" si has hecho cambios.</div>
         </div>
       </div>
     </div>
@@ -684,18 +714,19 @@
     expedienteData: null,
     analyticsData: null,
     
-    // NUEVO HORARIOS
+    // VARIABLES HORARIOS
     cargaLectiva: [], 
     horariosGenerados: null,
     tramosHorarios: [
-      '1ª Hora (8:00 - 9:00)', 
-      '2ª Hora (9:00 - 10:00)', 
-      '3ª Hora (10:00 - 11:30)', 
-      '4ª Hora (11:30 - 12:30)', 
-      '5ª Hora (12:30 - 13:30)', 
-      '6ª Hora (13:30 - 14:30)'
+      '1ª Hora (8:00 - 8:55)', 
+      '2ª Hora (8:55 - 9:50)', 
+      '3ª Hora (9:50 - 10:45)', 
+      'Recreo (10:45 - 11:15)', 
+      '4ª Hora (11:15 - 12:10)', 
+      '5ª Hora (12:10 - 13:05)'
     ],
-    bloqueosProfesores: []
+    bloqueosProfesores: [],
+    bloqueosClases: [] // NUEVO: Para guardar los recreos por clase
   };
 
   let chartInstance = null;
@@ -820,10 +851,10 @@
   };
   
   window.backToAsignaturaDetailBreadcrumb = () => { 
-    if (state.userRole === 'admin') { 
-      window.showAsignaturasView(); 
-    } else { 
-      window.showProfesorAsignaturasView(); 
+    if (state.userRole === 'admin') {
+      window.showAsignaturasView();
+    } else {
+      window.showProfesorAsignaturasView();
     }
   };
 
@@ -839,7 +870,7 @@
     window.showTrimestreDetail(state.currentTrimestre); 
   };
 
-  // --- 🎯 LÓGICA DE HORARIOS MEJORADA (CON RESTRICCIONES) ---
+  // --- 🎯 LÓGICA DE HORARIOS MEJORADA (CON RESTRICCIONES Y RECREOS) ---
   
   window.showHorariosView = async () => {
     hideAllViews();
@@ -858,8 +889,10 @@
     state.cachedClasses.forEach(c => {
       clsHtml += `<option value="${c.id}">${c.nombre}</option>`;
     });
+    
     document.getElementById('schClase').innerHTML = clsHtml;
     document.getElementById('visorHorarioSelect').innerHTML = clsHtml;
+    document.getElementById('bloqClaseId').innerHTML = clsHtml;
 
     let profHtml = '<option value="">Selecciona profesor...</option>';
     state.cachedProfesores.forEach(p => {
@@ -870,6 +903,7 @@
 
     await loadConfiguracionHorarios();
     await loadBloqueosProfesores();
+    await loadBloqueosClases();
     await loadCargaLectiva();
     await loadHorariosGuardados();
   };
@@ -915,7 +949,7 @@
   };
 
   window.removeTramoUI = (index) => {
-    if(state.tramosHorarios.length <= 1) return alert("Debe haber al menos una hora.");
+    if(state.tramosHorarios.length <= 1) return alert("Debe haber al menos un tramo de tiempo.");
     state.tramosHorarios.splice(index, 1);
     window.renderTramosUI();
     updateSelectTramosBloqueo();
@@ -931,12 +965,14 @@
   };
 
   function updateSelectTramosBloqueo() {
-    const select = document.getElementById('bloqTramo');
+    const selectP = document.getElementById('bloqTramo');
+    const selectC = document.getElementById('bloqClaseTramo');
     let html = '';
     state.tramosHorarios.forEach((tramo, index) => {
       html += `<option value="${index}">${tramo}</option>`;
     });
-    select.innerHTML = html;
+    if(selectP) selectP.innerHTML = html;
+    if(selectC) selectC.innerHTML = html;
   }
 
   // PASO 2: DISPONIBILIDAD DOCENTE
@@ -953,7 +989,7 @@
   function renderBloqueosList() {
     const list = document.getElementById('bloqueosList');
     if (state.bloqueosProfesores.length === 0) {
-      list.innerHTML = '<div style="color:var(--ink-light); font-size:13px; text-align:center; padding:10px;">Todos los profesores están disponibles a todas horas.</div>';
+      list.innerHTML = '<div style="color:var(--ink-light); font-size:13px; text-align:center; padding:10px;">Profesores disponibles a todas horas.</div>';
       return;
     }
 
@@ -965,7 +1001,7 @@
       
       html += `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:6px; border-bottom:1px dashed var(--border);">
-          <span style="font-size:13px;"><strong>${profName}</strong> no disponible el <strong>${b.dia}</strong> (${tramoName})</span>
+          <span style="font-size:13px;"><strong>${profName}</strong> ausente el <strong>${b.dia}</strong> (${tramoName})</span>
           <button class="btn-icon" style="padding:4px; font-size:12px;" onclick="window.borrarBloqueo('${b.id}')">✕</button>
         </div>
       `;
@@ -981,9 +1017,7 @@
 
     try {
       await addDoc(collection(db, `colegios/${state.colegioId}/horarios_bloqueos`), {
-        profesorId: profId,
-        dia: dia,
-        tramoIndex: tramoIndex
+        profesorId: profId, dia: dia, tramoIndex: tramoIndex
       });
       await loadBloqueosProfesores();
     } catch(err) {
@@ -998,8 +1032,67 @@
     } catch(err) {}
   };
 
+  // PASO 3: BLOQUEOS DE CLASE (RECREOS / COMEDOR)
+  async function loadBloqueosClases() {
+    try {
+      const snap = await getDocs(collection(db, `colegios/${state.colegioId}/horarios_bloqueos_clases`));
+      state.bloqueosClases = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderBloqueosClasesList();
+    } catch(err) {
+      console.error(err);
+    }
+  }
 
-  // PASO 3: CARGA LECTIVA
+  function renderBloqueosClasesList() {
+    const list = document.getElementById('bloqueosClasesList');
+    if (state.bloqueosClases.length === 0) {
+      list.innerHTML = '<div style="color:var(--ink-light); font-size:13px; text-align:center; padding:10px;">Sin recreos configurados.</div>';
+      return;
+    }
+
+    let html = '';
+    state.bloqueosClases.forEach(b => {
+      const claseInfo = state.cachedClasses.find(c => c.id === b.claseId);
+      const claseName = claseInfo ? claseInfo.nombre : b.claseId;
+      const tramoName = state.tramosHorarios[b.tramoIndex] || `Periodo ${b.tramoIndex + 1}`;
+      
+      html += `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px; border-bottom:1px dashed var(--border);">
+          <span style="font-size:13px;"><strong>${claseName}</strong> - ${b.motivo} el <strong>${b.dia}</strong> (${tramoName})</span>
+          <button class="btn-icon" style="padding:4px; font-size:12px;" onclick="window.borrarBloqueoClase('${b.id}')">✕</button>
+        </div>
+      `;
+    });
+    list.innerHTML = html;
+  }
+
+  window.addBloqueoClase = async (e) => {
+    e.preventDefault();
+    const claseId = document.getElementById('bloqClaseId').value;
+    const dia = document.getElementById('bloqClaseDia').value;
+    const tramoIndex = parseInt(document.getElementById('bloqClaseTramo').value);
+    const motivo = document.getElementById('bloqClaseMotivo').value;
+
+    try {
+      await addDoc(collection(db, `colegios/${state.colegioId}/horarios_bloqueos_clases`), {
+        claseId: claseId, dia: dia, tramoIndex: tramoIndex, motivo: motivo
+      });
+      document.getElementById('bloqClaseMotivo').value = '';
+      await loadBloqueosClases();
+    } catch(err) {
+      alert("Error al fijar recreo.");
+    }
+  };
+
+  window.borrarBloqueoClase = async (id) => {
+    try {
+      await deleteDoc(doc(db, `colegios/${state.colegioId}/horarios_bloqueos_clases/${id}`));
+      await loadBloqueosClases();
+    } catch(err) {}
+  };
+
+
+  // PASO 4: CARGA LECTIVA
   async function loadCargaLectiva() {
     const list = document.getElementById('cargaLectivaList');
     list.innerHTML = '<div style="padding:20px; text-align:center;">Cargando...</div>';
@@ -1057,7 +1150,7 @@
     }
   };
 
-  // PASO 4: GENERADOR Y VISOR
+  // PASO 5: GENERADOR ALGORÍTMICO (AHORA CON RECREOS)
   window.generarHorariosAutomaticos = async () => {
     if (state.cargaLectiva.length === 0) {
       return alert("Primero debes añadir la carga lectiva.");
@@ -1069,6 +1162,7 @@
     let scheduleClase = {};
     let scheduleProfe = {};
 
+    // 1. Iniciar Tableros
     state.cachedClasses.forEach(c => {
         scheduleClase[c.id] = {};
         dias.forEach(d => scheduleClase[c.id][d] = Array(numHoras).fill(null));
@@ -1079,6 +1173,21 @@
         dias.forEach(d => scheduleProfe[p.id][d] = Array(numHoras).fill(null));
     });
 
+    // 2. Pre-llenar los Recreos y Comedores para que el algoritmo los respete
+    state.bloqueosClases.forEach(bc => {
+        if (!scheduleClase[bc.claseId]) return; // Por si se borró la clase
+        
+        const diasAfectados = bc.dia === 'Todos' ? dias : [bc.dia];
+        
+        diasAfectados.forEach(d => {
+            if (bc.tramoIndex >= 0 && bc.tramoIndex < numHoras) {
+                // Marcamos la casilla como tipo 'break'
+                scheduleClase[bc.claseId][d][bc.tramoIndex] = { type: 'break', label: bc.motivo };
+            }
+        });
+    });
+
+    // 3. Ordenar Asignaturas de más largas a más cortas
     let cargas = [...state.cargaLectiva].sort((a,b) => b.horas - a.horas);
     let conflictos = 0;
 
@@ -1089,15 +1198,19 @@
       while(horasColocadas < carga.horas && intentos < 100) {
         let colocado = false;
 
+        // Estrategia A: Repartir días
         for (let d of dias) {
           if (colocado) break;
+          // ¿Tiene ya Matemáticas hoy?
           let yaTieneHoy = scheduleClase[carga.claseId][d].some(s => s && s.asignatura === carga.asignatura);
           
           if (!yaTieneHoy) {
             for (let h = 0; h < numHoras; h++) {
               
+              // Comprobamos restricciones del profe
               let isProfBlocked = state.bloqueosProfesores.some(b => b.profesorId === carga.profesorId && b.dia === d && b.tramoIndex === h);
 
+              // Comprobamos que el hueco esté LIBRE (null)
               if (!scheduleClase[carga.claseId][d][h] && !scheduleProfe[carga.profesorId][d][h] && !isProfBlocked) {
                 scheduleClase[carga.claseId][d][h] = { asignatura: carga.asignatura, profesorId: carga.profesorId };
                 scheduleProfe[carga.profesorId][d][h] = carga.claseId;
@@ -1109,6 +1222,7 @@
           }
         }
 
+        // Estrategia B: Si no se pudo repartir, meter en cualquier hueco
         if (!colocado) {
           for (let d of dias) {
             if (colocado) break;
@@ -1144,9 +1258,9 @@
       });
 
       if(conflictos > 0) {
-        alert(`⚠️ El algoritmo ha terminado, pero hubo ${conflictos} hora(s) que no se pudieron encajar.\n\nEsto pasa si un profesor tiene demasiadas clases y bloqueos al mismo tiempo, o si faltan horas en el colegio para todo lo que has pedido.`);
+        alert(`⚠️ El algoritmo terminó, pero hubo ${conflictos} hora(s) que no se pudieron encajar.\n\nRevisa si faltan horas en el colegio (Paso 1) o si un profesor tiene demasiadas clases.`);
       } else {
-        alert('✅ ¡Horario generado con éxito sin solapamientos!');
+        alert('✅ ¡Horario generado con éxito respetando los recreos y disponibilidades!');
       }
       
       const currentClaseSelect = document.getElementById('visorHorarioSelect').value;
@@ -1169,6 +1283,7 @@
     }
   }
 
+  // RENDERIZAR TABLA DE HORARIO
   window.renderTimetableClase = (claseId) => {
     const container = document.getElementById('timetableContainer');
     
@@ -1195,18 +1310,32 @@
       html += `<tr><td class="tt-hour">${tiempos[h]}</td>`;
       for (let d of dias) {
         const bloque = horario[d][h];
+        
         if (bloque) {
-          const profInfo = state.cachedProfesores.find(p => p.id === bloque.profesorId);
-          const profName = profInfo ? (profInfo.nombre || profInfo.id.split('@')[0]) : 'Profesor';
-          html += `
-            <td>
-              <div class="tt-slot">
-                <div class="tt-subject">${bloque.asignatura}</div>
-                <div class="tt-teacher">${profName}</div>
-              </div>
-            </td>
-          `;
+          if (bloque.type === 'break') {
+            // Es un recreo / comida
+            html += `
+              <td>
+                <div class="tt-break">
+                  ☕ ${bloque.label}
+                </div>
+              </td>
+            `;
+          } else {
+            // Es una asignatura normal
+            const profInfo = state.cachedProfesores.find(p => p.id === bloque.profesorId);
+            const profName = profInfo ? (profInfo.nombre || profInfo.id.split('@')[0]) : 'Profesor';
+            html += `
+              <td>
+                <div class="tt-slot">
+                  <div class="tt-subject">${bloque.asignatura}</div>
+                  <div class="tt-teacher">${profName}</div>
+                </div>
+              </td>
+            `;
+          }
         } else {
+          // Hueco vacío (si el algoritmo no pudo llenarlo)
           html += `<td style="background: var(--cream); border: 1px dashed var(--border);"></td>`;
         }
       }
@@ -1218,7 +1347,7 @@
   };
 
 
-  // --- 3. CARGA DE CLASES Y ALUMNOS ---
+  // --- RESTO DEL CÓDIGO (CARGAS, NOTAS, ETC.) MANTENIDO ---
   async function loadClasses(containerId, isProfesor) {
     const list = document.getElementById(containerId);
     list.innerHTML = '<div class="loading">Cargando clases...</div>';
@@ -1367,7 +1496,6 @@
     }
   };
 
-  // --- 4. ASISTENCIA ---
   window.showAsistenciaView = () => { 
     hideAllViews(); 
     document.getElementById('asistenciaView').classList.remove('hidden'); 
@@ -1418,7 +1546,6 @@
     }
   };
 
-  // --- 5. CARGAS GENERALES DEL DIRECTOR ---
   async function loadProfesores() { 
     const list = document.getElementById('profesoresList'); 
     list.innerHTML = '<div class="loading">Cargando...</div>';
@@ -1488,7 +1615,6 @@
     }
   }
 
-  // --- 6. VISTA DEL PROFESOR: ASIGNATURAS Y TUTORÍAS ---
   async function loadProfesorAsignaturas() { 
     const list = document.getElementById('profesorAsignaturasList'); 
     list.innerHTML = '<div class="loading">Buscando tus asignaturas...</div>';
@@ -1537,7 +1663,55 @@
     }
   }
 
-  // --- 7. PONDERACIÓN Y ALUMNOS PARA EVALUAR ---
+  window.showAsignaturaDetail = (id, nombre) => { 
+    state.currentAsignaturaId = id; 
+    state.currentContext = 'asignatura'; 
+    document.getElementById('currentAsignaturaNombre').textContent = nombre; 
+    hideAllViews(); 
+    document.getElementById('asignaturaDetailView').classList.remove('hidden'); 
+  };
+
+  window.showTutoriaDetail = (classId, className) => {
+    state.currentClassId = classId; 
+    state.currentContext = 'tutoria'; 
+    document.getElementById('currentAsignaturaNombre').textContent = 'Tutoría - ' + className; 
+    document.getElementById('asignaturaDetailTitle').textContent = `Trimestres`;
+    hideAllViews(); 
+    document.getElementById('asignaturaDetailView').classList.remove('hidden');
+  };
+
+  function getPonderacionPath(t) {
+    if (state.currentContext === 'tutoria') {
+      return `colegios/${state.colegioId}/clases/${state.currentClassId}/ponderacionesTutoria/${t}`;
+    } else {
+      return `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/ponderaciones/${t}`;
+    }
+  }
+  
+  function getNotasPath(studentRefStr, t) {
+    if (state.currentContext === 'tutoria') {
+      return `colegios/${state.colegioId}/clases/${state.currentClassId}/notasTutoria/${studentRefStr}-${t}`;
+    } else {
+      return `colegios/${state.colegioId}/asignaturas/${state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`;
+    }
+  }
+
+  window.showTrimestreDetail = async (t) => {
+    state.currentTrimestre = t; 
+    hideAllViews(); 
+    document.getElementById('trimestreDetailView').classList.remove('hidden');
+    
+    await window.loadPonderacion(t); 
+    await window.loadAlumnosParaEvaluar();
+    
+    const names = { 'T1': '1º Trimestre', 'T2': '2º Trimestre', 'T3': '3º Trimestre' };
+    document.getElementById('currentTrimestre').textContent = names[t]; 
+    document.getElementById('trimestreDetailTitle').textContent = names[t];
+    document.getElementById('trimestreDetailContext').textContent = document.getElementById('currentAsignaturaNombre').textContent;
+  };
+
+  let currentCategorias = [];
+  
   window.loadPonderacion = async (t) => {
     try {
       const d = await getDoc(doc(db, getPonderacionPath(t)));
@@ -1673,7 +1847,6 @@
     }
   };
 
-  // 🎯 EXPORTAR LAS NOTAS A EXCEL (CSV)
   window.exportarNotasCSV = async () => {
     const btn = document.getElementById('btnExportarNotas');
     if (btn) {
@@ -1741,7 +1914,23 @@
     }
   };
 
-  // --- 8. PANEL DE NOTAS X/Y Y COMENTARIOS ---
+  window.showNotasView = (id, nombreAlumno, classId, alumId) => { 
+    state.currentAlumnoId = id; 
+    state.currentEvalClassId = classId; 
+    state.currentEvalAlumId = alumId; 
+    document.getElementById('currentAlumnoNombre').textContent = nombreAlumno; 
+    hideAllViews(); 
+    document.getElementById('notasView').classList.remove('hidden'); 
+    window.loadNotas(nombreAlumno); 
+  };
+  
+  window.switchTrimestre = (t, btnElement) => { 
+    state.currentTrimestre = t; 
+    document.querySelectorAll('#notasView .trimestre-tab').forEach(tab => tab.classList.remove('active')); 
+    if(btnElement) btnElement.classList.add('active'); 
+    window.loadNotas(document.getElementById('currentAlumnoNombre').textContent); 
+  };
+  
   window.loadNotas = async () => {
     const container = document.getElementById('notasContent'); 
     container.innerHTML = '<div class="loading">Cargando perfil de evaluación...</div>';
@@ -1939,7 +2128,6 @@
     }
   };
 
-  // --- 9. EXPEDIENTE GLOBAL DEL ALUMNO ---
   window.initExpedienteGlobal = async (studentRef, studentName) => {
     state.currentAlumnoId = studentRef; 
     document.getElementById('expedienteAlumnoNameBread').textContent = studentName;
@@ -2164,7 +2352,6 @@
     });
   };
 
-  // --- 10. ANÁLISIS INTELIGENTE POR ASIGNATURA ---
   window.showClassAnalytics = async () => {
     document.getElementById('analyticsClassName').textContent = document.getElementById('claseDetailName').textContent;
     hideAllViews(); 
@@ -2423,7 +2610,6 @@
     });
   };
 
-  // --- 11. MODALES EVENTOS ---
   window.openCreateClassModal = async () => {
     const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', state.colegioId)));
     let html = '<option value="">Selecciona un profesor como tutor</option>';
@@ -2511,7 +2697,6 @@
     cbs.forEach(cb => cb.checked = !allChecked); 
   };
 
-  // --- 12. EVENT LISTENERS DE FORMULARIOS ---
   document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('createClassForm')?.addEventListener('submit', async(e) => { 
