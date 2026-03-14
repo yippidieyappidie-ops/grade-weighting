@@ -3,6 +3,9 @@ import { db } from './firebase-config.js';
 
 let chartPieInstance = null; let chartBarInstance = null; let expRadarChartInstance = null; let expLineChartInstance = null;
 
+// ==========================================
+// CONSTANTES Y UTILIDADES CAMBRIDGE
+// ==========================================
 const CAMBRIDGE_LEVELS = {
   'A2': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 30, 'Writing': 30, 'Listening': 25, 'Speaking': 15 } },
   'B1': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 32, 'Writing': 40, 'Listening': 25, 'Speaking': 30 } },
@@ -33,6 +36,9 @@ async function getFormatoAsignatura() {
   } catch (e) { return 'numerico_10'; }
 }
 
+// ==========================================
+// GESTIÓN DE CLASES, ASIGNATURAS Y PROFESORES
+// ==========================================
 window.loadClasses = async (containerId, isProfesor) => {
   const list = document.getElementById(containerId); list.innerHTML = '<div class="loading">Cargando grupos...</div>';
   try {
@@ -64,6 +70,71 @@ window.showClaseDetail = async (classId, className) => {
   } catch(e) { console.error(e); }
 };
 
+window.deleteClass = async (id, nombre) => { if(confirm(`⚠️ ¿Borrar el grupo "${nombre}"?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${id}`)); window.loadClasses('classesList', false); } catch (e) {} } };
+window.deleteStudent = async (cId, sId, name) => { if(confirm(`¿Eliminar al alumno "${name}"?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${cId}/alumnos/${sId}`)); const cRef = doc(db, `colegios/${window.state.colegioId}/clases`, cId); const cDoc = await getDoc(cRef); if(cDoc.exists()) { await updateDoc(cRef, { numAlumnos: (cDoc.data().numAlumnos || 1) - 1 }); } window.showClaseDetail(cId, document.getElementById('claseDetailName').textContent); } catch (e) {} } };
+window.deleteAsignatura = async (id, nombre) => { if(confirm(`¿Borrar asignatura "${nombre}"? Se perderán todas sus notas.`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${id}`)); window.loadAsignaturas(); } catch (e) {} } };
+window.deleteProfesor = async (email) => { if(email === window.state.currentUser.email) return alert("No puedes borrarte a ti mismo."); if(confirm(`¿Revocar acceso al profesor ${email}?`)) { try { await deleteDoc(doc(db, 'profesores', email)); window.loadProfesores(); } catch (e) {} } };
+
+window.loadProfesores = async () => { 
+  const list = document.getElementById('profesoresList'); list.innerHTML = '<div class="loading">Cargando...</div>';
+  try {
+    const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId))); window.state.cachedProfesores = []; 
+    if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay profesores.</p></div>'; return; }
+    let html = '<table class="table"><thead><tr><th>Email</th><th>Nombre</th><th>Rol</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
+    snap.forEach(docSnap => {
+      const d = docSnap.data(); window.state.cachedProfesores.push({id: docSnap.id, ...d}); 
+      let delBtn = ''; if (d.rol !== 'admin' && d.rol !== 'superadmin' || docSnap.id !== window.state.currentUser.email) { delBtn = `<button class="btn-icon" style="color:var(--accent);" onclick="window.deleteProfesor('${docSnap.id}')">🗑️</button>`; }
+      html += `<tr><td><strong>${docSnap.id}</strong></td><td>${d.nombre || '—'}</td><td>${d.rol}</td><td style="text-align:center;">${delBtn}</td></tr>`; 
+    }); 
+    list.innerHTML = html + '</tbody></table>'; 
+  } catch(e) { console.error(e); }
+};
+
+window.loadAsignaturas = async () => { 
+  const list = document.getElementById('asignaturasList'); list.innerHTML = '<div class="loading">Cargando...</div>';
+  try {
+    const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), orderBy('nombre'))); 
+    if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay asignaturas creadas.</p></div>'; return; }
+    let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Sistema de Notas</th><th>Profesores</th><th>Alumnos</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
+    snap.forEach(docSnap => { 
+      const d = docSnap.data(); const profes = d.profesorEmails ? d.profesorEmails.join(', ') : (d.profesorEmail || '—');
+      const formatoStr = d.algoritmoNotas === 'letras_cambridge' ? '<span style="color:var(--accent); font-weight:bold;">Cambridge</span>' : 'Estándar (0-10)';
+      html += `<tr><td><strong>${d.nombre}</strong></td><td>${formatoStr}</td><td>${profes}</td><td>${d.alumnos?.length || 0}</td><td style="text-align:center;"><button class="btn-icon" style="color:var(--accent);" onclick="window.deleteAsignatura('${docSnap.id}','${d.nombre}')">🗑️</button></td></tr>`; 
+    }); 
+    list.innerHTML = html + '</tbody></table>'; 
+  } catch(e) { console.error(e); }
+};
+
+window.loadProfesorAsignaturas = async () => { 
+  const list = document.getElementById('profesorAsignaturasList'); list.innerHTML = '<div class="loading">Buscando tus asignaturas...</div>';
+  try {
+    const snapAsig = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), where('profesorEmails', 'array-contains', window.state.currentUser.email))); 
+    const snapTut = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases`), where('tutorEmail', '==', window.state.currentUser.email)));
+    let html = '';
+    if (!snapTut.empty) {
+      html += `<h3 style="margin-bottom:16px;">📚 Mis Tutorías</h3><div class="cards-grid">`;
+      snapTut.forEach(docSnap => {
+        const d = docSnap.data(); html += `<div class="card card-clickable" style="border-left: 4px solid var(--gold);" onclick="window.showTutoriaDetail('${docSnap.id}','${d.nombre}')"><div class="card-title">Tutoría - ${d.nombre}</div><div class="card-meta">${d.numAlumnos || 0} alumnos</div></div>`;
+      });
+      html += `</div><br><br>`;
+    }
+    html += `<h3 style="margin-bottom:16px;">📖 Mis Asignaturas Normales</h3>`;
+    if(snapAsig.empty) {
+      html += '<p class="empty-state">No tienes asignaturas asignadas.</p>';
+    } else {
+      html += `<div class="cards-grid">`;
+      snapAsig.forEach(docSnap => { 
+        const d = docSnap.data(); html += `<div class="card card-clickable" onclick="window.showAsignaturaDetail('${docSnap.id}','${d.nombre}')"><div class="card-title">${d.nombre}</div><div class="card-meta">${d.alumnos?.length || 0} alumnos a evaluar</div></div>`; 
+      }); 
+      html += `</div>`;
+    }
+    list.innerHTML = html; 
+  } catch(e) { console.error(e); }
+};
+
+// ==========================================
+// ASISTENCIA
+// ==========================================
 window.showAsistenciaView = () => { window.hideAllViews(); document.getElementById('asistenciaView').classList.remove('hidden'); const td = new Date().toISOString().split('T')[0]; document.getElementById('asistenciaDateInput').value = td; window.loadAsistencia(td); };
 window.loadAsistencia = async (date) => {
   const cont = document.getElementById('asistenciaListContainer'); cont.innerHTML = '<div class="loading">Cargando...</div>';
@@ -75,6 +146,9 @@ window.loadAsistencia = async (date) => {
 };
 window.markAsistencia = async (id, st, date) => { ['P','F','R'].forEach(s => { document.getElementById(`btn-ast-${id}-${s}`).className = 'ast-btn'; }); document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st); await setDoc(doc(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true }); };
 
+// ==========================================
+// PONDERACIÓN Y PANEL DE NOTAS
+// ==========================================
 let currentCategorias = []; let currentCambridgeLevel = 'B2';
 function getPonderacionPath(t) { return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/ponderacionesTutoria/${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/ponderaciones/${t}`; }
 function getNotasPath(studentRefStr, t) { return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/notasTutoria/${studentRefStr}-${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`; }
@@ -112,7 +186,22 @@ window.renderCategorias = (formato) => {
 };
 
 window.changeCambridgeLevel = (val) => { currentCambridgeLevel = val; window.loadPonderacion(window.state.currentTrimestre); };
-window.guardarPonderacion = async () => { await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), { categorias: currentCategorias, cambridgeLevel: currentCambridgeLevel, updatedAt: serverTimestamp() }); alert('✅ Configuración guardada.'); };
+window.updatePesoTotal = () => {
+  const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
+  const spanT = document.getElementById('pesoTotal'); const spanS = document.getElementById('pesoStatus');
+  if (spanT) spanT.textContent = Math.round(total);
+  if (spanS) { spanS.textContent = Math.round(total) === 100 ? '✅ Correcto' : `⚠️ Suma ${Math.round(total)}%`; spanS.style.color = Math.round(total) === 100 ? 'var(--green)' : 'var(--accent)'; }
+};
+window.updateCategoriaNombre = (i,n) => { currentCategorias[i].nombre = n; };
+window.updateCategoriaPeso = (i,p) => { currentCategorias[i].peso = parseFloat(p) || 0; window.updatePesoTotal(); };
+window.añadirCategoria = () => { currentCategorias.push({nombre: "", peso: 0}); window.renderCategorias(); window.updatePesoTotal(); };
+window.eliminarCategoria = (i) => { if(currentCategorias.length <= 1) return alert('Debes dejar al menos una categoría.'); currentCategorias.splice(i, 1); window.renderCategorias(); window.updatePesoTotal(); };
+
+window.guardarPonderacion = async () => {
+  const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
+  if(Math.round(total) !== 100) return alert('La suma de los porcentajes debe ser exactamente 100%.'); 
+  try { await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), { categorias: currentCategorias, cambridgeLevel: currentCambridgeLevel, updatedAt: serverTimestamp() }); alert('✅ Configuración guardada.'); } catch(e) { alert("Error guardando"); }
+};
 
 window.loadAlumnosParaEvaluar = async () => {
   const list = document.getElementById('trimestreAlumnosList'); list.innerHTML = '<div class="loading">Buscando alumnos...</div>';
@@ -143,7 +232,7 @@ window.loadNotas = async () => {
     const pondData = pDoc.exists() ? pDoc.data() : {}; let cats = pondData.categorias || []; const data = nDoc.exists() ? nDoc.data() : { categorias: {}, comentarioTutor: "" };
     const formato = await getFormatoAsignatura();
     
-    let html = `<div class="professional-comment"><div class="comment-header"><strong>📝 Observaciones</strong><span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0; transition:opacity 0.3s;">Guardado ✓</span></div><textarea id="comentarioArea" rows="3" placeholder="Añade observaciones para el boletín..." onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea></div>`;
+    let html = `<div class="professional-comment"><div class="comment-header"><strong>📝 Observaciones</strong><span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0; transition:opacity 0.3s;">Guardado ✓</span></div><textarea id="comentarioArea" rows="3" placeholder="Añade observaciones..." onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea></div>`;
     let notaFinalGlobal = 0; let pesoTotalGlobal = 0;
 
     if (formato === 'letras_cambridge') {
@@ -181,7 +270,6 @@ window.guardarComentario = async () => { try { await setDoc(doc(db, getNotasPath
 window.addNota = async (cat) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {categorias:{}}; if(!data.categorias[cat]) { data.categorias[cat] = []; } data.categorias[cat].push({valor: '', maximo: 10, descripcion: ''}); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 window.updateNotaDetalle = async (cat, idx, campo, val) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); if(typeof data.categorias[cat][idx] === 'number') { data.categorias[cat][idx] = {valor: data.categorias[cat][idx], maximo: 10, descripcion: ''}; } if (campo === 'valor' || campo === 'maximo') { data.categorias[cat][idx][campo] = val === '' ? '' : (parseFloat(val) || 0); } else { data.categorias[cat][idx][campo] = val; } await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 window.deleteNota = async (cat, idx) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.categorias[cat].splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
-
 window.updateCambridgeScore = async (catName, value, max) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const valNum = parseFloat(value) || 0; await setDoc(doc(db, p), { categorias: { [catName]: [{ valor: valNum, maximo: max, descripcion: 'Mock Part' }] } }, { merge: true }); window.loadNotas(); };
 
 // ==========================================
@@ -196,36 +284,18 @@ function calcFinalGradeForChart(categorias, notasData) {
   }); return pesoTotal > 0 ? notaFinal : null;
 }
 
-// SIMULADOR DE ENVÍO DE EMAIL
 window.enviarInformeEmail = (studentName) => {
-  const btn = document.getElementById('btnSendEmail');
-  btn.textContent = "⏳ Enviando informe...";
-  btn.disabled = true;
-  setTimeout(() => {
-    btn.textContent = "✅ ¡Enviado a la familia!";
-    btn.style.backgroundColor = "var(--green)";
-    btn.style.borderColor = "var(--green)";
-    setTimeout(() => {
-      btn.textContent = "📧 Enviar Informe a la Familia";
-      btn.style.backgroundColor = "";
-      btn.style.borderColor = "";
-      btn.disabled = false;
-    }, 3000);
+  const btn = document.getElementById('btnSendEmail'); btn.textContent = "⏳ Enviando..."; btn.disabled = true;
+  setTimeout(() => { btn.textContent = "✅ ¡Enviado a la familia!"; btn.style.backgroundColor = "var(--green)"; btn.style.borderColor = "var(--green)";
+    setTimeout(() => { btn.textContent = "📧 Enviar Informe a la Familia"; btn.style.backgroundColor = ""; btn.style.borderColor = ""; btn.disabled = false; }, 3000);
   }, 1500);
 };
 
 window.initExpedienteGlobal = async (studentRef, studentName) => {
-  window.state.currentAlumnoId = studentRef; document.getElementById('expedienteAlumnoNameBread').textContent = studentName; document.getElementById('expedienteAlumnoNameTitle').textContent = studentName; window.hideAllViews(); document.getElementById('expedienteView').classList.remove('hidden'); document.getElementById('expedienteDashboardContent').innerHTML = '<div class="loading">Recopilando datos de todo el curso para el alumno...</div>';
+  window.state.currentAlumnoId = studentRef; document.getElementById('expedienteAlumnoNameBread').textContent = studentName; document.getElementById('expedienteAlumnoNameTitle').textContent = studentName; window.hideAllViews(); document.getElementById('expedienteView').classList.remove('hidden'); document.getElementById('expedienteDashboardContent').innerHTML = '<div class="loading">Recopilando datos...</div>';
   
-  // Modificamos la cabecera para añadir el botón de Email junto al de Imprimir
   const headerDiv = document.querySelector('#expedienteView .page-header');
-  headerDiv.innerHTML = `
-    <h1>Expediente Académico: <span id="expedienteAlumnoNameTitle" style="color:var(--accent);">${studentName}</span></h1>
-    <div style="display:flex; gap:12px;">
-      <button id="btnSendEmail" class="btn-secondary" onclick="window.enviarInformeEmail('${studentName}')">📧 Enviar a la Familia</button>
-      <button class="btn-primary" onclick="window.print()" style="background:var(--ink);">🖨️ Guardar PDF</button>
-    </div>
-  `;
+  headerDiv.innerHTML = `<h1>Expediente Académico: <span id="expedienteAlumnoNameTitle" style="color:var(--accent);">${studentName}</span></h1><div style="display:flex; gap:12px;"><button id="btnSendEmail" class="btn-secondary" onclick="window.enviarInformeEmail('${studentName.replace(/'/g, "\\'")}')">📧 Enviar a la Familia</button><button class="btn-primary" onclick="window.print()" style="background:var(--ink);">🖨️ Guardar PDF</button></div>`;
 
   try {
     window.state.expedienteData = { averages: { T1: [], T2: [], T3: [] }, subjects: [], attendance: {F:0, R:0} };
@@ -252,8 +322,7 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   window.state.currentExpedienteTrimestre = t; document.querySelectorAll('#expedienteTrimestreTabs .trimestre-tab').forEach(tab => tab.classList.remove('active')); if(btnElement) btnElement.classList.add('active'); document.getElementById('expLabelTrimestre').textContent = { 'T1': '1º Trimestre', 'T2': '2º Trimestre', 'T3': '3º Trimestre' }[t];
   if (!window.state.expedienteData || window.state.expedienteData.subjects.length === 0) { document.getElementById('expedienteDashboardContent').innerHTML = '<div class="empty-state">No matriculado.</div>'; return; }
 
-  let radarLabels = []; let radarData = []; let htmlTable = '<table class="table"><thead><tr><th>Asignatura / Skill</th><th>Profesor</th><th>Calificación</th></tr></thead><tbody>'; let htmlComments = ''; let hasComments = false;
-  let termometrosHtml = ''; // Para guardar los termómetros de Cambridge
+  let radarLabels = []; let radarData = []; let htmlTable = '<table class="table"><thead><tr><th>Asignatura / Skill</th><th>Profesor</th><th>Calificación</th></tr></thead><tbody>'; let htmlComments = ''; let hasComments = false; let termometrosHtml = ''; 
 
   window.state.expedienteData.subjects.forEach(sub => {
     const grade = sub.grades[t];
@@ -262,37 +331,15 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
     htmlTable += `<tr><td><strong>${sub.name}</strong></td><td>${sub.profe}</td><td><strong style="color:${getNotaColor(grade, sub.formato)}; font-size:15px;">${gradeFormateado}</strong></td></tr>`;
     if (sub.comments[t] && sub.comments[t].trim() !== '') { hasComments = true; htmlComments += `<div class="comment-card"><h4>${sub.name} <span class="profe-tag">Prof. ${sub.profe.split('@')[0]}</span></h4><p>"${sub.comments[t]}"</p></div>`; }
     
-    // Si la asignatura es de Cambridge, generamos el termómetro visual
     if (sub.formato === 'letras_cambridge' && grade !== null) {
-      const porcentaje = Math.round(grade * 10);
-      let statusColor = '#c84b31'; let statusText = 'Needs Practice'; let barWidth = Math.max(10, porcentaje);
-      if (porcentaje >= 75) { statusColor = '#2d6a4f'; statusText = 'READY FOR EXAM 🚀'; }
-      else if (porcentaje >= 60) { statusColor = '#e8a838'; statusText = 'On Track'; }
-
-      termometrosHtml += `
-        <div class="insight-card" style="grid-column: span 2;">
-          <div class="insight-title" style="margin-bottom:12px;">📈 Exam Readiness: <strong>${sub.name}</strong></div>
-          <div style="background:var(--border); height:16px; border-radius:8px; overflow:hidden; position:relative; margin-bottom:8px;">
-            <div style="width:${barWidth}%; background:${statusColor}; height:100%; transition:width 1s ease;"></div>
-            <div style="position:absolute; top:0; left:60%; height:100%; border-left:2px dashed #1a1a2e; z-index:1;" title="Pass Mark (60%)"></div>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold;">
-            <span style="color:var(--ink-light);">Current: ${porcentaje}%</span>
-            <span style="color:${statusColor};">${statusText}</span>
-          </div>
-        </div>
-      `;
+      const porcentaje = Math.round(grade * 10); let statusColor = '#c84b31'; let statusText = 'Needs Practice'; let barWidth = Math.max(10, porcentaje);
+      if (porcentaje >= 75) { statusColor = '#2d6a4f'; statusText = 'READY FOR EXAM 🚀'; } else if (porcentaje >= 60) { statusColor = '#e8a838'; statusText = 'On Track'; }
+      termometrosHtml += `<div class="insight-card" style="grid-column: span 2;"><div class="insight-title" style="margin-bottom:12px;">📈 Exam Readiness: <strong>${sub.name}</strong></div><div style="background:var(--border); height:16px; border-radius:8px; overflow:hidden; position:relative; margin-bottom:8px;"><div style="width:${barWidth}%; background:${statusColor}; height:100%; transition:width 1s ease;"></div><div style="position:absolute; top:0; left:60%; height:100%; border-left:2px dashed #1a1a2e; z-index:1;" title="Pass Mark (60%)"></div></div><div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold;"><span style="color:var(--ink-light);">Current: ${porcentaje}%</span><span style="color:${statusColor};">${statusText}</span></div></div>`;
     }
   });
 
   const faltas = window.state.expedienteData.attendance.F; const retrasos = window.state.expedienteData.attendance.R;
-  let dashboardHtml = `
-    <div class="analytics-grid" style="grid-template-columns: 1fr 1fr;">
-      ${termometrosHtml}
-      <div class="insight-card"><div class="insight-icon">📅</div><div class="insight-title">Asistencia Acumulada</div><div class="insight-value">${faltas} Faltas</div><p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Retrasos registrados: ${retrasos}</p></div>
-      <div class="chart-box"><h3>Perfil del Alumno (Radar)</h3><div class="chart-wrapper"><canvas id="expRadarChart"></canvas></div></div>
-    </div>
-  `;
+  let dashboardHtml = `<div class="analytics-grid" style="grid-template-columns: 1fr 1fr;">${termometrosHtml}<div class="insight-card"><div class="insight-icon">📅</div><div class="insight-title">Asistencia Acumulada</div><div class="insight-value">${faltas} Faltas</div><p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Retrasos registrados: ${retrasos}</p></div><div class="chart-box"><h3>Perfil del Alumno (Radar)</h3><div class="chart-wrapper"><canvas id="expRadarChart"></canvas></div></div></div>`;
 
   document.getElementById('expedienteDashboardContent').innerHTML = dashboardHtml; document.getElementById('expedienteContentTable').innerHTML = htmlTable + '</tbody></table>'; document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones del equipo docente.</div>';
 
@@ -300,8 +347,54 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   expRadarChartInstance = new Chart(document.getElementById('expRadarChart').getContext('2d'), { type: 'radar', data: { labels: radarLabels, datasets: [{ label: 'Rendimiento', data: radarData, backgroundColor: 'rgba(45, 106, 79, 0.2)', borderColor: '#2d6a4f', pointBackgroundColor: '#2d6a4f' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 100 } }, plugins: { legend: { display: false } } } });
 };
 
-window.exportarNotasCSV = async () => { /* Código original mantenido */ };
-window.showClassAnalytics = async () => { alert("Los Analytics globales han sido simplificados en el radar del alumno para dar más valor a los padres."); }
+window.exportarNotasCSV = async () => {
+  const btn = document.getElementById('btnExportarNotas'); if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
+  try {
+    const subjectName = document.getElementById('currentAsignaturaNombre').textContent; const trimName = window.state.currentTrimestre; const formato = await getFormatoAsignatura();
+    const pDoc = await getDoc(doc(db, getPonderacionPath(trimName))); const cats = pDoc.exists() ? (pDoc.data().categorias || []) : [];
+    let csvContent = "\uFEFF" + "Apellidos;Nombre;Asignatura;Trimestre;Nota Final;Observaciones\n";
 
-// Formularios
-document.addEventListener('DOMContentLoaded', () => { /* Código original mantenido */ });
+    for (const alum of window.state.currentAlumnosList) {
+      const nDoc = await getDoc(doc(db, getNotasPath(alum.id, trimName))); const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
+      let finalGrade = 0; let pesoTotal = 0;
+      cats.forEach(cat => {
+        let cNotas = notasData.categorias?.[cat.nombre] || []; cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
+        if (cNotas.length > 0) { const suma = cNotas.reduce((acc, curr) => { let v = curr.valor === '' ? 0 : parseFloat(curr.valor || 0); let m = parseFloat(curr.maximo || 10); if(m <= 0) m = 10; return acc + ((v/m) * 10); }, 0); finalGrade += (suma/cNotas.length) * (cat.peso/100); pesoTotal += cat.peso; }
+      });
+      let notaFinalStr = pesoTotal > 0 ? getNotaFormateada(finalGrade, formato) : 'Sin evaluar';
+      const obsLimpia = (notasData.comentarioTutor || "").replace(/\n/g, " ").replace(/;/g, ",");
+      csvContent += `"${alum.a}";"${alum.n}";"${subjectName}";"${trimName}";"${notaFinalStr}";"${obsLimpia}"\n`;
+    }
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", `Notas_${subjectName}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  } catch (e) { alert("Error exportando notas."); } finally { if (btn) { btn.textContent = '📥 Exportar a Excel'; btn.disabled = false; } }
+};
+
+window.showClassAnalytics = async () => { alert("Los Analytics han sido simplificados en el radar del alumno."); }
+
+// ==========================================
+// FORMULARIOS BÁSICOS
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('createClassForm')?.addEventListener('submit', async(e) => { 
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
+    try { await addDoc(collection(db, `colegios/${window.state.colegioId}/clases`), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value, numAlumnos: 0, createdAt: serverTimestamp(), createdBy: window.state.currentUser.email }); window.loadClasses('classesList', false); document.getElementById('createClassModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } btn.disabled = false; 
+  });
+  document.getElementById('editClassForm')?.addEventListener('submit', async(e) => { 
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
+    try { await updateDoc(doc(db, `colegios/${window.state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value }); window.loadClasses('classesList', false); document.getElementById('editClassModal').classList.remove('active'); } catch(err) { alert(err.message); } btn.disabled = false; 
+  });
+  document.getElementById('addStudentForm')?.addEventListener('submit', async(e) => { 
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Añadiendo...";
+    try { const cDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId)); const c = cDoc.data().numAlumnos || 0; await addDoc(collection(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/alumnos`), { nombre: e.target.nombre.value, apellidos: e.target.apellidos.value, orden: c + 1, createdAt: serverTimestamp() }); await setDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId), { numAlumnos: c + 1 }, { merge: true }); document.getElementById('addStudentModal').classList.remove('active'); e.target.reset(); window.showClaseDetail(window.state.currentClassId, document.getElementById('claseDetailName').textContent); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Añadir"; } 
+  });
+  document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e) => { 
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Creando...";
+    const alumnosChecked = Array.from(document.querySelectorAll('input[name="alumnos"]:checked')).map(cb => cb.value); const profesChecked = Array.from(document.querySelectorAll('input[name="profesoresAsig"]:checked')).map(cb => cb.value);
+    if(alumnosChecked.length === 0 || profesChecked.length === 0) { alert('Selecciona al menos un alumno y un profesor.'); btn.disabled = false; btn.textContent = "Crear"; return; }
+    try { const ref = await addDoc(collection(db, `colegios/${window.state.colegioId}/asignaturas`), { nombre: e.target.nombre.value, profesorEmails: profesChecked, alumnos: alumnosChecked, algoritmoNotas: e.target.algoritmoNotas.value, trimestres: ['T1','T2','T3'], createdAt: serverTimestamp() }); for(const p of profesChecked) { await updateDoc(doc(db, 'profesores', p), { asignaturas: arrayUnion(ref.id) }); } window.loadAsignaturas(); document.getElementById('createAsignaturaModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Crear"; } 
+  });
+  document.getElementById('inviteProfesorForm')?.addEventListener('submit', async(e) => { 
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Enviando...";
+    try { const email = e.target.email.value.trim().toLowerCase(); const ref = doc(db, 'profesores', email); const d = await getDoc(ref); if(d.exists()) { if(d.data().colegioId === window.state.colegioId) throw new Error('Ya añadido a tu colegio.'); else throw new Error('Registrado en otro colegio.'); } await setDoc(ref, { nombre: e.target.nombre.value || '', colegioId: window.state.colegioId, rol: 'profesor', asignaturas: [], createdAt: serverTimestamp() }); window.loadProfesores(); alert('Profesor invitado correctamente.'); document.getElementById('inviteProfesorModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Invitar"; } 
+  });
+});
