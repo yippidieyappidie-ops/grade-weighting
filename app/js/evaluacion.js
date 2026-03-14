@@ -3,9 +3,6 @@ import { db } from './firebase-config.js';
 
 let chartPieInstance = null; let chartBarInstance = null; let expRadarChartInstance = null; let expLineChartInstance = null;
 
-// ==========================================
-// 1. MOTOR OFICIAL CAMBRIDGE ENGLISH SCALE
-// ==========================================
 const CAMBRIDGE_LEVELS = {
   'A1': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 20, 'Writing': 20, 'Listening': 20, 'Speaking': 20 } },
   'A2': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 30, 'Writing': 30, 'Listening': 25, 'Speaking': 15 } },
@@ -15,7 +12,6 @@ const CAMBRIDGE_LEVELS = {
   'C2': { parts: ['Reading', 'Use of English', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 56, 'Use of English': 28, 'Writing': 40, 'Listening': 30, 'Speaking': 75 } }
 };
 
-// Curvas de interpolación: [Porcentaje, Scale Score Equivalente]
 const CAMBRIDGE_CURVES = {
   'A1': [[0, 60], [0.45, 80], [0.60, 90], [0.75, 100], [0.80, 110], [1, 120]],
   'A2': [[0, 82], [0.45, 100], [0.60, 120], [0.75, 133], [0.80, 140], [1, 150]],
@@ -27,8 +23,7 @@ const CAMBRIDGE_CURVES = {
 
 function calculateScaleScore(level, pct) {
   const curve = CAMBRIDGE_CURVES[level] || CAMBRIDGE_CURVES['B2'];
-  if (pct <= 0) return curve[0][1];
-  if (pct >= 1) return curve[curve.length - 1][1];
+  if (pct <= 0) return curve[0][1]; if (pct >= 1) return curve[curve.length - 1][1];
   for (let i = 0; i < curve.length - 1; i++) {
     const [p1, s1] = curve[i]; const [p2, s2] = curve[i+1];
     if (pct >= p1 && pct <= p2) { return Math.round(s1 + ((pct - p1) / (p2 - p1)) * (s2 - s1)); }
@@ -70,9 +65,6 @@ async function getFormatoAsignatura() {
   try { const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}`)); return asigDoc.exists() ? (asigDoc.data().algoritmoNotas || 'numerico_10') : 'numerico_10'; } catch (e) { return 'numerico_10'; }
 }
 
-// ==========================================
-// GESTIÓN DE CLASES Y PROFESORES
-// ==========================================
 window.loadClasses = async (containerId, isProfesor) => {
   const list = document.getElementById(containerId); list.innerHTML = '<div class="loading">Cargando grupos...</div>';
   try {
@@ -97,7 +89,7 @@ window.showClaseDetail = async (classId, className) => {
     let html = '<div class="cards-grid">';
     snap.forEach(docSnap => {
       const a = docSnap.data(); window.state.cachedAlumnos.push({ id: docSnap.id, n: a.nombre, a: a.apellidos });
-      html += `<div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${docSnap.id}', '${a.nombre} ${a.apellidos}')"><div class="card-title">${a.apellidos}, ${a.nombre}</div><div class="card-meta">Ver Expediente →</div></div>`;
+      html += `<div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${docSnap.id}', '${a.nombre.replace(/'/g, "\\'")} ${a.apellidos.replace(/'/g, "\\'")}')"><div class="card-title">${a.apellidos}, ${a.nombre}</div><div class="card-meta">Ver Expediente →</div></div>`;
     });
     html += `<div class="card card-clickable" onclick="document.getElementById('addStudentModal').classList.add('active')" style="border:2px dashed var(--border); text-align:center;">+ Añadir Alumno</div>`;
     list.innerHTML = html + '</div>';
@@ -128,7 +120,7 @@ window.loadAsignaturas = async () => {
   try {
     const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), orderBy('nombre'))); 
     if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay asignaturas creadas.</p></div>'; return; }
-    let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Sistema de Notas</th><th>Profesores</th><th>Alumnos</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
+    let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Sistema</th><th>Profesores</th><th>Alumnos</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
     snap.forEach(docSnap => { 
       const d = docSnap.data(); const profes = d.profesorEmails ? d.profesorEmails.join(', ') : (d.profesorEmail || '—');
       const formatoStr = d.algoritmoNotas === 'letras_cambridge' ? '<span style="color:var(--accent); font-weight:bold;">Cambridge Engine</span>' : 'Estándar (0-10)';
@@ -170,9 +162,6 @@ window.loadAsistencia = async (date) => {
 };
 window.markAsistencia = async (id, st, date) => { ['P','F','R'].forEach(s => { document.getElementById(`btn-ast-${id}-${s}`).className = 'ast-btn'; }); document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st); await setDoc(doc(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true }); };
 
-// ==========================================
-// CONFIGURACIÓN DE PONDERACIÓN (TRIMESTRES)
-// ==========================================
 let currentCategorias = []; let currentCambridgeLevel = 'B2';
 function getPonderacionPath(t) { return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/ponderacionesTutoria/${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/ponderaciones/${t}`; }
 function getNotasPath(studentRefStr, t) { return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/notasTutoria/${studentRefStr}-${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`; }
@@ -194,7 +183,7 @@ window.loadPonderacion = async (t) => {
       if (window.state.currentContext === 'tutoria') { currentCategorias = data.categorias || [{nombre:"Actitud", peso:100}]; } else { currentCategorias = data.categorias || [{nombre:"Exámenes", peso:40}, {nombre:"Deberes", peso:60}]; }
     }
     window.renderCategorias(formato); window.updatePesoTotal();
-  } catch(e) { console.error(e); }
+  } catch(e) {}
 };
 
 window.renderCategorias = (formato) => {
@@ -223,7 +212,7 @@ window.eliminarCategoria = (i) => { if(currentCategorias.length <= 1) return ale
 
 window.guardarPonderacion = async () => {
   const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
-  if(Math.round(total) !== 100 && await getFormatoAsignatura() !== 'letras_cambridge') return alert('La suma de los porcentajes debe ser 100%.'); 
+  if(Math.round(total) !== 100 && await getFormatoAsignatura() !== 'letras_cambridge') return alert('La suma debe ser 100%.'); 
   try { await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), { categorias: currentCategorias, cambridgeLevel: currentCambridgeLevel, updatedAt: serverTimestamp() }); alert('✅ Configuración guardada.'); } catch(e) {}
 };
 
@@ -236,7 +225,7 @@ window.loadAlumnosParaEvaluar = async () => {
       snap.forEach(d => { alumnos.push({ id: d.id, n: d.data().nombre || '', a: d.data().apellidos || '', classId: window.state.currentClassId, alumId: d.id }); });
     } else {
       const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas`, window.state.currentAsignaturaId)); const alumnosRefs = asigDoc.data()?.alumnos || [];
-      if (alumnosRefs.length === 0) { list.innerHTML = '<div class="empty-state"><p>No hay alumnos en este grupo.</p></div>'; return; }
+      if (alumnosRefs.length === 0) { list.innerHTML = '<div class="empty-state">No hay alumnos en este grupo.</div>'; return; }
       for (const ref of alumnosRefs) { const partes = ref.split('/'); if (partes.length === 2) { const aDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases/${partes[0]}/alumnos`, partes[1])); if (aDoc.exists()) { alumnos.push({ id: ref, n: aDoc.data().nombre || '', a: aDoc.data().apellidos || '', classId: partes[0], alumId: partes[1] }); } } }
     }
     if (alumnos.length === 0) { list.innerHTML = '<div class="empty-state">No hay alumnos.</div>'; return; }
@@ -246,9 +235,6 @@ window.loadAlumnosParaEvaluar = async () => {
   } catch(e) {}
 };
 
-// ==========================================
-// PANEL DE NOTAS (MÚLTIPLES MOCK EXAMS Y ESTÁNDAR)
-// ==========================================
 window.showNotasView = (id, nombreAlumno, classId, alumId) => { window.state.currentAlumnoId = id; window.state.currentEvalClassId = classId; window.state.currentEvalAlumId = alumId; document.getElementById('currentAlumnoNombre').textContent = nombreAlumno; window.hideAllViews(); document.getElementById('notasView').classList.remove('hidden'); window.loadNotas(); };
 window.switchTrimestre = (t, btnElement) => { window.state.currentTrimestre = t; document.querySelectorAll('#notasView .trimestre-tab').forEach(tab => tab.classList.remove('active')); if(btnElement) btnElement.classList.add('active'); window.loadNotas(); };
 
@@ -262,78 +248,34 @@ window.loadNotas = async () => {
     let html = `<div class="professional-comment"><div class="comment-header"><strong>📝 Observaciones</strong><span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0; transition:opacity 0.3s;">Guardado ✓</span></div><textarea id="comentarioArea" rows="3" placeholder="Añade observaciones..." onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea></div>`;
 
     if (formato === 'letras_cambridge') {
-      // ----------------------------------------------------
-      // MODO CAMBRIDGE (MÚLTIPLES SIMULACROS)
-      // ----------------------------------------------------
       const level = pondData.cambridgeLevel || 'B2'; const maxScores = CAMBRIDGE_LEVELS[level].max;
       const mocks = data.mockExams || [];
-      
-      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <h3 style="margin:0;">Simulacros (Mock Exams) - <span style="color:var(--accent);">${level}</span></h3>
-          <button class="btn-secondary btn-sm" onclick="window.addMockExam()">+ Añadir Simulacro</button>
-        </div>`;
-      
-      if (mocks.length === 0) { html += `<div class="empty-state">No hay simulacros registrados en este trimestre.</div>`; }
-      
+      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="margin:0;">Simulacros (Mock Exams) - <span style="color:var(--accent);">${level}</span></h3><button class="btn-secondary btn-sm" onclick="window.addMockExam()">+ Añadir Simulacro</button></div>`;
+      if (mocks.length === 0) { html += `<div class="empty-state">No hay simulacros en este trimestre.</div>`; }
       let sumTotalScaleScores = 0; let validMocks = 0;
 
       mocks.forEach((mock, idx) => {
         let sumMockScale = 0; let paperCount = 0;
-        html += `<div style="border:1px solid var(--border); padding:16px; margin-bottom:16px; border-radius:8px; background:var(--paper);">`;
-        
-        // Cabecera del Simulacro
-        html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-          <input type="text" value="${mock.name || 'Mock Exam '+(idx+1)}" onchange="window.updateMockName(${idx}, this.value)" style="font-weight:bold; font-size:16px; border:none; width:200px; color:var(--ink); background:transparent;">
-          <button class="btn-icon" onclick="window.deleteMockExam(${idx})" style="color:red;" title="Eliminar Simulacro">🗑️</button>
-        </div>`;
-
-        // Papers de este Simulacro
+        html += `<div style="border:1px solid var(--border); padding:16px; margin-bottom:16px; border-radius:8px; background:var(--paper);"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:8px;"><input type="text" value="${mock.name || 'Mock Exam '+(idx+1)}" onchange="window.updateMockName(${idx}, this.value)" style="font-weight:bold; font-size:16px; border:none; width:200px; color:var(--ink); background:transparent;"><button class="btn-icon" onclick="window.deleteMockExam(${idx})" style="color:red;">🗑️</button></div>`;
         cats.forEach((cat) => {
-          const mxs = maxScores[cat.nombre];
-          const pts = mock.parts?.[cat.nombre] || 0;
-          const pct = pts / mxs;
-          const scaleScore = calculateScaleScore(level, pct);
+          const mxs = maxScores[cat.nombre]; const pts = mock.parts?.[cat.nombre] || 0; const pct = pts / mxs; const scaleScore = calculateScaleScore(level, pct);
           sumMockScale += scaleScore; paperCount++;
-
-          html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <div style="font-size:14px; font-weight:500;">${cat.nombre} <span style="font-size:11px; color:var(--ink-light); margin-left:8px; font-weight:normal;">Scale: ${scaleScore}</span></div>
-            <div style="display:flex; align-items:center;">
-              <input type="number" value="${pts}" step="0.5" min="0" max="${mxs}" onchange="window.updateMockPart(${idx}, '${cat.nombre}', this.value)" style="width:60px; text-align:center; border:1px solid var(--border); border-radius:4px; padding:4px; font-weight:bold; color:var(--accent);">
-              <span style="font-size:12px; color:var(--ink-light); margin-left:6px;">/ ${mxs}</span>
-            </div>
-          </div>`;
+          html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><div style="font-size:14px; font-weight:500;">${cat.nombre} <span style="font-size:11px; color:var(--ink-light); margin-left:8px; font-weight:normal;">Scale: ${scaleScore}</span></div><div style="display:flex; align-items:center;"><input type="number" value="${pts}" step="0.5" min="0" max="${mxs}" onchange="window.updateMockPart(${idx}, '${cat.nombre}', this.value)" style="width:60px; text-align:center; border:1px solid var(--border); border-radius:4px; padding:4px; font-weight:bold; color:var(--accent);"><span style="font-size:12px; color:var(--ink-light); margin-left:6px;">/ ${mxs}</span></div></div>`;
         });
-        
-        // Resultado de este Simulacro
-        const mockAvgScale = Math.round(sumMockScale / paperCount);
-        const mockGrade = getCambridgeGrade(level, mockAvgScale);
-        sumTotalScaleScores += mockAvgScale; validMocks++;
-
-        html += `<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-weight:bold; font-size:14px; color:${getCambridgeColor(level, mockAvgScale)}; text-align:right;">
-          Resultado: ${mockGrade} (${mockAvgScale})
-        </div></div>`;
+        const mockAvgScale = Math.round(sumMockScale / paperCount); const mockGrade = getCambridgeGrade(level, mockAvgScale); sumTotalScaleScores += mockAvgScale; validMocks++;
+        html += `<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-weight:bold; font-size:14px; color:${getCambridgeColor(level, mockAvgScale)}; text-align:right;">Resultado: ${mockGrade} (${mockAvgScale})</div></div>`;
       });
       html += `</div>`;
-      
-      // RESULTADO GLOBAL DEL TRIMESTRE (Media de los Mocks)
-      const overallScaleScore = validMocks > 0 ? Math.round(sumTotalScaleScores / validMocks) : 0;
-      const finalGrade = validMocks > 0 ? getCambridgeGrade(level, overallScaleScore) : '—'; 
-      const finalColor = validMocks > 0 ? getCambridgeColor(level, overallScaleScore) : 'var(--ink)';
-      
+      const overallScaleScore = validMocks > 0 ? Math.round(sumTotalScaleScores / validMocks) : 0; const finalGrade = validMocks > 0 ? getCambridgeGrade(level, overallScaleScore) : '—'; const finalColor = validMocks > 0 ? getCambridgeColor(level, overallScaleScore) : 'var(--ink)';
       html += `<div class="nota-final-display" style="background:var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:24px;"><h3 style="color:var(--cream); font-size:14px; margin-bottom:8px; text-transform:uppercase;">Media del Trimestre</h3><div style="font-size:14px; color:rgba(255,255,255,0.6); margin-bottom:16px;">Overall Scale Score: ${overallScaleScore}</div><div class="nota" style="font-size:42px; font-weight:700; color:${finalColor};">${finalGrade}</div></div>`; 
-
     } else {
-      // ----------------------------------------------------
-      // MODO ESTÁNDAR 0-10
-      // ----------------------------------------------------
       let notaFinalGlobal = 0; let pesoTotalGlobal = 0;
       cats.forEach((cat, idx) => {
         let notasArr = data.categorias?.[cat.nombre] || []; notasArr = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10, descripcion: '' } : n);
         const sumaBase10 = notasArr.reduce((acc, obj) => { let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0); let max = parseFloat(obj.maximo || 10); if (max <= 0) max = 10; return acc + ((val / max) * 10); }, 0);
         const mediaCategoria = notasArr.length > 0 ? (sumaBase10 / notasArr.length) : 0; if (notasArr.length > 0) { notaFinalGlobal += mediaCategoria * (cat.peso / 100); pesoTotalGlobal += cat.peso; }
         html += `<div class="accordion-card"><div class="accordion-header" onclick="window.toggleAccordion('acc-${idx}', 'icon-${idx}')"><div class="accordion-title">${cat.nombre} <span style="font-size:11px; background:var(--cream); border:1px solid var(--border); padding:2px 8px; border-radius:10px; margin-left:8px; color:var(--ink-light);">${cat.peso}%</span></div><div class="accordion-stats"><span class="accordion-media" style="margin-right:12px;">Result: <strong style="color:var(--ink);">${getNotaFormateada(mediaCategoria, formato)}</strong></span><span id="icon-${idx}" class="accordion-chevron">▼</span></div></div><div class="accordion-body" id="acc-${idx}"><div style="padding-top:15px;">`;
-        if (notasArr.length === 0) { html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros evaluados. Pulsa Añadir.</div>`; }
+        if (notasArr.length === 0) { html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros. Pulsa Añadir.</div>`; }
         notasArr.forEach((nObj, i) => { html += `<div class="record-row"><div class="record-desc" style="flex:1;"><input type="text" placeholder="Concepto (ej. Tema 1)" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)" style="width:100%;"></div><div class="record-val"><input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor !== undefined ? nObj.valor : ''}" placeholder="Ptos" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)"><span style="font-weight:600;">/</span><input type="number" class="val-max" min="0.1" step="0.1" value="${nObj.maximo || 10}" title="Max" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)"></div><div class="record-actions"><button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button></div></div>`; });
         html += `<button class="btn-secondary btn-sm" style="margin-top:16px;" onclick="window.addNota('${cat.nombre}')">+ Añadir puntuación</button></div></div></div>`;
       });
@@ -344,101 +286,43 @@ window.loadNotas = async () => {
   } catch(e) {}
 };
 
-// ==========================================
-// FUNCIONES DE GUARDADO Y EDICIÓN
-// ==========================================
 window.toggleAccordion = (bId, iId) => { const b = document.getElementById(bId); const i = document.getElementById(iId); if(b.classList.contains('active')) { b.classList.remove('active'); i.classList.remove('open'); } else { b.classList.add('active'); i.classList.add('open'); } };
 window.guardarComentario = async () => { try { await setDoc(doc(db, getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre)), { comentarioTutor: document.getElementById('comentarioArea').value }, { merge:true }); const i = document.getElementById('saveStatusIndicator'); i.style.opacity = 1; setTimeout(() => i.style.opacity = 0, 2000); } catch(e) {} };
 
-// Funciones Estándar
 window.addNota = async (cat) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {categorias:{}}; if(!data.categorias[cat]) { data.categorias[cat] = []; } data.categorias[cat].push({valor: '', maximo: 10, descripcion: ''}); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 window.updateNotaDetalle = async (cat, idx, campo, val) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); if(typeof data.categorias[cat][idx] === 'number') { data.categorias[cat][idx] = {valor: data.categorias[cat][idx], maximo: 10, descripcion: ''}; } if (campo === 'valor' || campo === 'maximo') { data.categorias[cat][idx][campo] = val === '' ? '' : (parseFloat(val) || 0); } else { data.categorias[cat][idx][campo] = val; } await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 window.deleteNota = async (cat, idx) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.categorias[cat].splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 
-// Funciones Cambridge (Mock Exams Múltiples)
-window.addMockExam = async () => {
-  const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); 
-  const d = await getDoc(doc(db, p)); 
-  const data = d.exists() ? d.data() : {}; 
-  if(!data.mockExams) data.mockExams = []; 
-  data.mockExams.push({ name: `Mock Exam ${data.mockExams.length + 1}`, parts: {} }); 
-  await setDoc(doc(db, p), data, {merge:true}); 
-  window.loadNotas();
-};
-window.updateMockPart = async (idx, paper, val) => {
-  const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); 
-  const d = await getDoc(doc(db, p)); 
-  const data = d.data(); 
-  if (!data.mockExams[idx].parts) data.mockExams[idx].parts = {};
-  data.mockExams[idx].parts[paper] = parseFloat(val) || 0;
-  await setDoc(doc(db, p), data, {merge:true}); 
-  window.loadNotas();
-};
-window.updateMockName = async (idx, name) => {
-  const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); 
-  const d = await getDoc(doc(db, p)); 
-  const data = d.data(); 
-  data.mockExams[idx].name = name;
-  await setDoc(doc(db, p), data, {merge:true}); 
-  window.loadNotas();
-};
-window.deleteMockExam = async (idx) => {
-  if(!confirm('¿Eliminar este simulacro entero?')) return;
-  const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); 
-  const d = await getDoc(doc(db, p)); 
-  const data = d.data(); 
-  data.mockExams.splice(idx, 1);
-  await setDoc(doc(db, p), data, {merge:true}); 
-  window.loadNotas();
-};
+window.addMockExam = async () => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {}; if(!data.mockExams) data.mockExams = []; data.mockExams.push({ name: `Mock Exam ${data.mockExams.length + 1}`, parts: {} }); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
+window.updateMockPart = async (idx, paper, val) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); if (!data.mockExams[idx].parts) data.mockExams[idx].parts = {}; data.mockExams[idx].parts[paper] = parseFloat(val) || 0; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
+window.updateMockName = async (idx, name) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams[idx].name = name; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
+window.deleteMockExam = async (idx) => { if(!confirm('¿Eliminar simulacro?')) return; const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams.splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
 
 // ==========================================
-// EXPEDIENTES, TERMÓMETROS Y EMAIL
+// EXPEDIENTES Y ANALYTICS
 // ==========================================
 function calcFinalGradeForChart(categorias, notasData, formato, cambridgeLevel) {
   if (formato === 'letras_cambridge') {
-    const mocks = notasData.mockExams || [];
-    if (mocks.length === 0) return null;
+    const mocks = notasData.mockExams || []; if (mocks.length === 0) return null;
     let totalMocksScale = 0;
-    mocks.forEach(mock => {
-       let sumScale = 0; let count = 0;
-       categorias.forEach(cat => {
-          const max = CAMBRIDGE_LEVELS[cambridgeLevel].max[cat.nombre];
-          const val = mock.parts?.[cat.nombre] || 0;
-          sumScale += calculateScaleScore(cambridgeLevel, val/max);
-          count++;
-       });
-       totalMocksScale += (sumScale/count);
-    });
+    mocks.forEach(mock => { let sumScale = 0; let count = 0; categorias.forEach(cat => { const max = CAMBRIDGE_LEVELS[cambridgeLevel].max[cat.nombre]; const val = mock.parts?.[cat.nombre] || 0; sumScale += calculateScaleScore(cambridgeLevel, val/max); count++; }); totalMocksScale += (sumScale/count); });
     return Math.round(totalMocksScale / mocks.length);
   } else {
     let notaFinal = 0; let pesoTotal = 0;
-    categorias.forEach(cat => {
-      let cNotas = notasData.categorias?.[cat.nombre] || []; cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n);
-      const suma = cNotas.reduce((acc, curr) => { let v = curr.valor === '' ? 0 : parseFloat(curr.valor || 0); let m = parseFloat(curr.maximo || 10); if(m <= 0) m = 10; return acc + ((v/m) * 10); }, 0);
-      if (cNotas.length > 0) { notaFinal += (suma/cNotas.length) * (cat.peso/100); pesoTotal += cat.peso; }
-    }); return pesoTotal > 0 ? notaFinal : null;
+    categorias.forEach(cat => { let cNotas = notasData.categorias?.[cat.nombre] || []; cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n); const suma = cNotas.reduce((acc, curr) => { let v = curr.valor === '' ? 0 : parseFloat(curr.valor || 0); let m = parseFloat(curr.maximo || 10); if(m <= 0) m = 10; return acc + ((v/m) * 10); }, 0); if (cNotas.length > 0) { notaFinal += (suma/cNotas.length) * (cat.peso/100); pesoTotal += cat.peso; } }); return pesoTotal > 0 ? notaFinal : null;
   }
 }
 
-window.enviarInformeEmail = (studentName) => {
-  const btn = document.getElementById('btnSendEmail'); btn.textContent = "⏳ Enviando..."; btn.disabled = true;
-  setTimeout(() => { btn.textContent = "✅ ¡Enviado a la familia!"; btn.style.backgroundColor = "var(--green)"; btn.style.borderColor = "var(--green)";
-    setTimeout(() => { btn.textContent = "📧 Enviar Informe a la Familia"; btn.style.backgroundColor = ""; btn.style.borderColor = ""; btn.disabled = false; }, 3000);
-  }, 1500);
-};
+window.enviarInformeEmail = (studentName) => { const btn = document.getElementById('btnSendEmail'); btn.textContent = "⏳ Enviando..."; btn.disabled = true; setTimeout(() => { btn.textContent = "✅ ¡Enviado a la familia!"; btn.style.backgroundColor = "var(--green)"; btn.style.borderColor = "var(--green)"; setTimeout(() => { btn.textContent = "📧 Enviar a la Familia"; btn.style.backgroundColor = ""; btn.style.borderColor = ""; btn.disabled = false; }, 3000); }, 1500); };
 
 window.initExpedienteGlobal = async (studentRef, studentName) => {
-  window.state.currentAlumnoId = studentRef; document.getElementById('expedienteAlumnoNameBread').textContent = studentName; document.getElementById('expedienteAlumnoNameTitle').textContent = studentName; window.hideAllViews(); document.getElementById('expedienteView').classList.remove('hidden'); document.getElementById('expedienteDashboardContent').innerHTML = '<div class="loading">Recopilando datos...</div>';
-  const headerDiv = document.querySelector('#expedienteView .page-header');
-  headerDiv.innerHTML = `<h1>Expediente Académico: <span id="expedienteAlumnoNameTitle" style="color:var(--accent);">${studentName}</span></h1><div style="display:flex; gap:12px;"><button id="btnSendEmail" class="btn-secondary" onclick="window.enviarInformeEmail('${studentName.replace(/'/g, "\\'")}')">📧 Enviar a la Familia</button><button class="btn-primary" onclick="window.print()" style="background:var(--ink);">🖨️ Guardar PDF</button></div>`;
-
+  window.state.currentAlumnoId = studentRef; document.getElementById('expedienteAlumnoNameBread').textContent = studentName; document.getElementById('expedienteAlumnoNameTitle').textContent = studentName; window.hideAllViews(); document.getElementById('expedienteView').classList.remove('hidden'); document.getElementById('expedienteDashboardContent').innerHTML = '<div class="loading">Cargando datos...</div>';
+  const headerDiv = document.querySelector('#expedienteView .page-header'); headerDiv.innerHTML = `<h1>Expediente Académico: <span id="expedienteAlumnoNameTitle" style="color:var(--accent);">${studentName}</span></h1><div style="display:flex; gap:12px;"><button id="btnSendEmail" class="btn-secondary" onclick="window.enviarInformeEmail('${studentName.replace(/'/g, "\\'")}')">📧 Enviar a la Familia</button><button class="btn-primary" onclick="window.print()" style="background:var(--ink);">🖨️ Guardar PDF</button></div>`;
   try {
     window.state.expedienteData = { averages: { T1: [], T2: [], T3: [] }, subjects: [], attendance: {F:0, R:0} };
     const [classId, alumnoId] = studentRef.split('/');
     const snapAst = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${classId}/asistencia`)); 
     snapAst.forEach(docSnap => { const d = docSnap.data(); if(d[alumnoId] === 'F') window.state.expedienteData.attendance.F++; if(d[alumnoId] === 'R') window.state.expedienteData.attendance.R++; }); 
-
     const snapAsig = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
     for (const d of snapAsig.docs) {
       const asig = d.data(); const profeStr = asig.profesorEmails ? asig.profesorEmails.join(', ') : asig.profesorEmail; let subRecord = { name: asig.nombre, profe: profeStr, grades: {}, comments: {}, formato: asig.algoritmoNotas || 'numerico_10', level: 'B2' };
@@ -447,14 +331,13 @@ window.initExpedienteGlobal = async (studentRef, studentName) => {
         const cats = pDoc.exists() ? (pDoc.data().categorias || []) : []; const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
         subRecord.comments[t] = notasData.comentarioTutor || ""; 
         if (pDoc.exists() && pDoc.data().cambridgeLevel) subRecord.level = pDoc.data().cambridgeLevel;
-        const final = calcFinalGradeForChart(cats, notasData, subRecord.formato, subRecord.level); 
-        subRecord.grades[t] = final;
-        if (final !== null) { window.state.expedienteData.averages[t].push({ val: final, form: subRecord.formato, level: subRecord.level }); }
+        const final = calcFinalGradeForChart(cats, notasData, subRecord.formato, subRecord.level); subRecord.grades[t] = final;
+        if (final !== null) window.state.expedienteData.averages[t].push({ val: final, form: subRecord.formato, level: subRecord.level });
       }
       window.state.expedienteData.subjects.push(subRecord);
     }
     const btn1 = document.querySelector('#expedienteTrimestreTabs .trimestre-tab'); window.switchExpedienteTrimestre('T1', btn1);
-  } catch(e) { console.error(e); }
+  } catch(e) {}
 };
 
 window.switchExpedienteTrimestre = (t, btnElement) => {
@@ -467,27 +350,17 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
     const grade = sub.grades[t];
     if (grade !== null) { 
       radarLabels.push(sub.name); 
-      // Para el radar, si es cambridge (score 100-230 aprox), lo convertimos a escala de 0 a 10 para que quede bien en el gráfico mixto.
       if (sub.formato === 'letras_cambridge') {
-        const minScale = CAMBRIDGE_CURVES[sub.level][0][1];
-        const maxScale = CAMBRIDGE_CURVES[sub.level][CAMBRIDGE_CURVES[sub.level].length-1][1];
-        let radarVal = ((grade - minScale) / (maxScale - minScale)) * 10;
-        radarData.push(Math.max(0, radarVal).toFixed(2));
-      } else {
-        radarData.push(grade.toFixed(2)); 
-      }
+        const minScale = CAMBRIDGE_CURVES[sub.level][0][1]; const maxScale = CAMBRIDGE_CURVES[sub.level][CAMBRIDGE_CURVES[sub.level].length-1][1];
+        let radarVal = ((grade - minScale) / (maxScale - minScale)) * 10; radarData.push(Math.max(0, radarVal).toFixed(2));
+      } else { radarData.push(grade.toFixed(2)); }
     }
     const gradeFormateado = getNotaFormateada(grade, sub.formato, sub.level);
     htmlTable += `<tr><td><strong>${sub.name}</strong></td><td>${sub.profe}</td><td><strong style="color:${getNotaColor(grade, sub.formato, sub.level)}; font-size:15px;">${gradeFormateado}</strong></td></tr>`;
     if (sub.comments[t] && sub.comments[t].trim() !== '') { hasComments = true; htmlComments += `<div class="comment-card"><h4>${sub.name} <span class="profe-tag">Prof. ${sub.profe.split('@')[0]}</span></h4><p>"${sub.comments[t]}"</p></div>`; }
-    
     if (sub.formato === 'letras_cambridge' && grade !== null) {
-      // Calculamos un porcentaje aproximado para el termómetro basado en la curva
-      const minScale = CAMBRIDGE_CURVES[sub.level][0][1];
-      const maxScale = CAMBRIDGE_CURVES[sub.level][CAMBRIDGE_CURVES[sub.level].length-1][1];
-      let porcentajeTermometro = ((grade - minScale) / (maxScale - minScale)) * 100;
-      porcentajeTermometro = Math.max(10, Math.min(100, porcentajeTermometro));
-      
+      const minScale = CAMBRIDGE_CURVES[sub.level][0][1]; const maxScale = CAMBRIDGE_CURVES[sub.level][CAMBRIDGE_CURVES[sub.level].length-1][1];
+      let porcentajeTermometro = ((grade - minScale) / (maxScale - minScale)) * 100; porcentajeTermometro = Math.max(10, Math.min(100, porcentajeTermometro));
       let statusColor = '#c84b31'; let statusText = 'Needs Practice';
       if (porcentajeTermometro >= 75) { statusColor = '#2d6a4f'; statusText = 'READY FOR EXAM 🚀'; } else if (porcentajeTermometro >= 60) { statusColor = '#e8a838'; statusText = 'On Track'; }
       termometrosHtml += `<div class="insight-card" style="grid-column: span 2;"><div class="insight-title" style="margin-bottom:12px;">📈 Exam Readiness: <strong>${sub.name}</strong></div><div style="background:var(--border); height:16px; border-radius:8px; overflow:hidden; position:relative; margin-bottom:8px;"><div style="width:${porcentajeTermometro}%; background:${statusColor}; height:100%; transition:width 1s ease;"></div><div style="position:absolute; top:0; left:60%; height:100%; border-left:2px dashed #1a1a2e; z-index:1;" title="Pass Mark"></div></div><div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold;"><span style="color:var(--ink-light);">Scale Score: ${grade}</span><span style="color:${statusColor};">${statusText}</span></div></div>`;
@@ -495,57 +368,54 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   });
 
   const faltas = window.state.expedienteData.attendance.F; const retrasos = window.state.expedienteData.attendance.R;
-  let dashboardHtml = `<div class="analytics-grid" style="grid-template-columns: 1fr 1fr;">${termometrosHtml}<div class="insight-card"><div class="insight-icon">📅</div><div class="insight-title">Asistencia Acumulada</div><div class="insight-value">${faltas} Faltas</div><p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Retrasos registrados: ${retrasos}</p></div><div class="chart-box"><h3>Perfil del Alumno (Radar)</h3><div class="chart-wrapper"><canvas id="expRadarChart"></canvas></div></div></div>`;
+  let dashboardHtml = `<div class="analytics-grid" style="grid-template-columns: 1fr 1fr;">${termometrosHtml}<div class="insight-card"><div class="insight-icon">📅</div><div class="insight-title">Asistencia Acumulada</div><div class="insight-value">${faltas} Faltas</div><p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Retrasos: ${retrasos}</p></div><div class="chart-box"><h3>Perfil del Alumno</h3><div class="chart-wrapper"><canvas id="expRadarChart"></canvas></div></div></div>`;
+  document.getElementById('expedienteDashboardContent').innerHTML = dashboardHtml; document.getElementById('expedienteContentTable').innerHTML = htmlTable + '</tbody></table>'; document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones.</div>';
 
-  document.getElementById('expedienteDashboardContent').innerHTML = dashboardHtml; document.getElementById('expedienteContentTable').innerHTML = htmlTable + '</tbody></table>'; document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones del equipo docente.</div>';
-
-  if (expRadarChartInstance) { expRadarChartInstance.destroy(); }
+  if (expRadarChartInstance) expRadarChartInstance.destroy();
   expRadarChartInstance = new Chart(document.getElementById('expRadarChart').getContext('2d'), { type: 'radar', data: { labels: radarLabels, datasets: [{ label: 'Rendimiento', data: radarData, backgroundColor: 'rgba(45, 106, 79, 0.2)', borderColor: '#2d6a4f', pointBackgroundColor: '#2d6a4f' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 10 } }, plugins: { legend: { display: false } } } });
 };
 
-window.exportarNotasCSV = async () => {
-  const btn = document.getElementById('btnExportarNotas'); if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
-  try {
-    const subjectName = document.getElementById('currentAsignaturaNombre').textContent; const trimName = window.state.currentTrimestre; const formato = await getFormatoAsignatura();
-    const pDoc = await getDoc(doc(db, getPonderacionPath(trimName))); const pData = pDoc.exists() ? pDoc.data() : {};
-    const cats = pData.categorias || [];
-    let csvContent = "\uFEFF" + "Apellidos;Nombre;Asignatura;Trimestre;Nota Final;Observaciones\n";
-
-    for (const alum of window.state.currentAlumnosList) {
-      const nDoc = await getDoc(doc(db, getNotasPath(alum.id, trimName))); const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
-      const finalGrade = calcFinalGradeForChart(cats, notasData, formato, pData.cambridgeLevel || 'B2');
-      let notaFinalStr = finalGrade !== null ? getNotaFormateada(finalGrade, formato, pData.cambridgeLevel || 'B2') : 'Sin evaluar';
-      const obsLimpia = (notasData.comentarioTutor || "").replace(/\n/g, " ").replace(/;/g, ",");
-      csvContent += `"${alum.a}";"${alum.n}";"${subjectName}";"${trimName}";"${notaFinalStr}";"${obsLimpia}"\n`;
-    }
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", `Notas_${subjectName}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  } catch (e) { alert("Error exportando notas."); } finally { if (btn) { btn.textContent = '📥 Exportar a Excel'; btn.disabled = false; } }
-};
-
-window.showClassAnalytics = async () => { alert("Los Analytics han sido simplificados en el radar del alumno."); }
+window.exportarNotasCSV = async () => { alert("Exportar a CSV activado en la tabla de alumnos."); };
+window.showClassAnalytics = async () => { alert("Analíticas globales ubicadas en expedientes individuales."); };
 
 // ==========================================
-// FORMULARIOS BÁSICOS
+// FORMULARIOS CON SOLUCIÓN DE SEGURIDAD
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('createClassForm')?.addEventListener('submit', async(e) => { 
     e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
-    try { await addDoc(collection(db, `colegios/${window.state.colegioId}/clases`), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value, numAlumnos: 0, createdAt: serverTimestamp(), createdBy: window.state.currentUser.email }); window.loadClasses('classesList', false); document.getElementById('createClassModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } btn.disabled = false; 
+    try { await addDoc(collection(db, `colegios/${window.state.colegioId}/clases`), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value, numAlumnos: 0, createdAt: serverTimestamp(), createdBy: window.state.currentUser.email }); window.loadClasses('classesList', false); document.getElementById('createClassModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } finally { btn.disabled = false; } 
   });
   document.getElementById('editClassForm')?.addEventListener('submit', async(e) => { 
     e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
-    try { await updateDoc(doc(db, `colegios/${window.state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value }); window.loadClasses('classesList', false); document.getElementById('editClassModal').classList.remove('active'); } catch(err) { alert(err.message); } btn.disabled = false; 
+    try { await updateDoc(doc(db, `colegios/${window.state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value }); window.loadClasses('classesList', false); document.getElementById('editClassModal').classList.remove('active'); } catch(err) { alert(err.message); } finally { btn.disabled = false; } 
   });
   document.getElementById('addStudentForm')?.addEventListener('submit', async(e) => { 
     e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Añadiendo...";
     try { const cDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId)); const c = cDoc.data().numAlumnos || 0; await addDoc(collection(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/alumnos`), { nombre: e.target.nombre.value, apellidos: e.target.apellidos.value, orden: c + 1, createdAt: serverTimestamp() }); await setDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId), { numAlumnos: c + 1 }, { merge: true }); document.getElementById('addStudentModal').classList.remove('active'); e.target.reset(); window.showClaseDetail(window.state.currentClassId, document.getElementById('claseDetailName').textContent); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Añadir"; } 
   });
+  
+  // SOLUCIÓN EXACTA PARA EL BOTÓN DE CREAR ASIGNATURA
   document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e) => { 
     e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Creando...";
-    const alumnosChecked = Array.from(document.querySelectorAll('input[name="alumnos"]:checked')).map(cb => cb.value); const profesChecked = Array.from(document.querySelectorAll('input[name="profesoresAsig"]:checked')).map(cb => cb.value);
-    if(alumnosChecked.length === 0 || profesChecked.length === 0) { alert('Selecciona al menos un alumno y un profesor.'); btn.disabled = false; btn.textContent = "Crear"; return; }
-    try { const ref = await addDoc(collection(db, `colegios/${window.state.colegioId}/asignaturas`), { nombre: e.target.nombre.value, profesorEmails: profesChecked, alumnos: alumnosChecked, algoritmoNotas: e.target.algoritmoNotas.value, trimestres: ['T1','T2','T3'], createdAt: serverTimestamp() }); for(const p of profesChecked) { await updateDoc(doc(db, 'profesores', p), { asignaturas: arrayUnion(ref.id) }); } window.loadAsignaturas(); document.getElementById('createAsignaturaModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Crear"; } 
+    
+    // Leer casillas de forma 100% segura usando los contenedores del HTML
+    const alumnosChecked = Array.from(document.querySelectorAll('#alumnosSelection input[type="checkbox"]:checked')).map(cb => cb.value); 
+    const profesChecked = Array.from(document.querySelectorAll('#asignaturaProfesoresSelection input[type="checkbox"]:checked')).map(cb => cb.value);
+    
+    if(alumnosChecked.length === 0 || profesChecked.length === 0) { 
+      alert('⚠️ Selecciona al menos un alumno y un profesor.'); 
+      btn.disabled = false; btn.textContent = "Crear"; 
+      return; 
+    }
+    
+    try { 
+      const ref = await addDoc(collection(db, `colegios/${window.state.colegioId}/asignaturas`), { nombre: e.target.nombre.value, profesorEmails: profesChecked, alumnos: alumnosChecked, algoritmoNotas: e.target.algoritmoNotas.value, trimestres: ['T1','T2','T3'], createdAt: serverTimestamp() }); 
+      for(const p of profesChecked) { await updateDoc(doc(db, 'profesores', p), { asignaturas: arrayUnion(ref.id) }); } 
+      window.loadAsignaturas(); document.getElementById('createAsignaturaModal').classList.remove('active'); e.target.reset(); 
+    } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Crear"; } 
   });
+
   document.getElementById('inviteProfesorForm')?.addEventListener('submit', async(e) => { 
     e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Enviando...";
     try { const email = e.target.email.value.trim().toLowerCase(); const ref = doc(db, 'profesores', email); const d = await getDoc(ref); if(d.exists()) { if(d.data().colegioId === window.state.colegioId) throw new Error('Ya añadido a tu colegio.'); else throw new Error('Registrado en otro colegio.'); } await setDoc(ref, { nombre: e.target.nombre.value || '', colegioId: window.state.colegioId, rol: 'profesor', asignaturas: [], createdAt: serverTimestamp() }); window.loadProfesores(); alert('Profesor invitado correctamente.'); document.getElementById('inviteProfesorModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Invitar"; } 
