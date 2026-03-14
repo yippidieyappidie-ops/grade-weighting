@@ -78,7 +78,7 @@
     /* ==========================================================================
        2. ESTILOS EXCLUSIVOS DE LA CALCULADORA REACT (TU CÓDIGO ORIGINAL)
        ========================================================================== */
-    .main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+    .main-calc { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
     .card { background: var(--paper); border-radius: var(--radius); border: 1px solid var(--border); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); animation: fadeUp 0.4s ease both; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     .section-label { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
@@ -181,7 +181,7 @@
   <div class="feature-box">
     <div class="feature-icon">📊</div>
     <h3>Expedientes Automáticos</h3>
-    <p>Genera boletines en PDF con gráficos de radar para que los padres vean el progreso. Compatible con notas numéricas o Modo Cambridge (A, B, C).</p>
+    <p>Genera boletines en PDF con gráficos de radar para que los padres vean el progreso. Compatible con notas numéricas o Evaluaciones de Cambridge (Reading, Writing, etc.).</p>
   </div>
   <div class="feature-box">
     <div class="feature-icon">✅</div>
@@ -201,7 +201,7 @@
   <form id="contactForm" onsubmit="handleContactSubmit(event)">
     <div class="form-group">
       <label>Nombre del Centro / Academia *</label>
-      <input type="text" name="centro" required placeholder="Ej. Academia La Garriga">
+      <input type="text" name="centro" required placeholder="Ej. Academia Internacional">
     </div>
     <div class="form-group">
       <label>Tu Nombre *</label>
@@ -264,7 +264,6 @@ function notaBadge(nota, escalaMax) {
   return "nota-low";
 }
 
-// ─── TUS TRADUCCIONES ORIGINALES ──────────────────────────────────────
 const TRANSLATIONS = {
   es: {
     tabs: ["⚙️ Configuración", "📝 Notas", "📊 Resultados"],
