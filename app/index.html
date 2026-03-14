@@ -366,7 +366,7 @@
   <div class="modal-content">
     <h2 class="modal-header">Crear Nueva Instancia (Centro)</h2>
     <form id="createColegioForm">
-      <div class="form-group"><label>Nombre del Centro *</label><input type="text" name="nombre" required placeholder="Ej. El Racó de l'Anglès"></div>
+      <div class="form-group"><label>Nombre del Centro *</label><input type="text" name="nombre" required placeholder="Ej. Centro de Estudios Newton"></div>
       <div class="form-group"><label>Email del Director / Coordinador *</label><input type="email" name="directorEmail" required></div>
       <div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('createColegioModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Crear Centro</button></div>
     </form>
@@ -379,7 +379,13 @@
     <form id="configColegioForm">
       <input type="hidden" id="configColId">
       <div class="form-group"><label>Módulo de Horarios</label><select id="configModHorarios"><option value="true">Sí (Mostrar)</option><option value="false">No (Ocultar)</option></select></div>
-      <div class="form-group"><label>Motor de Notas</label><select id="configModNotas"><option value="numerico_10">Estándar (0 al 10)</option><option value="letras_cambridge">Academias de Inglés (A, B, C, Fail)</option></select></div>
+      <div class="form-group">
+        <label>Motor de Notas</label>
+        <select id="configModNotas">
+          <option value="numerico_10">Estándar (0 al 10)</option>
+          <option value="letras_cambridge">Exámenes de Cambridge (Calculadora por partes)</option>
+        </select>
+      </div>
       <div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('configColegioModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Guardar ADN</button></div>
     </form>
   </div>
