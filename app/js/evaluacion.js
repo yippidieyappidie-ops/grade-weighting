@@ -1,39 +1,51 @@
 import { collection, addDoc, getDocs, getDoc, doc, setDoc, updateDoc, arrayUnion, deleteDoc, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 
+// Variables globales para las gráficas
+let chartPieInstance = null;
+let chartBarInstance = null;
+let expRadarChartInstance = null;
+let expLineChartInstance = null;
+
 // ==========================================
-// UTILIDADES PARA NOTAS (LETRAS CAMBRIDGE)
+// MOTOR DE CÁLCULO CAMBRIDGE (ESTRUCTURA OFICIAL)
 // ==========================================
+const CAMBRIDGE_LEVELS = {
+  'A2': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 30, 'Writing': 30, 'Listening': 25, 'Speaking': 15 } },
+  'B1': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 32, 'Writing': 40, 'Listening': 25, 'Speaking': 30 } },
+  'B2': { parts: ['Reading', 'Use of English', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 42, 'Use of English': 28, 'Writing': 40, 'Listening': 30, 'Speaking': 60 } },
+  'C1': { parts: ['Reading', 'Use of English', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 50, 'Use of English': 28, 'Writing': 40, 'Listening': 30, 'Speaking': 75 } },
+  'C2': { parts: ['Reading', 'Use of English', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 56, 'Use of English': 28, 'Writing': 40, 'Listening': 30, 'Speaking': 75 } }
+};
+
+function getGradeCambridge(porcentaje) {
+  if (porcentaje >= 80) return 'Grade A';
+  if (porcentaje >= 75) return 'Grade B';
+  if (porcentaje >= 60) return 'Grade C';
+  if (porcentaje >= 45) return 'Level Below';
+  return 'Fail';
+}
+
 function getNotaFormateada(notaDecimal, formato) {
-  if (notaDecimal === null || notaDecimal === undefined) return '—';
-  
+  if (notaDecimal === null || notaDecimal === undefined || isNaN(notaDecimal)) return '—';
   if (formato === 'letras_cambridge') {
-    // Convertimos la nota (que internamente siempre es sobre 10) a porcentaje
-    const porcentaje = notaDecimal * 10;
-    if (porcentaje >= 80) return 'Grade A';
-    if (porcentaje >= 75) return 'Grade B';
-    if (porcentaje >= 60) return 'Grade C';
-    return 'Fail';
-  } else {
-    // Formato estándar numérico
-    return notaDecimal.toFixed(2);
+    const p = Math.round(notaDecimal * 10);
+    return `${getGradeCambridge(p)} (${p}%)`;
   }
+  return notaDecimal.toFixed(2);
 }
 
 function getNotaColor(notaDecimal, formato) {
-  if (notaDecimal === null || notaDecimal === undefined) return 'var(--ink)';
-  
+  if (notaDecimal === null || notaDecimal === undefined || isNaN(notaDecimal)) return 'var(--ink)';
   if (formato === 'letras_cambridge') {
-    const porcentaje = notaDecimal * 10;
-    if (porcentaje >= 80) return 'var(--green)';
-    if (porcentaje >= 75) return 'var(--gold)';
-    if (porcentaje >= 60) return 'var(--accent)';
-    return 'var(--accent)'; // Fail
-  } else {
-    if (notaDecimal >= 7) return 'var(--green)';
-    if (notaDecimal >= 5) return 'var(--gold)';
+    const p = notaDecimal * 10;
+    if (p >= 80) return 'var(--green)';
+    if (p >= 60) return 'var(--gold)';
     return 'var(--accent)';
   }
+  if (notaDecimal >= 7) return 'var(--green)';
+  if (notaDecimal >= 5) return 'var(--gold)';
+  return 'var(--accent)';
 }
 
 // ==========================================
@@ -159,10 +171,13 @@ window.markAsistencia = async (id, st, date) => {
 };
 
 // ==========================================
-// PONDERACIÓN Y PANEL DE NOTAS 
+// PONDERACIÓN Y PANEL DE NOTAS (STANDARD + CAMBRIDGE)
 // ==========================================
 function getPonderacionPath(t) { return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/ponderacionesTutoria/${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/ponderaciones/${t}`; }
 function getNotasPath(studentRefStr, t) { return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/notasTutoria/${studentRefStr}-${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`; }
+
+let currentCategorias = [];
+let currentCambridgeLevel = 'B2';
 
 window.showTrimestreDetail = async (t) => {
   window.state.currentTrimestre = t; window.hideAllViews(); document.getElementById('trimestreDetailView').classList.remove('hidden');
@@ -171,35 +186,75 @@ window.showTrimestreDetail = async (t) => {
   document.getElementById('currentTrimestre').textContent = names[t]; document.getElementById('trimestreDetailTitle').textContent = names[t]; document.getElementById('trimestreDetailContext').textContent = document.getElementById('currentAsignaturaNombre').textContent;
 };
 
-let currentCategorias = [];
 window.loadPonderacion = async (t) => {
   try {
     const d = await getDoc(doc(db, getPonderacionPath(t)));
-    if (window.state.currentContext === 'tutoria') { currentCategorias = d.exists() ? (d.data().categorias || []) : [{nombre:"Actitud", peso:100}]; } else { currentCategorias = d.exists() ? (d.data().categorias || []) : [{nombre:"Exámenes", peso:40}, {nombre:"Deberes", peso:60}]; }
+    const data = d.exists() ? d.data() : {};
+    const formato = window.state.colegioConfig?.algoritmoNotas || 'numerico_10';
+
+    if (formato === 'letras_cambridge') {
+      currentCambridgeLevel = data.cambridgeLevel || 'B2';
+      const config = CAMBRIDGE_LEVELS[currentCambridgeLevel];
+      const pesoPorParte = 100 / config.parts.length;
+      currentCategorias = config.parts.map(p => ({ nombre: p, peso: pesoPorParte }));
+    } else {
+      if (window.state.currentContext === 'tutoria') { currentCategorias = data.categorias || [{nombre:"Actitud", peso:100}]; } else { currentCategorias = data.categorias || [{nombre:"Exámenes", peso:40}, {nombre:"Deberes", peso:60}]; }
+    }
     window.renderCategorias(); window.updatePesoTotal();
   } catch(e) { console.error(e); }
 };
 
 window.renderCategorias = () => {
-  let html = '<div class="ponderacion-config">';
-  currentCategorias.forEach((cat, i) => { html += `<div class="categoria-row"><input type="text" value="${cat.nombre}" onchange="window.updateCategoriaNombre(${i}, this.value)" placeholder="Categoría"><input type="number" value="${cat.peso}" onchange="window.updateCategoriaPeso(${i}, this.value)"><button class="btn-remove-cat" onclick="window.eliminarCategoria(${i})" title="Borrar">🗑️</button></div>`; });
-  document.getElementById('categoriasConfig').innerHTML = html + '</div>';
+  const formato = window.state.colegioConfig?.algoritmoNotas || 'numerico_10';
+  const container = document.getElementById('categoriasConfig');
+
+  if (formato === 'letras_cambridge') {
+    container.innerHTML = `
+      <div style="margin-bottom: 16px;">
+        <label>Nivel del Examen (Plantilla Oficial Cambridge):</label>
+        <select id="cambridgeLevelSelect" style="padding:12px 16px; width:100%; border-radius:8px; border:2px solid var(--ink); font-weight:bold; font-size:15px; cursor:pointer;" onchange="window.changeCambridgeLevel(this.value)">
+          <option value="A2" ${currentCambridgeLevel==='A2'?'selected':''}>A2 Key (KET)</option>
+          <option value="B1" ${currentCambridgeLevel==='B1'?'selected':''}>B1 Preliminary (PET)</option>
+          <option value="B2" ${currentCambridgeLevel==='B2'?'selected':''}>B2 First (FCE)</option>
+          <option value="C1" ${currentCambridgeLevel==='C1'?'selected':''}>C1 Advanced (CAE)</option>
+          <option value="C2" ${currentCambridgeLevel==='C2'?'selected':''}>C2 Proficiency (CPE)</option>
+        </select>
+      </div>
+      <div style="background:var(--cream); padding:20px; border-radius:8px; border: 1.5px dashed var(--border);">
+        <p style="margin-bottom:12px; color:var(--ink); font-weight:600;">Papers evaluados automáticamente:</p>
+        <ul style="margin-left: 0; list-style:none; color:var(--ink-light); font-size:14px; line-height:1.8;">
+           ${currentCategorias.map(p => `<li>✔️ ${p.nombre} (${p.peso.toFixed(1)}%)</li>`).join('')}
+        </ul>
+        <p style="margin-top:16px; font-size:13px; font-style:italic;">* En el panel del alumno, introduce la puntuación cruda obtenida (Ej. 34 / 42) y el sistema calculará el Grade exacto.</p>
+      </div>
+    `;
+    document.querySelector('button[onclick="window.añadirCategoria()"]').style.display = 'none';
+  } else {
+    document.querySelector('button[onclick="window.añadirCategoria()"]').style.display = 'inline-flex';
+    let html = '<div class="ponderacion-config">';
+    currentCategorias.forEach((cat, i) => { html += `<div class="categoria-row"><input type="text" value="${cat.nombre}" onchange="window.updateCategoriaNombre(${i}, this.value)" placeholder="Categoría"><input type="number" value="${cat.peso}" onchange="window.updateCategoriaPeso(${i}, this.value)"><button class="btn-icon" onclick="window.eliminarCategoria(${i})" title="Borrar">🗑️</button></div>`; });
+    container.innerHTML = html + '</div>';
+  }
 };
+
+window.changeCambridgeLevel = (val) => { currentCambridgeLevel = val; window.loadPonderacion(window.state.currentTrimestre); };
+
 window.updatePesoTotal = () => {
-  const total = currentCategorias.reduce((s,c) => s + (parseInt(c.peso) || 0), 0);
+  const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
   const spanT = document.getElementById('pesoTotal'); const spanS = document.getElementById('pesoStatus');
-  if (spanT) spanT.textContent = total;
-  if (spanS) { spanS.textContent = total === 100 ? '✅ Correcto' : `⚠️ Suma ${total}%`; spanS.style.color = total === 100 ? 'var(--green)' : 'var(--accent)'; }
+  if (spanT) spanT.textContent = Math.round(total);
+  if (spanS) { spanS.textContent = Math.round(total) === 100 ? '✅ Correcto' : `⚠️ Suma ${Math.round(total)}%`; spanS.style.color = Math.round(total) === 100 ? 'var(--green)' : 'var(--accent)'; }
 };
 window.updateCategoriaNombre = (i,n) => { currentCategorias[i].nombre = n; };
-window.updateCategoriaPeso = (i,p) => { currentCategorias[i].peso = parseInt(p) || 0; window.updatePesoTotal(); };
+window.updateCategoriaPeso = (i,p) => { currentCategorias[i].peso = parseFloat(p) || 0; window.updatePesoTotal(); };
 window.añadirCategoria = () => { currentCategorias.push({nombre: "", peso: 0}); window.renderCategorias(); window.updatePesoTotal(); };
 window.eliminarCategoria = (i) => { if(currentCategorias.length <= 1) return alert('Debes dejar al menos una categoría.'); currentCategorias.splice(i, 1); window.renderCategorias(); window.updatePesoTotal(); };
+
 window.guardarPonderacion = async () => {
-  const total = currentCategorias.reduce((s,c) => s + (parseInt(c.peso) || 0), 0);
-  if(total !== 100) return alert('La suma de los porcentajes debe ser exactamente 100%.'); 
+  const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
+  if(Math.round(total) !== 100) return alert('La suma de los porcentajes debe ser exactamente 100%.'); 
   if(currentCategorias.some(c => !c.nombre.trim())) return alert('Todas las categorías necesitan nombre.');
-  try { await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), { categorias: currentCategorias, updatedAt: serverTimestamp() }); alert('✅ Configuración guardada.'); } catch(e) { alert("Error guardando"); }
+  try { await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), { categorias: currentCategorias, cambridgeLevel: currentCambridgeLevel, updatedAt: serverTimestamp() }); alert('✅ Configuración guardada.'); } catch(e) { alert("Error guardando"); }
 };
 
 window.loadAlumnosParaEvaluar = async () => {
@@ -250,33 +305,79 @@ window.loadNotas = async () => {
     const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)));
     const nDoc = await getDoc(doc(db, getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre)));
     
-    let cats = pDoc.exists() ? (pDoc.data().categorias || []) : []; 
+    const pondData = pDoc.exists() ? pDoc.data() : {};
+    let cats = pondData.categorias || []; 
     const data = nDoc.exists() ? nDoc.data() : { categorias: {}, comentarioTutor: "" };
     const formato = window.state.colegioConfig?.algoritmoNotas || 'numerico_10';
     
-    let html = `<div class="professional-comment"><div class="comment-header"><strong>📝 Observaciones</strong><span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0; transition:opacity 0.3s;">Guardado ✓</span></div><textarea id="comentarioArea" rows="3" onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea></div>`;
+    let html = `<div class="professional-comment"><div class="comment-header"><strong>📝 Observaciones</strong><span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0; transition:opacity 0.3s;">Guardado ✓</span></div><textarea id="comentarioArea" rows="3" placeholder="Añade observaciones para el boletín..." onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea></div>`;
     
     let notaFinalGlobal = 0; let pesoTotalGlobal = 0;
-    
-    cats.forEach((cat, idx) => {
-      let notasArr = data.categorias?.[cat.nombre] || []; notasArr = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10, descripcion: '' } : n);
-      const sumaBase10 = notasArr.reduce((acc, obj) => { let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0); let max = parseFloat(obj.maximo || 10); if (max <= 0) max = 10; return acc + ((val / max) * 10); }, 0);
-      const mediaCategoria = notasArr.length > 0 ? (sumaBase10 / notasArr.length) : 0;
-      if (notasArr.length > 0) { notaFinalGlobal += mediaCategoria * (cat.peso / 100); pesoTotalGlobal += cat.peso; }
+
+    if (formato === 'letras_cambridge') {
+      const level = pondData.cambridgeLevel || 'B2';
+      const maxScores = CAMBRIDGE_LEVELS[level].max;
       
-      const mediaFormat = getNotaFormateada(mediaCategoria, formato);
+      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px;">
+        <h3 style="margin-bottom:16px;">Calculadora Mock Exam: <span style="color:var(--accent);">${level}</span></h3>
+        <p style="font-size:13px; color:var(--ink-light); margin-bottom:24px;">Introduce los puntos crudos (Raw Score) obtenidos por el alumno en cada parte.</p>
+      `;
       
-      html += `<div class="accordion-card"><div class="accordion-header" onclick="window.toggleAccordion('acc-${idx}', 'icon-${idx}')"><div class="accordion-title">${cat.nombre} <span class="accordion-badge">${cat.peso}%</span></div><div class="accordion-stats"><span class="accordion-media">Media: <strong>${mediaFormat}</strong></span><span id="icon-${idx}" class="accordion-chevron">▼</span></div></div><div class="accordion-body" id="acc-${idx}"><div style="padding-top:15px;">`;
-      if (notasArr.length === 0) { html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros evaluados.</div>`; }
-      notasArr.forEach((nObj, i) => { html += `<div class="record-row"><div class="record-desc"><input type="text" placeholder="Concepto (ej. Tema 1)" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)"></div><div class="record-val"><input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor !== undefined ? nObj.valor : ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)"><span style="font-weight:600;">/</span><input type="number" class="val-max" min="0.1" step="0.1" value="${nObj.maximo || 10}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)"></div><div class="record-actions"><button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button></div></div>`; });
-      html += `<button class="btn-secondary btn-sm" style="margin-top:16px;" onclick="window.addNota('${cat.nombre}')">+ Añadir registro</button></div></div></div>`;
-    });
+      let sumPuntos = 0;
+      let sumMax = 0;
+
+      cats.forEach((cat) => {
+        let notaObj = data.categorias?.[cat.nombre]?.[0] || { valor: 0, maximo: maxScores[cat.nombre] };
+        const puntosAlcanzados = parseFloat(notaObj.valor) || 0;
+        const puntosMaximos = maxScores[cat.nombre];
+        sumPuntos += puntosAlcanzados;
+        sumMax += puntosMaximos;
+
+        const subMedia = (puntosAlcanzados / puntosMaximos) * 10;
+        notaFinalGlobal += subMedia * (cat.peso / 100);
+        pesoTotalGlobal += cat.peso;
+
+        html += `
+          <div class="record-row" style="margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed var(--border);">
+            <div style="flex:1; font-weight:600; font-size:15px;">${cat.nombre}</div>
+            <div class="record-val" style="display:flex; align-items:center;">
+              <input type="number" value="${puntosAlcanzados}" step="0.5" min="0" max="${puntosMaximos}" onchange="window.updateCambridgeScore('${cat.nombre}', this.value, ${puntosMaximos})" style="width:70px; font-size:16px; font-weight:bold; text-align:center; border:2px solid var(--accent); padding:8px; border-radius:6px;">
+              <span style="font-weight:bold; margin: 0 12px; color:var(--ink-light);">/</span>
+              <span style="background:var(--cream); padding:8px 16px; border-radius:6px; font-weight:bold; color:var(--ink-light); border:1px solid var(--border);">${puntosMaximos}</span>
+            </div>
+          </div>`;
+      });
+      html += `</div>`;
+      
+      const porcentaje = sumMax > 0 ? (sumPuntos / sumMax) * 100 : 0;
+      const finalFormat = `${getGradeCambridge(porcentaje)} (${Math.round(porcentaje)}%)`;
+      const finalColor = getNotaColor(notaFinalGlobal, formato);
+      
+      html += `<div class="nota-final-display" style="background:var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:24px;">
+        <h3 style="color:var(--cream); font-size:14px; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Resultado Global Ponderado</h3>
+        <div style="font-size:14px; color:rgba(255,255,255,0.6); margin-bottom:16px;">Total Raw Score: ${sumPuntos} / ${sumMax}</div>
+        <div class="nota" style="font-size:42px; font-weight:700; color:${finalColor}; font-family:'Playfair Display',serif;">${finalFormat}</div>
+      </div>`; 
+
+    } else {
+      // MODO ESTÁNDAR
+      cats.forEach((cat, idx) => {
+        let notasArr = data.categorias?.[cat.nombre] || []; notasArr = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10, descripcion: '' } : n);
+        const sumaBase10 = notasArr.reduce((acc, obj) => { let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0); let max = parseFloat(obj.maximo || 10); if (max <= 0) max = 10; return acc + ((val / max) * 10); }, 0);
+        const mediaCategoria = notasArr.length > 0 ? (sumaBase10 / notasArr.length) : 0;
+        if (notasArr.length > 0) { notaFinalGlobal += mediaCategoria * (cat.peso / 100); pesoTotalGlobal += cat.peso; }
+        const mediaFormat = getNotaFormateada(mediaCategoria, formato);
+        html += `<div class="accordion-card"><div class="accordion-header" onclick="window.toggleAccordion('acc-${idx}', 'icon-${idx}')"><div class="accordion-title">${cat.nombre} <span style="font-size:11px; background:var(--cream); border:1px solid var(--border); padding:2px 8px; border-radius:10px; margin-left:8px; color:var(--ink-light);">${cat.peso}%</span></div><div class="accordion-stats"><span class="accordion-media" style="margin-right:12px;">Result: <strong style="color:var(--ink);">${mediaFormat}</strong></span><span id="icon-${idx}" class="accordion-chevron">▼</span></div></div><div class="accordion-body" id="acc-${idx}"><div style="padding-top:15px;">`;
+        if (notasArr.length === 0) { html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros evaluados. Pulsa Añadir.</div>`; }
+        notasArr.forEach((nObj, i) => { html += `<div class="record-row"><div class="record-desc" style="flex:1;"><input type="text" placeholder="Concepto (ej. Tema 1)" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)" style="width:100%;"></div><div class="record-val"><input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor !== undefined ? nObj.valor : ''}" placeholder="Ptos" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)"><span style="font-weight:600;">/</span><input type="number" class="val-max" min="0.1" step="0.1" value="${nObj.maximo || 10}" title="Max" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)"></div><div class="record-actions"><button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button></div></div>`; });
+        html += `<button class="btn-secondary btn-sm" style="margin-top:16px;" onclick="window.addNota('${cat.nombre}')">+ Añadir puntuación</button></div></div></div>`;
+      });
+      const calculoFinalSeguro = pesoTotalGlobal > 0 ? notaFinalGlobal : null;
+      const finalFormat = getNotaFormateada(calculoFinalSeguro, formato);
+      const finalColor = getNotaColor(calculoFinalSeguro, formato);
+      html += `<div class="nota-final-display" style="background:var(--paper); border:2px solid var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:32px;"><h3 style="color:var(--ink); font-size:16px; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">Resultado Global Ponderado</h3><div class="nota" style="font-size:48px; font-weight:700; color:${finalColor}; font-family:'Playfair Display',serif;">${finalFormat}</div></div>`; 
+    }
     
-    const calculoFinalSeguro = pesoTotalGlobal > 0 ? notaFinalGlobal : null;
-    const finalFormat = getNotaFormateada(calculoFinalSeguro, formato);
-    const finalColor = getNotaColor(calculoFinalSeguro, formato);
-    
-    html += `<div class="nota-final-display"><h3>Nota Global Ponderada</h3><div class="nota" style="color:${finalColor}">${finalFormat}</div></div>`; 
     container.innerHTML = html;
   } catch(e) { console.error(e); }
 };
@@ -286,6 +387,13 @@ window.guardarComentario = async () => { try { await setDoc(doc(db, getNotasPath
 window.addNota = async (cat) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {categorias:{}}; if(!data.categorias[cat]) { data.categorias[cat] = []; } data.categorias[cat].push({valor: '', maximo: 10, descripcion: ''}); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 window.updateNotaDetalle = async (cat, idx, campo, val) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); if(typeof data.categorias[cat][idx] === 'number') { data.categorias[cat][idx] = {valor: data.categorias[cat][idx], maximo: 10, descripcion: ''}; } if (campo === 'valor' || campo === 'maximo') { data.categorias[cat][idx][campo] = val === '' ? '' : (parseFloat(val) || 0); } else { data.categorias[cat][idx][campo] = val; } await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 window.deleteNota = async (cat, idx) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.categorias[cat].splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
+
+window.updateCambridgeScore = async (catName, value, max) => {
+  const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre);
+  const valNum = parseFloat(value) || 0;
+  await setDoc(doc(db, p), { categorias: { [catName]: [{ valor: valNum, maximo: max, descripcion: 'Mock Part' }] } }, { merge: true });
+  window.loadNotas();
+};
 
 // ==========================================
 // EXPEDIENTE GLOBAL (INFORME PADRES)
@@ -346,7 +454,7 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   window.state.expedienteData.subjects.forEach(sub => {
     const grade = sub.grades[t];
     if (grade !== null) {
-      sum += grade; count++; radarLabels.push(sub.name); radarData.push(grade.toFixed(2));
+      sum += grade; count++; radarLabels.push(sub.name); radarData.push((formato==='letras_cambridge'?grade*10:grade).toFixed(2));
       if (grade > best.grade) { best = { name: sub.name, grade }; }
       if (grade < worst.grade) { worst = { name: sub.name, grade }; }
     }
@@ -372,7 +480,7 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
       <div class="insight-card"><div class="insight-icon">📅</div><div class="insight-title">Asistencia Acumulada</div><div class="insight-value">${faltas} Faltas</div><p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Retrasos registrados: ${retrasos}</p></div>
     </div>
     <div class="analytics-grid">
-      <div class="chart-box"><h3>Perfil del Alumno (Radar de Materias)</h3><div class="chart-wrapper"><canvas id="expRadarChart"></canvas></div></div>
+      <div class="chart-box"><h3>Perfil del Alumno (Radar)</h3><div class="chart-wrapper"><canvas id="expRadarChart"></canvas></div></div>
       <div class="chart-box"><h3>Evolución Global (Anual)</h3><div class="chart-wrapper"><canvas id="expLineChart"></canvas></div></div>
     </div>
   `;
@@ -381,16 +489,14 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
 
   if (expRadarChartInstance) { expRadarChartInstance.destroy(); } if (expLineChartInstance) { expLineChartInstance.destroy(); }
 
-  expRadarChartInstance = new Chart(document.getElementById('expRadarChart').getContext('2d'), { type: 'radar', data: { labels: radarLabels, datasets: [{ label: 'Rendimiento', data: radarData, backgroundColor: 'rgba(45, 106, 79, 0.2)', borderColor: '#2d6a4f', pointBackgroundColor: '#2d6a4f', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#2d6a4f' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 10 } }, plugins: { legend: { display: false } } } });
+  expRadarChartInstance = new Chart(document.getElementById('expRadarChart').getContext('2d'), { type: 'radar', data: { labels: radarLabels, datasets: [{ label: 'Rendimiento', data: radarData, backgroundColor: 'rgba(45, 106, 79, 0.2)', borderColor: '#2d6a4f', pointBackgroundColor: '#2d6a4f', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#2d6a4f' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: formato==='letras_cambridge'?100:10 } }, plugins: { legend: { display: false } } } });
 
   const avgT1 = window.state.expedienteData.averages.T1.length ? (window.state.expedienteData.averages.T1.reduce((a,b)=>a+b,0)/window.state.expedienteData.averages.T1.length) : null;
   const avgT2 = window.state.expedienteData.averages.T2.length ? (window.state.expedienteData.averages.T2.reduce((a,b)=>a+b,0)/window.state.expedienteData.averages.T2.length) : null;
   const avgT3 = window.state.expedienteData.averages.T3.length ? (window.state.expedienteData.averages.T3.reduce((a,b)=>a+b,0)/window.state.expedienteData.averages.T3.length) : null;
 
-  // Convertimos para la gráfica lineal si es Cambridge (para que la gráfica vaya de 0 a 100 en lugar de 0 a 10)
   const isCam = formato === 'letras_cambridge';
-  const gMax = isCam ? 100 : 10;
-  const mult = isCam ? 10 : 1;
+  const gMax = isCam ? 100 : 10; const mult = isCam ? 10 : 1;
 
   expLineChartInstance = new Chart(document.getElementById('expLineChart').getContext('2d'), { type: 'line', data: { labels: ['1º Trimestre', '2º Trimestre', '3º Trimestre'], datasets: [{ label: 'Rendimiento Global', data: [avgT1 ? avgT1*mult : null, avgT2 ? avgT2*mult : null, avgT3 ? avgT3*mult : null], borderColor: '#c84b31', backgroundColor: 'rgba(200, 75, 49, 0.1)', borderWidth: 3, pointBackgroundColor: '#1a1a2e', pointRadius: 6, fill: true, tension: 0.3, spanGaps: true }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: gMax } }, plugins: { legend: { display: false } } } });
 };
