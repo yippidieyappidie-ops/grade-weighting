@@ -366,7 +366,7 @@
   <div class="modal-content">
     <h2 class="modal-header">Crear Nueva Instancia (Centro)</h2>
     <form id="createColegioForm">
-      <div class="form-group"><label>Nombre del Centro *</label><input type="text" name="nombre" required placeholder="Ej. Centro de Estudios Newton"></div>
+      <div class="form-group"><label>Nombre del Centro *</label><input type="text" name="nombre" required placeholder="Ej. International Learning Center"></div>
       <div class="form-group"><label>Email del Director / Coordinador *</label><input type="email" name="directorEmail" required></div>
       <div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('createColegioModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Crear Centro</button></div>
     </form>
@@ -379,13 +379,6 @@
     <form id="configColegioForm">
       <input type="hidden" id="configColId">
       <div class="form-group"><label>Módulo de Horarios</label><select id="configModHorarios"><option value="true">Sí (Mostrar)</option><option value="false">No (Ocultar)</option></select></div>
-      <div class="form-group">
-        <label>Motor de Notas</label>
-        <select id="configModNotas">
-          <option value="numerico_10">Estándar (0 al 10)</option>
-          <option value="letras_cambridge">Exámenes de Cambridge (Calculadora por partes)</option>
-        </select>
-      </div>
       <div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('configColegioModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Guardar ADN</button></div>
     </form>
   </div>
@@ -394,7 +387,28 @@
 <div id="editClassModal" class="modal"><div class="modal-content"><h2 class="modal-header">Editar clase</h2><form id="editClassForm"><input type="hidden" id="editClassId" name="classId"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" id="editClassNombre" required></div><div class="form-group"><label>Curso *</label><input type="text" name="curso" id="editClassCurso" required></div><div class="form-group"><label>Tutor *</label><select name="tutorEmail" id="editClassTutor" required></select></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('editClassModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Guardar</button></div></form></div></div>
 <div id="createClassModal" class="modal"><div class="modal-content"><h2 class="modal-header">Crear clase</h2><form id="createClassForm"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required placeholder="Ej. 1º ESO"></div><div class="form-group"><label>Curso *</label><input type="text" name="curso" required placeholder="Ej. 1º ESO"></div><div class="form-group"><label>Tutor *</label><select name="tutorEmail" id="createClassTutor" required></select></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('createClassModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Crear</button></div></form></div></div>
 <div id="addStudentModal" class="modal"><div class="modal-content"><h2 class="modal-header">Añadir alumno</h2><form id="addStudentForm"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div><div class="form-group"><label>Apellidos *</label><input type="text" name="apellidos" required></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('addStudentModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Añadir</button></div></form></div></div>
-<div id="createAsignaturaModal" class="modal"><div class="modal-content"><h2 class="modal-header">Crear asignatura</h2><form id="createAsignaturaForm"><div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div><div class="form-group"><label>Profesores *</label><div id="asignaturaProfesoresSelection" class="checkbox-group" style="margin-bottom:12px;"></div></div><div class="form-group"><label>Alumnos *</label><div id="alumnosSelection" class="checkbox-group"></div></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('createAsignaturaModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Crear</button></div></form></div></div>
+
+<div id="createAsignaturaModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Crear asignatura</h2>
+    <form id="createAsignaturaForm">
+      <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required placeholder="Ej. Inglés B2"></div>
+      
+      <div class="form-group">
+        <label>Sistema de Evaluación *</label>
+        <select name="algoritmoNotas" required style="width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif;">
+          <option value="numerico_10">Estándar (0 al 10)</option>
+          <option value="letras_cambridge">Exámenes de Cambridge de Inglés</option>
+        </select>
+      </div>
+
+      <div class="form-group"><label>Profesores *</label><div id="asignaturaProfesoresSelection" class="checkbox-group" style="margin-bottom:12px;"></div></div>
+      <div class="form-group"><label>Alumnos *</label><div id="alumnosSelection" class="checkbox-group"></div></div>
+      <div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('createAsignaturaModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Crear</button></div>
+    </form>
+  </div>
+</div>
+
 <div id="inviteProfesorModal" class="modal"><div class="modal-content"><h2 class="modal-header">Invitar profesor</h2><form id="inviteProfesorForm"><div class="form-group"><label>Email de Google *</label><input type="email" name="email" required></div><div class="form-group"><label>Nombre</label><input type="text" name="nombre"></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('inviteProfesorModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Invitar</button></div></form></div></div>
 
 <script type="module" src="/app/js/firebase-config.js"></script>
