@@ -26,10 +26,14 @@ const CAMBRIDGE_CURVES = {
 
 function calculateScaleScore(level, pct) {
   const curve = CAMBRIDGE_CURVES[level] || CAMBRIDGE_CURVES['B2'];
-  if (pct <= 0) return curve[0][1]; if (pct >= 1) return curve[curve.length - 1][1];
+  if (pct <= 0) return curve[0][1]; 
+  if (pct >= 1) return curve[curve.length - 1][1];
   for (let i = 0; i < curve.length - 1; i++) {
-    const [p1, s1] = curve[i]; const [p2, s2] = curve[i+1];
-    if (pct >= p1 && pct <= p2) { return Math.round(s1 + ((pct - p1) / (p2 - p1)) * (s2 - s1)); }
+    const [p1, s1] = curve[i]; 
+    const [p2, s2] = curve[i+1];
+    if (pct >= p1 && pct <= p2) { 
+      return Math.round(s1 + ((pct - p1) / (p2 - p1)) * (s2 - s1)); 
+    }
   }
   return curve[0][1];
 }
@@ -61,16 +65,21 @@ function getNotaFormateada(notaDecimal, formato, level = 'B2') {
 function getNotaColor(notaDecimal, formato, level = 'B2') {
   if (notaDecimal === null || notaDecimal === undefined || isNaN(notaDecimal)) return 'var(--ink)';
   if (formato === 'letras_cambridge') return getCambridgeColor(level, notaDecimal);
-  if (notaDecimal >= 7) return 'var(--green)'; if (notaDecimal >= 5) return 'var(--gold)'; return 'var(--accent)';
+  if (notaDecimal >= 7) return 'var(--green)'; 
+  if (notaDecimal >= 5) return 'var(--gold)'; 
+  return 'var(--accent)';
 }
 
 async function getFormatoAsignatura() {
   if (window.state.currentContext === 'tutoria') return 'numerico_10';
-  try { const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}`)); return asigDoc.exists() ? (asigDoc.data().algoritmoNotas || 'numerico_10') : 'numerico_10'; } catch (e) { return 'numerico_10'; }
+  try { 
+    const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}`)); 
+    return asigDoc.exists() ? (asigDoc.data().algoritmoNotas || 'numerico_10') : 'numerico_10'; 
+  } catch (e) { return 'numerico_10'; }
 }
 
 // ==========================================
-// NAVEGACIÓN DEL PROFESOR (ASIGNATURAS Y TUTORÍAS)
+// NAVEGACIÓN DEL PROFESOR
 // ==========================================
 window.showAsignaturaDetail = (id, nombre) => {
   window.state.currentAsignaturaId = id;
@@ -96,30 +105,47 @@ window.showTutoriaDetail = (id, nombre) => {
 // 2. GESTIÓN DE CLASES Y PROFESORES
 // ==========================================
 window.loadClasses = async (containerId, isProfesor) => {
-  const list = document.getElementById(containerId); list.innerHTML = '<div class="loading">Cargando grupos...</div>';
+  const list = document.getElementById(containerId); 
+  list.innerHTML = '<div class="loading">Cargando grupos...</div>';
   try {
-    const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases`), orderBy('nombre'))); window.state.cachedClasses = [];
+    const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases`), orderBy('nombre'))); 
+    window.state.cachedClasses = [];
     if (snap.empty) { list.innerHTML = '<div class="empty-state">No hay grupos.</div>'; return; }
     let html = '<div class="cards-grid">';
     snap.forEach(docSnap => {
-      const data = docSnap.data(); window.state.cachedClasses.push({ id: docSnap.id, ...data });
+      const data = docSnap.data(); 
+      window.state.cachedClasses.push({ id: docSnap.id, ...data });
       html += `<div class="card card-clickable" onclick="window.showClaseDetail('${docSnap.id}', '${data.nombre}')">`;
-      if(!isProfesor) { html += `<button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${docSnap.id}','${data.nombre}','${data.curso}','${data.tutorEmail||''}')">✏️</button><button class="btn-delete-card" onclick="event.stopPropagation(); window.deleteClass('${docSnap.id}','${data.nombre}')">🗑️</button>`; }
+      if(!isProfesor) { 
+        html += `<button class="btn-edit-card" onclick="event.stopPropagation(); window.openEditClassModal('${docSnap.id}','${data.nombre}','${data.curso}','${data.tutorEmail||''}')">✏️</button>`;
+        html += `<button class="btn-delete-card" onclick="event.stopPropagation(); window.deleteClass('${docSnap.id}','${data.nombre}')">🗑️</button>`; 
+      }
       html += `<div class="card-title">${data.nombre}</div><div class="card-meta">📖 ${data.curso}</div></div>`;
-    }); list.innerHTML = html + '</div>';
+    }); 
+    list.innerHTML = html + '</div>';
   } catch(e) {}
 };
 
 window.showClaseDetail = async (classId, className) => {
-  window.state.currentClassId = classId; document.getElementById('claseDetailName').textContent = className; window.hideAllViews(); document.getElementById('claseDetailView').classList.remove('hidden');
-  const list = document.getElementById('claseAlumnosList'); list.innerHTML = '<div class="loading">Cargando...</div>';
+  window.state.currentClassId = classId; 
+  document.getElementById('claseDetailName').textContent = className; 
+  window.hideAllViews(); 
+  document.getElementById('claseDetailView').classList.remove('hidden');
+  const list = document.getElementById('claseAlumnosList'); 
+  list.innerHTML = '<div class="loading">Cargando...</div>';
   try {
-    const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases/${classId}/alumnos`), orderBy('apellidos'))); window.state.cachedAlumnos = []; 
-    if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay alumnos.</p><button class="btn-secondary" onclick="document.getElementById(\'addStudentModal\').classList.add(\'active\')">+ Añadir Alumno</button></div>'; return; }
+    const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases/${classId}/alumnos`), orderBy('apellidos'))); 
+    window.state.cachedAlumnos = []; 
+    if(snap.empty) { 
+      list.innerHTML = '<div class="empty-state"><p>No hay alumnos.</p><button class="btn-secondary" onclick="document.getElementById(\'addStudentModal\').classList.add(\'active\')">+ Añadir Alumno</button></div>'; 
+      return; 
+    }
     let html = '<div class="cards-grid">';
     snap.forEach(docSnap => {
-      const a = docSnap.data(); window.state.cachedAlumnos.push({ id: docSnap.id, n: a.nombre, a: a.apellidos });
-      const safeName = a.nombre.replace(/'/g, "\\'"); const safeApe = a.apellidos.replace(/'/g, "\\'");
+      const a = docSnap.data(); 
+      window.state.cachedAlumnos.push({ id: docSnap.id, n: a.nombre, a: a.apellidos });
+      const safeName = a.nombre.replace(/'/g, "\\'"); 
+      const safeApe = a.apellidos.replace(/'/g, "\\'");
       html += `<div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${docSnap.id}', '${safeName} ${safeApe}')">
         <button class="btn-delete-card" style="z-index: 10;" onclick="event.stopPropagation(); window.deleteStudent('${classId}','${docSnap.id}','${safeName} ${safeApe}')">🗑️</button>
         <div class="card-title">${a.apellidos}, ${a.nombre}</div>
@@ -131,27 +157,74 @@ window.showClaseDetail = async (classId, className) => {
   } catch(e) {}
 };
 
-window.deleteClass = async (id, nombre) => { if(confirm(`⚠️ ¿Borrar el grupo "${nombre}"?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${id}`)); window.loadClasses('classesList', false); } catch (e) {} } };
-window.deleteStudent = async (cId, sId, name) => { if(confirm(`¿Eliminar al alumno "${name}" permanentemente?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${cId}/alumnos/${sId}`)); const cRef = doc(db, `colegios/${window.state.colegioId}/clases`, cId); const cDoc = await getDoc(cRef); if(cDoc.exists()) { await updateDoc(cRef, { numAlumnos: (cDoc.data().numAlumnos || 1) - 1 }); } window.showClaseDetail(cId, document.getElementById('claseDetailName').textContent); } catch (e) {} } };
-window.deleteAsignatura = async (id, nombre) => { if(confirm(`¿Borrar asignatura "${nombre}"?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${id}`)); window.loadAsignaturas(); } catch (e) {} } };
-window.deleteProfesor = async (email) => { if(email === window.state.currentUser.email) return alert("No puedes borrarte a ti mismo."); if(confirm(`¿Revocar acceso a ${email}?`)) { try { await deleteDoc(doc(db, 'profesores', email)); window.loadProfesores(); } catch (e) {} } };
+window.deleteClass = async (id, nombre) => { 
+  if(confirm(`⚠️ ¿Borrar el grupo "${nombre}"?`)) { 
+    try { 
+      await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${id}`)); 
+      window.loadClasses('classesList', false); 
+    } catch (e) {} 
+  } 
+};
+
+window.deleteStudent = async (cId, sId, name) => { 
+  if(confirm(`¿Eliminar al alumno "${name}" permanentemente?`)) { 
+    try { 
+      await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${cId}/alumnos/${sId}`)); 
+      const cRef = doc(db, `colegios/${window.state.colegioId}/clases`, cId); 
+      const cDoc = await getDoc(cRef); 
+      if(cDoc.exists()) { 
+        await updateDoc(cRef, { numAlumnos: (cDoc.data().numAlumnos || 1) - 1 }); 
+      } 
+      window.showClaseDetail(cId, document.getElementById('claseDetailName').textContent); 
+    } catch (e) {} 
+  } 
+};
+
+window.deleteAsignatura = async (id, nombre) => { 
+  if(confirm(`¿Borrar asignatura "${nombre}"?`)) { 
+    try { 
+      await deleteDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${id}`)); 
+      window.loadAsignaturas(); 
+    } catch (e) {} 
+  } 
+};
+
+window.deleteProfesor = async (email) => { 
+  if(email === window.state.currentUser.email) return alert("No puedes borrarte a ti mismo."); 
+  if(confirm(`¿Revocar acceso a ${email}?`)) { 
+    try { 
+      await deleteDoc(doc(db, 'profesores', email)); 
+      window.loadProfesores(); 
+    } catch (e) {} 
+  } 
+};
 
 window.loadProfesores = async () => { 
-  const list = document.getElementById('profesoresList'); list.innerHTML = '<div class="loading">Cargando...</div>';
+  const list = document.getElementById('profesoresList'); 
+  list.innerHTML = '<div class="loading">Cargando...</div>';
   try {
-    const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId))); window.state.cachedProfesores = []; 
-    if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay profesores.</p></div>'; return; }
+    const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId))); 
+    window.state.cachedProfesores = []; 
+    if(snap.empty) { 
+      list.innerHTML = '<div class="empty-state"><p>No hay profesores.</p></div>'; 
+      return; 
+    }
     let html = '<table class="table"><thead><tr><th>Email</th><th>Nombre</th><th>Rol</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
     snap.forEach(docSnap => {
-      const d = docSnap.data(); window.state.cachedProfesores.push({id: docSnap.id, ...d}); 
-      let delBtn = ''; if (d.rol !== 'admin' && d.rol !== 'superadmin' || docSnap.id !== window.state.currentUser.email) { delBtn = `<button class="btn-icon" style="color:var(--accent);" onclick="window.deleteProfesor('${docSnap.id}')">🗑️</button>`; }
+      const d = docSnap.data(); 
+      window.state.cachedProfesores.push({id: docSnap.id, ...d}); 
+      let delBtn = ''; 
+      if (d.rol !== 'admin' && d.rol !== 'superadmin' || docSnap.id !== window.state.currentUser.email) { 
+        delBtn = `<button class="btn-icon" style="color:var(--accent);" onclick="window.deleteProfesor('${docSnap.id}')">🗑️</button>`; 
+      }
       html += `<tr><td><strong>${docSnap.id}</strong></td><td>${d.nombre || '—'}</td><td>${d.rol}</td><td style="text-align:center;">${delBtn}</td></tr>`; 
-    }); list.innerHTML = html + '</tbody></table>'; 
+    }); 
+    list.innerHTML = html + '</tbody></table>'; 
   } catch(e) {}
 };
 
 // ==========================================
-// 2.5 ASIGNATURAS AGRUPADAS POR PROFESOR
+// ASIGNATURAS AGRUPADAS POR PROFESOR
 // ==========================================
 window.loadAsignaturas = async () => { 
   const list = document.getElementById('asignaturasList'); 
@@ -163,7 +236,10 @@ window.loadAsignaturas = async () => {
     profesSnap.forEach(p => { mapProfes[p.id] = p.data().nombre || p.id.split('@')[0]; });
 
     const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), orderBy('nombre'))); 
-    if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay asignaturas creadas.</p></div>'; return; }
+    if(snap.empty) { 
+      list.innerHTML = '<div class="empty-state"><p>No hay asignaturas creadas.</p></div>'; 
+      return; 
+    }
     
     const agrupadas = {};
     Object.keys(mapProfes).forEach(email => agrupadas[email] = []);
@@ -172,8 +248,14 @@ window.loadAsignaturas = async () => {
     snap.forEach(docSnap => { 
       const asig = { id: docSnap.id, ...docSnap.data() };
       const emails = asig.profesorEmails || (asig.profesorEmail ? [asig.profesorEmail] : []);
-      if (emails.length === 0) { agrupadas['sin_asignar'].push(asig); } 
-      else { emails.forEach(email => { if (!agrupadas[email]) agrupadas[email] = []; agrupadas[email].push(asig); }); }
+      if (emails.length === 0) { 
+        agrupadas['sin_asignar'].push(asig); 
+      } else { 
+        emails.forEach(email => { 
+          if (!agrupadas[email]) agrupadas[email] = []; 
+          agrupadas[email].push(asig); 
+        }); 
+      }
     });
 
     let html = '';
@@ -191,7 +273,12 @@ window.loadAsignaturas = async () => {
           <div style="padding: 0; overflow-x: auto;">
             <table class="table" style="margin: 0; border: none; box-shadow: none;">
               <thead style="background: transparent; border-bottom: 1px dashed var(--border);">
-                <tr><th style="padding-left: 24px;">Asignatura</th><th>Sistema de Notas</th><th>Alumnos</th><th style="width:100px; text-align:center;">Acciones</th></tr>
+                <tr>
+                  <th style="padding-left: 24px;">Asignatura</th>
+                  <th>Sistema de Notas</th>
+                  <th>Alumnos</th>
+                  <th style="width:100px; text-align:center;">Acciones</th>
+                </tr>
               </thead>
               <tbody>
       `;
@@ -219,21 +306,31 @@ window.loadAsignaturas = async () => {
 };
 
 window.loadProfesorAsignaturas = async () => { 
-  const list = document.getElementById('profesorAsignaturasList'); list.innerHTML = '<div class="loading">Cargando...</div>';
+  const list = document.getElementById('profesorAsignaturasList'); 
+  list.innerHTML = '<div class="loading">Cargando...</div>';
   try {
     const snapAsig = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), where('profesorEmails', 'array-contains', window.state.currentUser.email))); 
     const snapTut = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases`), where('tutorEmail', '==', window.state.currentUser.email)));
+    
     let html = '';
     if (!snapTut.empty) {
       html += `<h3 style="margin-bottom:16px;">📚 Mis Tutorías</h3><div class="cards-grid">`;
-      snapTut.forEach(docSnap => { const d = docSnap.data(); html += `<div class="card card-clickable" style="border-left: 4px solid var(--gold);" onclick="window.showTutoriaDetail('${docSnap.id}','${d.nombre}')"><div class="card-title">Tutoría - ${d.nombre}</div><div class="card-meta">${d.numAlumnos || 0} alumnos</div></div>`; });
+      snapTut.forEach(docSnap => { 
+        const d = docSnap.data(); 
+        html += `<div class="card card-clickable" style="border-left: 4px solid var(--gold);" onclick="window.showTutoriaDetail('${docSnap.id}','${d.nombre}')"><div class="card-title">Tutoría - ${d.nombre}</div><div class="card-meta">${d.numAlumnos || 0} alumnos</div></div>`; 
+      });
       html += `</div><br><br>`;
     }
     html += `<h3 style="margin-bottom:16px;">📖 Mis Asignaturas Normales</h3>`;
-    if(snapAsig.empty) { html += '<p class="empty-state">No tienes asignaturas asignadas.</p>'; } 
-    else {
+    
+    if(snapAsig.empty) { 
+      html += '<p class="empty-state">No tienes asignaturas asignadas.</p>'; 
+    } else {
       html += `<div class="cards-grid">`;
-      snapAsig.forEach(docSnap => { const d = docSnap.data(); html += `<div class="card card-clickable" onclick="window.showAsignaturaDetail('${docSnap.id}','${d.nombre}')"><div class="card-title">${d.nombre}</div><div class="card-meta">${d.alumnos?.length || 0} alumnos</div></div>`; }); 
+      snapAsig.forEach(docSnap => { 
+        const d = docSnap.data(); 
+        html += `<div class="card card-clickable" onclick="window.showAsignaturaDetail('${docSnap.id}','${d.nombre}')"><div class="card-title">${d.nombre}</div><div class="card-meta">${d.alumnos?.length || 0} alumnos</div></div>`; 
+      }); 
       html += `</div>`;
     }
     list.innerHTML = html; 
@@ -243,167 +340,331 @@ window.loadProfesorAsignaturas = async () => {
 // ==========================================
 // 3. ASISTENCIA
 // ==========================================
-window.showAsistenciaView = () => { window.hideAllViews(); document.getElementById('asistenciaView').classList.remove('hidden'); const td = new Date().toISOString().split('T')[0]; document.getElementById('asistenciaDateInput').value = td; window.loadAsistencia(td); };
+window.showAsistenciaView = () => { 
+  window.hideAllViews(); 
+  document.getElementById('asistenciaView').classList.remove('hidden'); 
+  const td = new Date().toISOString().split('T')[0]; 
+  document.getElementById('asistenciaDateInput').value = td; 
+  window.loadAsistencia(td); 
+};
+
 window.loadAsistencia = async (date) => {
-  const cont = document.getElementById('asistenciaListContainer'); cont.innerHTML = '<div class="loading">Cargando...</div>';
+  const cont = document.getElementById('asistenciaListContainer'); 
+  cont.innerHTML = '<div class="loading">Cargando...</div>';
   try {
-    const d = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/asistencia/${date}`)); const r = d.exists() ? d.data() : {}; let html = '';
-    window.state.cachedAlumnos.forEach(a => { const s = r[a.id] || ''; html += `<div class="attendance-row"><div class="ast-name">${a.a}, ${a.n}</div><div class="ast-toggles"><button id="btn-ast-${a.id}-P" class="ast-btn ${s==='P'?'active P':''}" onclick="window.markAsistencia('${a.id}', 'P', '${date}')">✅</button><button id="btn-ast-${a.id}-F" class="ast-btn ${s==='F'?'active F':''}" onclick="window.markAsistencia('${a.id}', 'F', '${date}')">❌</button><button id="btn-ast-${a.id}-R" class="ast-btn ${s==='R'?'active R':''}" onclick="window.markAsistencia('${a.id}', 'R', '${date}')">⏰</button></div></div>`; });
+    const d = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/asistencia/${date}`)); 
+    const r = d.exists() ? d.data() : {}; 
+    let html = '';
+    window.state.cachedAlumnos.forEach(a => { 
+      const s = r[a.id] || ''; 
+      html += `<div class="attendance-row"><div class="ast-name">${a.a}, ${a.n}</div><div class="ast-toggles"><button id="btn-ast-${a.id}-P" class="ast-btn ${s==='P'?'active P':''}" onclick="window.markAsistencia('${a.id}', 'P', '${date}')">✅</button><button id="btn-ast-${a.id}-F" class="ast-btn ${s==='F'?'active F':''}" onclick="window.markAsistencia('${a.id}', 'F', '${date}')">❌</button><button id="btn-ast-${a.id}-R" class="ast-btn ${s==='R'?'active R':''}" onclick="window.markAsistencia('${a.id}', 'R', '${date}')">⏰</button></div></div>`; 
+    });
     cont.innerHTML = html;
   } catch(e) {}
 };
-window.markAsistencia = async (id, st, date) => { ['P','F','R'].forEach(s => { document.getElementById(`btn-ast-${id}-${s}`).className = 'ast-btn'; }); document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st); await setDoc(doc(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true }); };
+
+window.markAsistencia = async (id, st, date) => { 
+  ['P','F','R'].forEach(s => { 
+    document.getElementById(`btn-ast-${id}-${s}`).className = 'ast-btn'; 
+  }); 
+  document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st); 
+  await setDoc(doc(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true }); 
+};
 
 // ==========================================
 // 4. CONFIGURACIÓN DE PONDERACIÓN (TRIMESTRES)
 // ==========================================
-let currentCategorias = []; let currentCambridgeLevel = 'B2';
-function getPonderacionPath(t) { return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/ponderacionesTutoria/${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/ponderaciones/${t}`; }
-function getNotasPath(studentRefStr, t) { return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/notasTutoria/${studentRefStr}-${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`; }
+let currentCategorias = []; 
+let currentCambridgeLevel = 'B2';
+
+function getPonderacionPath(t) { 
+  return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/ponderacionesTutoria/${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/ponderaciones/${t}`; 
+}
+
+function getNotasPath(studentRefStr, t) { 
+  return window.state.currentContext === 'tutoria' ? `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/notasTutoria/${studentRefStr}-${t}` : `colegios/${window.state.colegioId}/asignaturas/${window.state.currentAsignaturaId}/notas/${studentRefStr.replace('/','-')}-${t}`; 
+}
 
 window.showTrimestreDetail = async (t) => {
-  window.state.currentTrimestre = t; window.hideAllViews(); document.getElementById('trimestreDetailView').classList.remove('hidden');
-  await window.loadPonderacion(t); await window.loadAlumnosParaEvaluar();
-  document.getElementById('currentTrimestre').textContent = t; document.getElementById('trimestreDetailTitle').textContent = t === 'T1' ? '1º Trimestre' : t === 'T2' ? '2º Trimestre' : '3º Trimestre';
+  window.state.currentTrimestre = t; 
+  window.hideAllViews(); 
+  document.getElementById('trimestreDetailView').classList.remove('hidden');
+  await window.loadPonderacion(t); 
+  await window.loadAlumnosParaEvaluar();
+  document.getElementById('currentTrimestre').textContent = t; 
+  document.getElementById('trimestreDetailTitle').textContent = t === 'T1' ? '1º Trimestre' : t === 'T2' ? '2º Trimestre' : '3º Trimestre';
 };
 
 window.loadPonderacion = async (t) => {
   try {
-    const d = await getDoc(doc(db, getPonderacionPath(t))); const data = d.exists() ? d.data() : {};
+    const d = await getDoc(doc(db, getPonderacionPath(t))); 
+    const data = d.exists() ? d.data() : {};
     const formato = await getFormatoAsignatura();
+    
     if (formato === 'letras_cambridge') {
-      currentCambridgeLevel = data.cambridgeLevel || 'B2'; const config = CAMBRIDGE_LEVELS[currentCambridgeLevel]; const pesoPorParte = 100 / config.parts.length;
-      currentCategorias = config.parts.map(p => ({ nombre: p, peso: pesoPorParte }));
+      currentCambridgeLevel = data.cambridgeLevel || 'B2'; 
+      window.state.currentPesoMocks = data.pesoMocks !== undefined ? data.pesoMocks : 100;
+      currentCategorias = data.categorias || [];
     } else {
-      if (window.state.currentContext === 'tutoria') { currentCategorias = data.categorias || [{nombre:"Actitud", peso:100}]; } else { currentCategorias = data.categorias || [{nombre:"Exámenes", peso:40}, {nombre:"Deberes", peso:60}]; }
+      if (window.state.currentContext === 'tutoria') { 
+        currentCategorias = data.categorias || [{nombre:"Actitud", peso:100}]; 
+      } else { 
+        currentCategorias = data.categorias || [{nombre:"Exámenes", peso:40}, {nombre:"Deberes", peso:60}]; 
+      }
     }
-    window.renderCategorias(formato); window.updatePesoTotal();
+    window.renderCategorias(formato); 
+    window.updatePesoTotal();
   } catch(e) {}
 };
 
 window.renderCategorias = (formato) => {
-  const container = document.getElementById('categoriasConfig');
+  const container = document.getElementById('categoriasConfig'); 
   if(!container) return;
 
+  document.querySelector('button[onclick="window.añadirCategoria()"]').style.display = 'inline-flex';
+
+  let html = '';
   if (formato === 'letras_cambridge') {
-    container.innerHTML = `
-      <div style="margin-bottom:20px;">
-        <label>Nivel de Examen por Defecto:</label>
-        <select onchange="window.changeCambridgeLevel(this.value)" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--ink); font-weight:bold;">
-          <option value="A1" ${currentCambridgeLevel==='A1'?'selected':''}>A1 (Starters/Movers)</option>
-          <option value="A2" ${currentCambridgeLevel==='A2'?'selected':''}>A2 Key</option>
-          <option value="B1" ${currentCambridgeLevel==='B1'?'selected':''}>B1 Preliminary</option>
-          <option value="B2" ${currentCambridgeLevel==='B2'?'selected':''}>B2 First</option>
-          <option value="C1" ${currentCambridgeLevel==='C1'?'selected':''}>C1 Advanced</option>
-          <option value="C2" ${currentCambridgeLevel==='C2'?'selected':''}>C2 Proficiency</option>
-        </select>
+    html += `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div>
+          <label>Nivel de Examen por Defecto:</label>
+          <select onchange="window.changeCambridgeLevel(this.value)" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--ink); font-weight:bold;">
+            <option value="A1" ${currentCambridgeLevel==='A1'?'selected':''}>A1 Starters</option>
+            <option value="A2" ${currentCambridgeLevel==='A2'?'selected':''}>A2 Key</option>
+            <option value="B1" ${currentCambridgeLevel==='B1'?'selected':''}>B1 Prelim</option>
+            <option value="B2" ${currentCambridgeLevel==='B2'?'selected':''}>B2 First</option>
+            <option value="C1" ${currentCambridgeLevel==='C1'?'selected':''}>C1 Adv</option>
+            <option value="C2" ${currentCambridgeLevel==='C2'?'selected':''}>C2 Prof</option>
+          </select>
+        </div>
+        <div>
+          <label>Peso Simulacros Completos (%):</label>
+          <input type="number" id="inputPesoMocks" value="${window.state.currentPesoMocks}" onchange="window.updatePesoMocks(this.value)" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--ink); font-weight:bold; text-align:center;">
+        </div>
       </div>
-      <div style="background:var(--cream); padding:15px; border-radius:8px;">
-        <strong>Papers Base:</strong> ${currentCategorias.map(c => c.nombre).join(', ')}
-      </div>
-      
+      <h4 style="margin-bottom:8px; color:var(--ink);">Categorías Extra (Writings sueltos, Deberes...)</h4>
+    `;
+  }
+  
+  html += '<div class="ponderacion-config">'; 
+  currentCategorias.forEach((cat, i) => { 
+    html += `<div class="categoria-row">
+      <input type="text" value="${cat.nombre}" placeholder="Ej: Writings" onchange="window.updateCategoriaNombre(${i}, this.value)">
+      <input type="number" value="${cat.peso}" placeholder="%" onchange="window.updateCategoriaPeso(${i}, this.value)">
+      <button class="btn-icon" onclick="window.eliminarCategoria(${i})">🗑️</button>
+    </div>`; 
+  });
+  html += '</div>';
+
+  if (formato === 'letras_cambridge') {
+    html += `
       <div style="margin-top:20px; padding:16px; background:rgba(200, 75, 49, 0.05); border:2px dashed var(--accent); border-radius:8px; text-align:center;">
         <h4 style="margin-top:0; color:var(--ink); font-size:15px;">Evaluación Rápida de Clase</h4>
         <button id="btnGlobalMock" class="btn-primary" onclick="window.addMockExamGlobal()" style="background:var(--accent); border-color:var(--accent); width:100%;">📝 Crear Simulacro a Toda la Clase</button>
-        <p style="font-size:13px; color:var(--ink-light); margin-bottom:0; margin-top:8px;">Añade un examen vacío a todos los alumnos. Luego haz clic en cada alumno (abajo) para introducir sus puntos exactos.</p>
-      </div>
-    `;
-    const btnAddCat = document.querySelector('button[onclick="window.añadirCategoria()"]');
-    if(btnAddCat) btnAddCat.style.display = 'none';
-  } else {
-    const btnAddCat = document.querySelector('button[onclick="window.añadirCategoria()"]');
-    if(btnAddCat) btnAddCat.style.display = 'inline-flex';
-    let html = '<div class="ponderacion-config">'; 
-    currentCategorias.forEach((cat, i) => { 
-      html += `<div class="categoria-row"><input type="text" value="${cat.nombre}" onchange="window.updateCategoriaNombre(${i}, this.value)"><input type="number" value="${cat.peso}" onchange="window.updateCategoriaPeso(${i}, this.value)"><button class="btn-icon" onclick="window.eliminarCategoria(${i})">🗑️</button></div>`; 
-    });
-    container.innerHTML = html + '</div>';
+        <p style="font-size:13px; color:var(--ink-light); margin-bottom:0; margin-top:8px;">Añade un examen vacío a todos los alumnos a la vez para rellenarlo luego.</p>
+      </div>`;
   }
+  
+  container.innerHTML = html;
 };
 
 window.changeCambridgeLevel = (val) => { 
   currentCambridgeLevel = val; 
-  const config = CAMBRIDGE_LEVELS[currentCambridgeLevel]; 
-  const pesoPorParte = 100 / config.parts.length;
-  currentCategorias = config.parts.map(p => ({ nombre: p, peso: pesoPorParte }));
-  window.renderCategorias('letras_cambridge'); 
+  window.updatePesoTotal(); 
+};
+
+window.updatePesoMocks = (val) => { 
+  window.state.currentPesoMocks = parseFloat(val) || 0; 
+  window.updatePesoTotal(); 
 };
 
 window.updatePesoTotal = () => {
-  const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
-  const spanT = document.getElementById('pesoTotal'); const spanS = document.getElementById('pesoStatus');
-  if (spanT) spanT.textContent = Math.round(total);
-  if (spanS) { spanS.textContent = Math.round(total) === 100 ? '✅ Correcto' : `⚠️ Suma ${Math.round(total)}%`; spanS.style.color = Math.round(total) === 100 ? 'var(--green)' : 'var(--accent)'; }
+  const totalCats = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
+  const isCambridge = document.getElementById('inputPesoMocks') !== null;
+  const finalTotal = isCambridge ? ((parseFloat(document.getElementById('inputPesoMocks').value) || 0) + totalCats) : totalCats;
+
+  const spanT = document.getElementById('pesoTotal'); 
+  const spanS = document.getElementById('pesoStatus');
+  
+  if (spanT) spanT.textContent = Math.round(finalTotal);
+  if (spanS) { 
+    spanS.textContent = Math.round(finalTotal) === 100 ? '✅ Correcto' : `⚠️ Suma ${Math.round(finalTotal)}%`; 
+    spanS.style.color = Math.round(finalTotal) === 100 ? 'var(--green)' : 'var(--accent)'; 
+  }
 };
+
 window.updateCategoriaNombre = (i,n) => { currentCategorias[i].nombre = n; };
 window.updateCategoriaPeso = (i,p) => { currentCategorias[i].peso = parseFloat(p) || 0; window.updatePesoTotal(); };
-window.añadirCategoria = () => { currentCategorias.push({nombre: "", peso: 0}); window.renderCategorias(window.state.colegioConfig?.algoritmoNotas); window.updatePesoTotal(); };
-window.eliminarCategoria = (i) => { if(currentCategorias.length <= 1) return alert('Debes dejar al menos una categoría.'); currentCategorias.splice(i, 1); window.renderCategorias(window.state.colegioConfig?.algoritmoNotas); window.updatePesoTotal(); };
+window.añadirCategoria = async () => { currentCategorias.push({nombre: "", peso: 0}); window.renderCategorias(await getFormatoAsignatura()); window.updatePesoTotal(); };
+window.eliminarCategoria = async (i) => { currentCategorias.splice(i, 1); window.renderCategorias(await getFormatoAsignatura()); window.updatePesoTotal(); };
 
 window.guardarPonderacion = async () => {
-  const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
-  if(Math.round(total) !== 100 && await getFormatoAsignatura() !== 'letras_cambridge') return alert('La suma debe ser 100%.'); 
-  try { await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), { categorias: currentCategorias, cambridgeLevel: currentCambridgeLevel, updatedAt: serverTimestamp() }, {merge:true}); alert('✅ Configuración guardada.'); } catch(e) {}
+  const totalCats = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
+  const formato = await getFormatoAsignatura();
+  const finalTotal = formato === 'letras_cambridge' ? (window.state.currentPesoMocks + totalCats) : totalCats;
+  
+  if(Math.round(finalTotal) !== 100) return alert('⚠️ La suma de todos los pesos (incluido Simulacros) debe ser exactamente 100%.'); 
+  
+  try { 
+    let payload = { categorias: currentCategorias, updatedAt: serverTimestamp() };
+    if (formato === 'letras_cambridge') { 
+      payload.cambridgeLevel = currentCambridgeLevel; 
+      payload.pesoMocks = window.state.currentPesoMocks; 
+    }
+    await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), payload, {merge:true}); 
+    alert('✅ Configuración guardada.'); 
+  } catch(e) {}
 };
 
+// ==========================================
+// 5. VISTA DE CLASE (TABLA DE MOCKS GLOBALES)
+// ==========================================
 window.loadAlumnosParaEvaluar = async () => {
-  const list = document.getElementById('trimestreAlumnosList'); list.innerHTML = '<div class="loading">Buscando alumnos...</div>';
+  const list = document.getElementById('trimestreAlumnosList'); 
+  list.innerHTML = '<div class="loading">Buscando alumnos...</div>';
   try {
     let alumnos = [];
     if (window.state.currentContext === 'tutoria') {
       const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/alumnos`), orderBy('apellidos')));
       snap.forEach(d => { alumnos.push({ id: d.id, n: d.data().nombre || '', a: d.data().apellidos || '', classId: window.state.currentClassId, alumId: d.id }); });
     } else {
-      const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas`, window.state.currentAsignaturaId)); const alumnosRefs = asigDoc.data()?.alumnos || [];
-      if (alumnosRefs.length === 0) { list.innerHTML = '<div class="empty-state">No hay alumnos en este grupo.</div>'; return; }
-      for (const ref of alumnosRefs) { const partes = ref.split('/'); if (partes.length === 2) { const aDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases/${partes[0]}/alumnos`, partes[1])); if (aDoc.exists()) { alumnos.push({ id: ref, n: aDoc.data().nombre || '', a: aDoc.data().apellidos || '', classId: partes[0], alumId: partes[1] }); } } }
+      const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas`, window.state.currentAsignaturaId)); 
+      const alumnosRefs = asigDoc.data()?.alumnos || [];
+      if (alumnosRefs.length === 0) { 
+        list.innerHTML = '<div class="empty-state">No hay alumnos en este grupo.</div>'; 
+        return; 
+      }
+      for (const ref of alumnosRefs) { 
+        const partes = ref.split('/'); 
+        if (partes.length === 2) { 
+          const aDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases/${partes[0]}/alumnos`, partes[1])); 
+          if (aDoc.exists()) { 
+            alumnos.push({ id: ref, n: aDoc.data().nombre || '', a: aDoc.data().apellidos || '', classId: partes[0], alumId: partes[1] }); 
+          } 
+        } 
+      }
     }
+    
     if (alumnos.length === 0) { list.innerHTML = '<div class="empty-state">No hay alumnos.</div>'; return; }
-    alumnos.sort((a,b) => (a.a || '').localeCompare(b.a || '')); window.state.currentAlumnosList = alumnos; 
+    alumnos.sort((a,b) => (a.a || '').localeCompare(b.a || '')); 
+    window.state.currentAlumnosList = alumnos; 
 
-    // Panel de Simulacros Globales
-    let panelGlobalHtml = '';
     const formato = await getFormatoAsignatura();
+    let panelGlobalHtml = '';
+
+    // TABLA DE SIMULACROS GLOBALES DE CAMBRIDGE
     if (formato === 'letras_cambridge') {
-      const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)));
-      const globalMocks = pDoc.exists() ? (pDoc.data().globalMocks || []) : [];
-      if (globalMocks.length > 0) {
-        panelGlobalHtml = `<div style="background:var(--paper); border:2px solid var(--border); padding:16px; border-radius:8px; margin-bottom:24px;">
-          <h3 style="margin-top:0; font-size:15px; color:var(--ink); margin-bottom:12px;">📊 Registro de Simulacros Globales del Trimestre</h3>
-          <ul style="margin:0; padding-left:20px; color:var(--ink-light); font-size:14px;">
-            ${globalMocks.map(m => `<li style="margin-bottom:4px;"><strong>${m.name}</strong> <span style="background:var(--cream); border:1px solid var(--border); padding:2px 6px; border-radius:4px; font-size:11px; margin-left:8px;">Nivel ${m.level}</span></li>`).join('')}
-          </ul>
-        </div>`;
+      const allMocksMap = new Set(); 
+      const studentMocks = {};
+      
+      for (const alum of alumnos) {
+         const p = getNotasPath(alum.id, window.state.currentTrimestre);
+         const d = await getDoc(doc(db, p));
+         const mocks = d.exists() ? (d.data().mockExams || []) : [];
+         studentMocks[alum.id] = mocks;
+         mocks.forEach(m => allMocksMap.add(m.name));
+      }
+      const uniqueMocks = Array.from(allMocksMap);
+
+      if (uniqueMocks.length > 0) {
+         let tableHtml = `<table class="table" style="margin-bottom:0; background:white;"><thead><tr><th>Alumno</th>`;
+         uniqueMocks.forEach(m => tableHtml += `<th>${m}</th>`);
+         tableHtml += `</tr></thead><tbody>`;
+
+         alumnos.forEach(alum => {
+            tableHtml += `<tr><td><strong>${alum.a}, ${alum.n}</strong></td>`;
+            const mocks = studentMocks[alum.id] || [];
+            uniqueMocks.forEach(mName => {
+               const theMock = mocks.find(m => m.name === mName);
+               if (theMock) {
+                   const mLevel = theMock.level || currentCambridgeLevel || 'B2';
+                   let sumScale = 0; let count = 0;
+                   CAMBRIDGE_LEVELS[mLevel].parts.forEach(p => { 
+                     const max = CAMBRIDGE_LEVELS[mLevel].max[p]; 
+                     const val = theMock.parts?.[p] || 0; 
+                     sumScale += calculateScaleScore(mLevel, val/max); 
+                     count++; 
+                   });
+                   const avg = Math.round(sumScale/count);
+                   tableHtml += `<td><strong style="color:${getCambridgeColor(mLevel, avg)}">${avg}</strong> <span style="font-size:11px; color:var(--ink-light);">(${mLevel})</span></td>`;
+               } else {
+                   tableHtml += `<td style="color:var(--ink-light);">-</td>`;
+               }
+            });
+            tableHtml += `</tr>`;
+         });
+         tableHtml += `</tbody></table>`;
+         
+         panelGlobalHtml = `<div style="background:var(--paper); border:1px solid var(--border); padding:16px; border-radius:8px; margin-bottom:24px; overflow-x:auto;">
+           <h3 style="margin-top:0; font-size:15px; color:var(--ink); margin-bottom:12px;">📋 Resultados Globales de Simulacros</h3>
+           ${tableHtml}
+         </div>`;
       }
     }
 
     let html = '<div class="cards-grid">';
-    alumnos.forEach(alum => { const nLimpio = (alum.n + ' ' + alum.a).replace(/'/g, "\\'").replace(/"/g, "&quot;"); html += `<div class="card card-clickable" onclick="window.showNotasView('${alum.id}', '${nLimpio}', '${alum.classId}', '${alum.alumId}')"><div class="card-title">${alum.a}, ${alum.n}</div><div class="card-meta">Evaluar →</div></div>`; });
+    alumnos.forEach(alum => { 
+      const nLimpio = (alum.n + ' ' + alum.a).replace(/'/g, "\\'").replace(/"/g, "&quot;"); 
+      html += `<div class="card card-clickable" onclick="window.showNotasView('${alum.id}', '${nLimpio}', '${alum.classId}', '${alum.alumId}')"><div class="card-title">${alum.a}, ${alum.n}</div><div class="card-meta">Evaluar →</div></div>`; 
+    });
+    
     list.innerHTML = panelGlobalHtml + html + '</div>';
   } catch(e) {}
 };
 
 // ==========================================
-// 5. PANEL DE NOTAS Y SIMULACROS
+// 6. PANEL INDIVIDUAL DE NOTAS
 // ==========================================
-window.showNotasView = (id, nombreAlumno, classId, alumId) => { window.state.currentAlumnoId = id; window.state.currentEvalClassId = classId; window.state.currentEvalAlumId = alumId; document.getElementById('currentAlumnoNombre').textContent = nombreAlumno; window.hideAllViews(); document.getElementById('notasView').classList.remove('hidden'); window.loadNotas(); };
-window.switchTrimestre = (t, btnElement) => { window.state.currentTrimestre = t; document.querySelectorAll('#notasView .trimestre-tab').forEach(tab => tab.classList.remove('active')); if(btnElement) btnElement.classList.add('active'); window.loadNotas(); };
+window.showNotasView = (id, nombreAlumno, classId, alumId) => { 
+  window.state.currentAlumnoId = id; 
+  window.state.currentEvalClassId = classId; 
+  window.state.currentEvalAlumId = alumId; 
+  document.getElementById('currentAlumnoNombre').textContent = nombreAlumno; 
+  window.hideAllViews(); 
+  document.getElementById('notasView').classList.remove('hidden'); 
+  window.loadNotas(); 
+};
+
+window.switchTrimestre = (t, btnElement) => { 
+  window.state.currentTrimestre = t; 
+  document.querySelectorAll('#notasView .trimestre-tab').forEach(tab => tab.classList.remove('active')); 
+  if(btnElement) btnElement.classList.add('active'); 
+  window.loadNotas(); 
+};
 
 window.loadNotas = async () => {
-  const container = document.getElementById('notasContent'); container.innerHTML = '<div class="loading">Cargando perfil...</div>';
+  const container = document.getElementById('notasContent'); 
+  container.innerHTML = '<div class="loading">Cargando perfil...</div>';
   try {
-    const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre))); const nDoc = await getDoc(doc(db, getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre)));
-    const pondData = pDoc.exists() ? pDoc.data() : {}; let cats = pondData.categorias || []; const data = nDoc.exists() ? nDoc.data() : { categorias: {}, mockExams: [], comentarioTutor: "" };
+    const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre))); 
+    const nDoc = await getDoc(doc(db, getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre)));
+    
+    const pondData = pDoc.exists() ? pDoc.data() : {}; 
+    let cats = pondData.categorias || []; 
+    const data = nDoc.exists() ? nDoc.data() : { categorias: {}, mockExams: [], comentarioTutor: "" };
     const formato = await getFormatoAsignatura();
     
     let html = `<div class="professional-comment"><div class="comment-header"><strong>📝 Observaciones</strong><span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0; transition:opacity 0.3s;">Guardado ✓</span></div><textarea id="comentarioArea" rows="3" placeholder="Añade observaciones..." onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea></div>`;
 
+    let overallMockScaleScore = 0; 
+    let validMocks = 0; 
+    let sumTotalScaleScores = 0;
+    
+    const defaultLevel = pondData.cambridgeLevel || 'B2';
+    const pesoMocks = pondData.pesoMocks !== undefined ? pondData.pesoMocks : 100;
+
     if (formato === 'letras_cambridge') {
-      const defaultLevel = pondData.cambridgeLevel || 'B2';
       const mocks = data.mockExams || [];
-      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="margin:0;">Simulacros (Mock Exams)</h3><button class="btn-secondary btn-sm" onclick="window.addMockExam()">+ Añadir Individual</button></div>`;
-      if (mocks.length === 0) { html += `<div class="empty-state">No hay simulacros en este trimestre.</div>`; }
-      let sumTotalScaleScores = 0; let validMocks = 0;
+      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px; margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="margin:0;">Simulacros (Mock Exams) <span style="font-size:12px; color:var(--ink-light); background:var(--cream); padding:2px 8px; border-radius:10px; margin-left:8px;">Peso: ${pesoMocks}%</span></h3>
+          <button class="btn-secondary btn-sm" onclick="window.addMockExam()">+ Añadir Individual</button>
+        </div>`;
+        
+      if (mocks.length === 0) { 
+        html += `<div class="empty-state">No hay simulacros.</div>`; 
+      }
 
       mocks.forEach((mock, idx) => {
         let sumMockScale = 0; let paperCount = 0;
@@ -411,52 +672,155 @@ window.loadNotas = async () => {
         const mMaxScores = CAMBRIDGE_LEVELS[mLevel].max;
         const mParts = CAMBRIDGE_LEVELS[mLevel].parts;
 
-        html += `<div style="border:1px solid var(--border); padding:16px; margin-bottom:16px; border-radius:8px; background:var(--paper);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-            <input type="text" value="${mock.name || 'Mock Exam '+(idx+1)}" onchange="window.updateMockName(${idx}, this.value)" style="font-weight:bold; font-size:16px; border:none; width:150px; color:var(--ink); background:transparent;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <select onchange="window.updateMockLevel(${idx}, this.value)" style="padding:4px; border-radius:4px; font-weight:bold; color:var(--accent); border:1px solid var(--accent); background:transparent;">
-                <option value="A1" ${mLevel==='A1'?'selected':''}>A1 Starters</option>
-                <option value="A2" ${mLevel==='A2'?'selected':''}>A2 Key</option>
-                <option value="B1" ${mLevel==='B1'?'selected':''}>B1 Prelim</option>
-                <option value="B2" ${mLevel==='B2'?'selected':''}>B2 First</option>
-                <option value="C1" ${mLevel==='C1'?'selected':''}>C1 Adv</option>
-                <option value="C2" ${mLevel==='C2'?'selected':''}>C2 Prof</option>
-              </select>
-              <button class="btn-icon" onclick="window.deleteMockExam(${idx})" style="color:red;">🗑️</button>
-            </div>
-          </div>`;
+        html += `
+          <div style="border:1px solid var(--border); padding:16px; margin-bottom:16px; border-radius:8px; background:var(--paper);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+              <input type="text" value="${mock.name || 'Mock Exam '+(idx+1)}" onchange="window.updateMockName(${idx}, this.value)" style="font-weight:bold; font-size:16px; border:none; width:150px; color:var(--ink); background:transparent;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <select onchange="window.updateMockLevel(${idx}, this.value)" style="padding:4px; border-radius:4px; font-weight:bold; color:var(--accent); border:1px solid var(--accent); background:transparent;">
+                  <option value="A1" ${mLevel==='A1'?'selected':''}>A1 Starters</option>
+                  <option value="A2" ${mLevel==='A2'?'selected':''}>A2 Key</option>
+                  <option value="B1" ${mLevel==='B1'?'selected':''}>B1 Prelim</option>
+                  <option value="B2" ${mLevel==='B2'?'selected':''}>B2 First</option>
+                  <option value="C1" ${mLevel==='C1'?'selected':''}>C1 Adv</option>
+                  <option value="C2" ${mLevel==='C2'?'selected':''}>C2 Prof</option>
+                </select>
+                <button class="btn-icon" onclick="window.deleteMockExam(${idx})" style="color:red;">🗑️</button>
+              </div>
+            </div>`;
 
         mParts.forEach((partName) => {
-          const mxs = mMaxScores[partName]; const pts = mock.parts?.[partName] || 0; const pct = pts / mxs; const scaleScore = calculateScaleScore(mLevel, pct);
-          sumMockScale += scaleScore; paperCount++;
-          html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><div style="font-size:14px; font-weight:500;">${partName} <span style="font-size:11px; color:var(--ink-light); margin-left:8px; font-weight:normal;">Scale: ${scaleScore}</span></div><div style="display:flex; align-items:center;"><input type="number" value="${pts}" step="0.5" min="0" max="${mxs}" onchange="window.updateMockPart(${idx}, '${partName}', this.value)" style="width:60px; text-align:center; border:1px solid var(--border); border-radius:4px; padding:4px; font-weight:bold; color:var(--accent);"><span style="font-size:12px; color:var(--ink-light); margin-left:6px;">/ ${mxs}</span></div></div>`;
+          const mxs = mMaxScores[partName]; 
+          const pts = mock.parts?.[partName] || 0; 
+          const pct = pts / mxs; 
+          const scaleScore = calculateScaleScore(mLevel, pct);
+          
+          sumMockScale += scaleScore; 
+          paperCount++;
+          
+          html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="font-size:14px; font-weight:500;">
+                ${partName} <span style="font-size:11px; color:var(--ink-light); margin-left:8px; font-weight:normal;">Scale: ${scaleScore}</span>
+              </div>
+              <div style="display:flex; align-items:center;">
+                <input type="number" value="${pts}" step="0.5" min="0" max="${mxs}" onchange="window.updateMockPart(${idx}, '${partName}', this.value)" style="width:60px; text-align:center; border:1px solid var(--border); border-radius:4px; padding:4px; font-weight:bold; color:var(--accent);">
+                <span style="font-size:12px; color:var(--ink-light); margin-left:6px;">/ ${mxs}</span>
+              </div>
+            </div>`;
         });
-        const mockAvgScale = Math.round(sumMockScale / paperCount); const mockGrade = getCambridgeGrade(mLevel, mockAvgScale); sumTotalScaleScores += mockAvgScale; validMocks++;
+        
+        const mockAvgScale = Math.round(sumMockScale / paperCount); 
+        const mockGrade = getCambridgeGrade(mLevel, mockAvgScale); 
+        sumTotalScaleScores += mockAvgScale; 
+        validMocks++;
+        
         html += `<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-weight:bold; font-size:14px; color:${getCambridgeColor(mLevel, mockAvgScale)}; text-align:right;">Resultado: ${mockGrade} (${mockAvgScale})</div></div>`;
       });
       html += `</div>`;
-      const overallScaleScore = validMocks > 0 ? Math.round(sumTotalScaleScores / validMocks) : 0; const finalGrade = validMocks > 0 ? getCambridgeGrade(defaultLevel, overallScaleScore) : '—'; const finalColor = validMocks > 0 ? getCambridgeColor(defaultLevel, overallScaleScore) : 'var(--ink)';
-      html += `<div class="nota-final-display" style="background:var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:24px;"><h3 style="color:var(--cream); font-size:14px; margin-bottom:8px; text-transform:uppercase;">Media del Trimestre</h3><div style="font-size:14px; color:rgba(255,255,255,0.6); margin-bottom:16px;">Overall Scale Score: ${overallScaleScore}</div><div class="nota" style="font-size:42px; font-weight:700; color:${finalColor};">${finalGrade}</div></div>`; 
-    } else {
-      let notaFinalGlobal = 0; let pesoTotalGlobal = 0;
-      cats.forEach((cat, idx) => {
-        let notasArr = data.categorias?.[cat.nombre] || []; notasArr = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10, descripcion: '' } : n);
-        const sumaBase10 = notasArr.reduce((acc, obj) => { let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0); let max = parseFloat(obj.maximo || 10); if (max <= 0) max = 10; return acc + ((val / max) * 10); }, 0);
-        const mediaCategoria = notasArr.length > 0 ? (sumaBase10 / notasArr.length) : 0; if (notasArr.length > 0) { notaFinalGlobal += mediaCategoria * (cat.peso / 100); pesoTotalGlobal += cat.peso; }
-        html += `<div class="accordion-card"><div class="accordion-header" onclick="window.toggleAccordion('acc-${idx}', 'icon-${idx}')"><div class="accordion-title">${cat.nombre} <span style="font-size:11px; background:var(--cream); border:1px solid var(--border); padding:2px 8px; border-radius:10px; margin-left:8px; color:var(--ink-light);">${cat.peso}%</span></div><div class="accordion-stats"><span class="accordion-media" style="margin-right:12px;">Result: <strong style="color:var(--ink);">${getNotaFormateada(mediaCategoria, formato)}</strong></span><span id="icon-${idx}" class="accordion-chevron">▼</span></div></div><div class="accordion-body" id="acc-${idx}"><div style="padding-top:15px;">`;
-        if (notasArr.length === 0) { html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros. Pulsa Añadir.</div>`; }
-        notasArr.forEach((nObj, i) => { html += `<div class="record-row"><div class="record-desc" style="flex:1;"><input type="text" placeholder="Concepto" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)" style="width:100%;"></div><div class="record-val"><input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor !== undefined ? nObj.valor : ''}" placeholder="Ptos" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)"><span style="font-weight:600;">/</span><input type="number" class="val-max" min="0.1" step="0.1" value="${nObj.maximo || 10}" title="Max" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)"></div><div class="record-actions"><button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button></div></div>`; });
-        html += `<button class="btn-secondary btn-sm" style="margin-top:16px;" onclick="window.addNota('${cat.nombre}')">+ Añadir puntuación</button></div></div></div>`;
-      });
-      const calculoFinalSeguro = pesoTotalGlobal > 0 ? notaFinalGlobal : null;
-      html += `<div class="nota-final-display" style="background:var(--paper); border:2px solid var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:32px;"><h3 style="color:var(--ink); font-size:16px; margin-bottom:12px; text-transform:uppercase;">Resultado Global Ponderado</h3><div class="nota" style="font-size:48px; font-weight:700; color:${getNotaColor(calculoFinalSeguro, formato)};">${getNotaFormateada(calculoFinalSeguro, formato)}</div></div>`; 
+      
+      overallMockScaleScore = validMocks > 0 ? Math.round(sumTotalScaleScores / validMocks) : 0; 
     }
+
+    let overallCategoriesScaleScore = 0; 
+    let pesoCategoriasCalculado = 0; 
+    let notaFinalGlobal = 0; 
+    let pesoTotalGlobal = 0;
+    
+    // ACORDEONES COMUNES (Para Standard y Tareas Cambridge Extras)
+    cats.forEach((cat, idx) => {
+      let notasArr = data.categorias?.[cat.nombre] || []; 
+      notasArr = notasArr.map(n => typeof n === 'number' ? { valor: n, maximo: 10, descripcion: '' } : n);
+      
+      const sumaBase10 = notasArr.reduce((acc, obj) => { 
+        let val = obj.valor === '' ? 0 : parseFloat(obj.valor || 0); 
+        let max = parseFloat(obj.maximo || 10); 
+        if (max <= 0) max = 10; 
+        return acc + ((val / max) * 10); 
+      }, 0);
+      
+      const mediaBase10 = notasArr.length > 0 ? (sumaBase10 / notasArr.length) : 0; 
+      
+      let displayScore = ""; 
+      let displayColor = "var(--ink)";
+      
+      if (formato === 'letras_cambridge') {
+          const pct = mediaBase10 / 10;
+          const catScaleScore = calculateScaleScore(defaultLevel, pct);
+          if (notasArr.length > 0) { 
+            overallCategoriesScaleScore += catScaleScore * cat.peso; 
+            pesoCategoriasCalculado += cat.peso; 
+          }
+          displayScore = notasArr.length > 0 ? `${catScaleScore} pts (${getCambridgeGrade(defaultLevel, catScaleScore)})` : '—';
+          displayColor = notasArr.length > 0 ? getCambridgeColor(defaultLevel, catScaleScore) : 'var(--ink)';
+      } else {
+          if (notasArr.length > 0) { 
+            notaFinalGlobal += mediaBase10 * (cat.peso / 100); 
+            pesoTotalGlobal += cat.peso; 
+          }
+          displayScore = getNotaFormateada(mediaBase10, formato);
+          displayColor = getNotaColor(mediaBase10, formato);
+      }
+
+      html += `
+        <div class="accordion-card">
+          <div class="accordion-header" onclick="window.toggleAccordion('acc-${idx}', 'icon-${idx}')">
+            <div class="accordion-title">${cat.nombre} <span style="font-size:11px; background:var(--cream); border:1px solid var(--border); padding:2px 8px; border-radius:10px; margin-left:8px; color:var(--ink-light);">${cat.peso}%</span></div>
+            <div class="accordion-stats"><span class="accordion-media" style="margin-right:12px;">Result: <strong style="color:${displayColor};">${displayScore}</strong></span><span id="icon-${idx}" class="accordion-chevron">▼</span></div>
+          </div>
+          <div class="accordion-body" id="acc-${idx}">
+            <div style="padding-top:15px;">`;
+            
+      if (notasArr.length === 0) { 
+        html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros. Pulsa Añadir.</div>`; 
+      }
+      
+      notasArr.forEach((nObj, i) => { 
+        html += `
+          <div class="record-row">
+            <div class="record-desc" style="flex:1;">
+              <input type="text" placeholder="Concepto (Ej: Essay 1)" value="${nObj.descripcion || ''}" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'descripcion',this.value)" style="width:100%;">
+            </div>
+            <div class="record-val">
+              <input type="number" class="val-nota" min="0" step="0.1" value="${nObj.valor !== undefined ? nObj.valor : ''}" placeholder="Ptos" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'valor',this.value)">
+              <span style="font-weight:600;">/</span>
+              <input type="number" class="val-max" min="0.1" step="0.1" value="${nObj.maximo || 10}" title="Max" onchange="window.updateNotaDetalle('${cat.nombre}',${i},'maximo',this.value)">
+            </div>
+            <div class="record-actions">
+              <button class="btn-icon" onclick="window.deleteNota('${cat.nombre}',${i})">🗑️</button>
+            </div>
+          </div>`; 
+      });
+      
+      html += `<button class="btn-secondary btn-sm" style="margin-top:16px;" onclick="window.addNota('${cat.nombre}')">+ Añadir puntuación</button></div></div></div>`;
+    });
+
+    let calculoFinalSeguro = null;
+    if (formato === 'letras_cambridge') {
+       let sumPesos = 0; let sumNotas = 0;
+       if (validMocks > 0) { 
+         sumPesos += pesoMocks; 
+         sumNotas += overallMockScaleScore * pesoMocks; 
+       }
+       if (pesoCategoriasCalculado > 0) { 
+         sumPesos += pesoCategoriasCalculado; 
+         sumNotas += overallCategoriesScaleScore; 
+       }
+       if (sumPesos > 0) {
+           calculoFinalSeguro = Math.round(sumNotas / sumPesos);
+           html += `<div class="nota-final-display" style="background:var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:24px;"><h3 style="color:var(--cream); font-size:14px; margin-bottom:8px; text-transform:uppercase;">Resultado Global Ponderado</h3><div style="font-size:14px; color:rgba(255,255,255,0.6); margin-bottom:16px;">Overall Scale Score: ${calculoFinalSeguro}</div><div class="nota" style="font-size:42px; font-weight:700; color:${getCambridgeColor(defaultLevel, calculoFinalSeguro)};">${getCambridgeGrade(defaultLevel, calculoFinalSeguro)}</div></div>`; 
+       } else {
+           html += `<div class="nota-final-display" style="background:var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:24px;"><h3 style="color:var(--cream); font-size:14px; margin-bottom:8px; text-transform:uppercase;">Resultado Global Ponderado</h3><div class="nota" style="font-size:42px; font-weight:700; color:var(--ink-light);">—</div></div>`;
+       }
+    } else {
+       calculoFinalSeguro = pesoTotalGlobal > 0 ? notaFinalGlobal : null;
+       html += `<div class="nota-final-display" style="background:var(--paper); border:2px solid var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:32px;"><h3 style="color:var(--ink); font-size:16px; margin-bottom:12px; text-transform:uppercase;">Resultado Global Ponderado</h3><div class="nota" style="font-size:48px; font-weight:700; color:${getNotaColor(calculoFinalSeguro, formato)};">${getNotaFormateada(calculoFinalSeguro, formato)}</div></div>`; 
+    }
+    
     container.innerHTML = html;
   } catch(e) {}
 };
 
-// Funciones Auxiliares de Modificación
 window.toggleAccordion = (bId, iId) => { const b = document.getElementById(bId); const i = document.getElementById(iId); if(b.classList.contains('active')) { b.classList.remove('active'); i.classList.remove('open'); } else { b.classList.add('active'); i.classList.add('open'); } };
 window.guardarComentario = async () => { try { await setDoc(doc(db, getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre)), { comentarioTutor: document.getElementById('comentarioArea').value }, { merge:true }); const i = document.getElementById('saveStatusIndicator'); i.style.opacity = 1; setTimeout(() => i.style.opacity = 0, 2000); } catch(e) {} };
 window.addNota = async (cat) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {categorias:{}}; if(!data.categorias[cat]) { data.categorias[cat] = []; } data.categorias[cat].push({valor: '', maximo: 10, descripcion: ''}); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
@@ -464,7 +828,19 @@ window.updateNotaDetalle = async (cat, idx, campo, val) => { try { const p = get
 window.deleteNota = async (cat, idx) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.categorias[cat].splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 
 window.updateMockLevel = async (idx, newLevel) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams[idx].level = newLevel; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
-window.addMockExam = async () => { const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre))); const defaultLevel = pDoc.exists() ? (pDoc.data().cambridgeLevel || 'B2') : 'B2'; const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {}; if(!data.mockExams) data.mockExams = []; data.mockExams.push({ name: `Mock Exam ${data.mockExams.length + 1}`, level: defaultLevel, parts: {} }); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
+
+window.addMockExam = async () => { 
+  const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre))); 
+  const defaultLevel = pDoc.exists() ? (pDoc.data().cambridgeLevel || 'B2') : 'B2'; 
+  const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); 
+  const d = await getDoc(doc(db, p)); 
+  const data = d.exists() ? d.data() : {}; 
+  if(!data.mockExams) data.mockExams = []; 
+  data.mockExams.push({ name: `Mock Exam ${data.mockExams.length + 1}`, level: defaultLevel, parts: {} }); 
+  await setDoc(doc(db, p), data, {merge:true}); 
+  window.loadNotas(); 
+};
+
 window.updateMockPart = async (idx, paper, val) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); if (!data.mockExams[idx].parts) data.mockExams[idx].parts = {}; data.mockExams[idx].parts[paper] = parseFloat(val) || 0; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
 window.updateMockName = async (idx, name) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams[idx].name = name; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
 window.deleteMockExam = async (idx) => { if(!confirm('¿Eliminar simulacro individual?')) return; const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams.splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
@@ -473,22 +849,32 @@ window.deleteMockExam = async (idx) => { if(!confirm('¿Eliminar simulacro indiv
 window.addMockExamGlobal = async () => {
   const btn = document.getElementById('btnGlobalMock');
   if(btn) { btn.disabled = true; btn.textContent = "⏳ Creando a todos..."; }
+  
   const mockName = prompt("Nombre del Simulacro (Ej: Mock Exam Term 1):", "Mock Exam 1");
   if(!mockName) { if(btn) { btn.disabled = false; btn.textContent = "📝 Crear Simulacro a Toda la Clase"; } return; }
+  
   let mockLevel = prompt("¿Qué nivel de Cambridge es este simulacro? (A1, A2, B1, B2, C1, C2)", currentCambridgeLevel || "B2");
   if(!mockLevel) { if(btn) { btn.disabled = false; btn.textContent = "📝 Crear Simulacro a Toda la Clase"; } return; }
-  mockLevel = mockLevel.toUpperCase(); if(!['A1','A2','B1','B2','C1','C2'].includes(mockLevel)) mockLevel = 'B2';
+  mockLevel = mockLevel.toUpperCase(); 
+  if(!['A1','A2','B1','B2','C1','C2'].includes(mockLevel)) mockLevel = 'B2';
+  
   try {
     const pRef = doc(db, getPonderacionPath(window.state.currentTrimestre));
     await setDoc(pRef, { globalMocks: arrayUnion({ name: mockName, level: mockLevel, date: new Date().toISOString() }) }, { merge: true });
+    
     let creados = 0;
     for(const alum of window.state.currentAlumnosList) {
       const p = getNotasPath(alum.id, window.state.currentTrimestre);
       const d = await getDoc(doc(db, p));
       const data = d.exists() ? d.data() : { categorias: {}, mockExams: [] };
       if(!data.mockExams) data.mockExams = [];
+      
       const existe = data.mockExams.find(m => m.name === mockName);
-      if(!existe) { data.mockExams.push({ name: mockName, level: mockLevel, parts: {} }); await setDoc(doc(db, p), data, {merge:true}); creados++; }
+      if(!existe) { 
+        data.mockExams.push({ name: mockName, level: mockLevel, parts: {} }); 
+        await setDoc(doc(db, p), data, {merge:true}); 
+        creados++; 
+      }
     }
     alert(`✅ ¡Éxito! Se ha creado el simulacro "${mockName}" (Nivel ${mockLevel}) en la ficha de ${creados} alumnos.`);
     window.loadAlumnosParaEvaluar(); 
@@ -498,15 +884,65 @@ window.addMockExamGlobal = async () => {
 // ==========================================
 // 6. EXPEDIENTES Y ANALYTICS
 // ==========================================
-function calcFinalGradeForChart(categorias, notasData, formato, cambridgeLevel) {
+function calcFinalGradeForChart(categorias, notasData, formato, cambridgeLevel, pesoMocks = 100) {
   if (formato === 'letras_cambridge') {
-    const mocks = notasData.mockExams || []; if (mocks.length === 0) return null;
-    let totalMocksScale = 0;
-    mocks.forEach(mock => { let sumScale = 0; let count = 0; const mLevel = mock.level || cambridgeLevel; const mParts = CAMBRIDGE_LEVELS[mLevel].parts; mParts.forEach(partName => { const max = CAMBRIDGE_LEVELS[mLevel].max[partName]; const val = mock.parts?.[partName] || 0; sumScale += calculateScaleScore(mLevel, val/max); count++; }); totalMocksScale += (sumScale/count); });
-    return Math.round(totalMocksScale / mocks.length);
+    const mocks = notasData.mockExams || [];
+    let totalMocksScale = 0; let validMocks = 0;
+    
+    mocks.forEach(mock => { 
+      let sumScale = 0; let count = 0; 
+      const mLevel = mock.level || cambridgeLevel; 
+      const mParts = CAMBRIDGE_LEVELS[mLevel].parts; 
+      mParts.forEach(partName => { 
+        const max = CAMBRIDGE_LEVELS[mLevel].max[partName]; 
+        const val = mock.parts?.[partName] || 0; 
+        sumScale += calculateScaleScore(mLevel, val/max); 
+        count++; 
+      }); 
+      totalMocksScale += (sumScale/count); 
+      validMocks++; 
+    });
+    
+    const avgMocks = validMocks > 0 ? (totalMocksScale / validMocks) : 0;
+    
+    let overallCatScale = 0; let pesoCatCalc = 0;
+    categorias.forEach(cat => {
+       let notasArr = notasData.categorias?.[cat.nombre] || []; 
+       let sumPct = 0;
+       notasArr.forEach(n => { 
+         let v=parseFloat(n.valor||0); 
+         let m=parseFloat(n.maximo||10); 
+         if(m<=0) m=10; 
+         sumPct+=(v/m); 
+       });
+       if (notasArr.length > 0) { 
+         const avgPct = sumPct / notasArr.length; 
+         overallCatScale += calculateScaleScore(cambridgeLevel, avgPct) * cat.peso; 
+         pesoCatCalc += cat.peso; 
+       }
+    });
+    
+    let sumPesos = 0; let sumNotas = 0;
+    if (validMocks > 0) { sumPesos += pesoMocks; sumNotas += avgMocks * pesoMocks; }
+    if (pesoCatCalc > 0) { sumPesos += pesoCatCalc; sumNotas += overallCatScale; }
+    return sumPesos > 0 ? Math.round(sumNotas / sumPesos) : null;
   } else {
     let notaFinal = 0; let pesoTotal = 0;
-    categorias.forEach(cat => { let cNotas = notasData.categorias?.[cat.nombre] || []; cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n); const suma = cNotas.reduce((acc, curr) => { let v = curr.valor === '' ? 0 : parseFloat(curr.valor || 0); let m = parseFloat(curr.maximo || 10); if(m <= 0) m = 10; return acc + ((v/m) * 10); }, 0); if (cNotas.length > 0) { notaFinal += (suma/cNotas.length) * (cat.peso/100); pesoTotal += cat.peso; } }); return pesoTotal > 0 ? notaFinal : null;
+    categorias.forEach(cat => { 
+      let cNotas = notasData.categorias?.[cat.nombre] || []; 
+      cNotas = cNotas.map(n => typeof n === 'number' ? { valor: n, maximo: 10 } : n); 
+      const suma = cNotas.reduce((acc, curr) => { 
+        let v = curr.valor === '' ? 0 : parseFloat(curr.valor || 0); 
+        let m = parseFloat(curr.maximo || 10); 
+        if(m <= 0) m = 10; 
+        return acc + ((v/m) * 10); 
+      }, 0); 
+      if (cNotas.length > 0) { 
+        notaFinal += (suma/cNotas.length) * (cat.peso/100); 
+        pesoTotal += cat.peso; 
+      } 
+    }); 
+    return pesoTotal > 0 ? notaFinal : null;
   }
 }
 
@@ -522,13 +958,14 @@ window.initExpedienteGlobal = async (studentRef, studentName) => {
     snapAst.forEach(docSnap => { const d = docSnap.data(); if(d[alumnoId] === 'F') window.state.expedienteData.attendance.F++; if(d[alumnoId] === 'R') window.state.expedienteData.attendance.R++; }); 
     const snapAsig = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), where('alumnos', 'array-contains', studentRef)));
     for (const d of snapAsig.docs) {
-      const asig = d.data(); const profeStr = asig.profesorEmails ? asig.profesorEmails.join(', ') : asig.profesorEmail; let subRecord = { name: asig.nombre, profe: profeStr, grades: {}, comments: {}, formato: asig.algoritmoNotas || 'numerico_10', level: 'B2' };
+      const asig = d.data(); const profeStr = asig.profesorEmails ? asig.profesorEmails.join(', ') : asig.profesorEmail; let subRecord = { name: asig.nombre, profe: profeStr, grades: {}, comments: {}, formato: asig.algoritmoNotas || 'numerico_10', level: 'B2', pesoMocks: 100 };
       for (const t of ['T1', 'T2', 'T3']) {
         const pDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${d.id}/ponderaciones/${t}`)); const nDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${d.id}/notas/${studentRef.replace('/','-')}-${t}`));
         const cats = pDoc.exists() ? (pDoc.data().categorias || []) : []; const notasData = nDoc.exists() ? nDoc.data() : { categorias: {} };
         subRecord.comments[t] = notasData.comentarioTutor || ""; 
         if (pDoc.exists() && pDoc.data().cambridgeLevel) subRecord.level = pDoc.data().cambridgeLevel;
-        const final = calcFinalGradeForChart(cats, notasData, subRecord.formato, subRecord.level); subRecord.grades[t] = final;
+        if (pDoc.exists() && pDoc.data().pesoMocks !== undefined) subRecord.pesoMocks = pDoc.data().pesoMocks;
+        const final = calcFinalGradeForChart(cats, notasData, subRecord.formato, subRecord.level, subRecord.pesoMocks); subRecord.grades[t] = final;
         if (final !== null) window.state.expedienteData.averages[t].push({ val: final, form: subRecord.formato, level: subRecord.level });
       }
       window.state.expedienteData.subjects.push(subRecord);
@@ -754,8 +1191,10 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
     btn.disabled = true; btn.textContent = "Guardando...";
+    
     const asigId = document.getElementById('manageAsigId').value;
     const alumnosChecked = Array.from(document.querySelectorAll('#manageAlumnosSelection input[type="checkbox"]:checked')).map(cb => cb.value); 
+    
     try {
       await updateDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${asigId}`), { alumnos: alumnosChecked });
       window.loadAsignaturas(); 
