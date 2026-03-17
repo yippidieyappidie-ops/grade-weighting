@@ -107,3 +107,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+// ==========================================
+// CONFIGURACIÓN DEL ADN DEL COLEGIO (FEATURE FLAGS)
+// ==========================================
+window.openConfigColegioModal = async (colegioId, colegioNombre) => {
+  const modal = document.getElementById('configColegioModal');
+  const colIdInput = document.getElementById('configColId');
+  const selectHorarios = document.getElementById('configModHorarios');
+  
+  colIdInput.value = colegioId;
+  
+  // Cambiamos el título para que sepas qué colegio estás editando
+  modal.querySelector('.modal-header').textContent = `Ajustes de ADN: ${colegioNombre}`;
+  modal.classList.add('active');
+  
+  try {
+    const docRef = doc(db, 'colegios', colegioId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      // Si ya tiene una configuración guardada, la mostramos. Si no, por defecto es 'true'
+      if (data.features && data.features.horarios !== undefined) {
+        selectHorarios.value = data.features.horarios ? 'true' : 'false';
+      } else {
+        selectHorarios.value = 'true'; 
+      }
+    }
+  } catch(e) {
+    console.error("Error cargando la configuración:", e);
+  }
+};
+
+// Evento para guardar la configuración cuando se envía el formulario
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('configColegioForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = "Guardando...";
+    
+    const colId = document.getElementById('configColId').value;
+    const showHorarios = document.getElementById('configModHorarios').value === 'true';
+    
+    try {
+      await updateDoc(doc(db, 'colegios', colId), {
+        'features.horarios': showHorarios
+      });
+      document.getElementById('configColegioModal').classList.remove('active');
+      alert("✅ Configuración del centro actualizada correctamente.");
+      
+      // Recargamos la lista de colegios para reflejar cambios si es necesario
+      if (typeof window.loadColegios === 'function') {
+        window.loadColegios();
+      }
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Guardar ADN";
+    }
+  });
+});
