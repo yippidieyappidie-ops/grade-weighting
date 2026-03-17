@@ -409,6 +409,23 @@
   </div>
 </div>
 
+<div id="manageAsignaturaAlumnosModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-header">Gestionar Alumnos: <span id="manageAsigNameTitle" style="color:var(--accent);"></span></h2>
+    <form id="manageAsignaturaAlumnosForm">
+      <input type="hidden" id="manageAsigId">
+      <p style="color:var(--ink-light); margin-bottom: 12px; font-size:14px;">Marca los alumnos para añadirlos a la asignatura o desmárcalos para darlos de baja.</p>
+      <div class="form-group">
+        <div id="manageAlumnosSelection" class="checkbox-group" style="text-align: left; background: transparent; border: none; padding: 0; max-height: 300px; overflow-y: auto;"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="document.getElementById('manageAsignaturaAlumnosModal').classList.remove('active')">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div id="inviteProfesorModal" class="modal"><div class="modal-content"><h2 class="modal-header">Invitar profesor</h2><form id="inviteProfesorForm"><div class="form-group"><label>Email de Google *</label><input type="email" name="email" required></div><div class="form-group"><label>Nombre</label><input type="text" name="nombre"></div><div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('inviteProfesorModal').classList.remove('active')">Cancelar</button><button type="submit" class="btn-primary">Invitar</button></div></form></div></div>
 
 <script type="module" src="/app/js/firebase-config.js"></script>
