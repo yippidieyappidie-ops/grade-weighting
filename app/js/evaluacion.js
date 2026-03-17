@@ -128,7 +128,7 @@ window.loadProfesores = async () => {
 };
 
 // ==========================================
-// 2.5 NUEVO: ASIGNATURAS AGRUPADAS POR PROFESOR
+// 2.5 ASIGNATURAS AGRUPADAS POR PROFESOR
 // ==========================================
 window.loadAsignaturas = async () => { 
   const list = document.getElementById('asignaturasList'); 
@@ -149,22 +149,13 @@ window.loadAsignaturas = async () => {
     snap.forEach(docSnap => { 
       const asig = { id: docSnap.id, ...docSnap.data() };
       const emails = asig.profesorEmails || (asig.profesorEmail ? [asig.profesorEmail] : []);
-      
-      if (emails.length === 0) {
-        agrupadas['sin_asignar'].push(asig);
-      } else {
-        emails.forEach(email => {
-          if (!agrupadas[email]) agrupadas[email] = [];
-          agrupadas[email].push(asig);
-        });
-      }
+      if (emails.length === 0) { agrupadas['sin_asignar'].push(asig); } 
+      else { emails.forEach(email => { if (!agrupadas[email]) agrupadas[email] = []; agrupadas[email].push(asig); }); }
     });
 
     let html = '';
-    
     for (const [email, asignaturas] of Object.entries(agrupadas)) {
       if (asignaturas.length === 0) continue; 
-
       const nombreCarpeta = email === 'sin_asignar' ? '⚠️ Sin Profesor Asignado' : mapProfes[email];
       const icono = email === 'sin_asignar' ? '' : '👨‍🏫';
 
@@ -177,12 +168,7 @@ window.loadAsignaturas = async () => {
           <div style="padding: 0; overflow-x: auto;">
             <table class="table" style="margin: 0; border: none; box-shadow: none;">
               <thead style="background: transparent; border-bottom: 1px dashed var(--border);">
-                <tr>
-                  <th style="padding-left: 24px;">Asignatura</th>
-                  <th>Sistema de Notas</th>
-                  <th>Alumnos Matriculados</th>
-                  <th style="width:50px; text-align:center;">Acciones</th>
-                </tr>
+                <tr><th style="padding-left: 24px;">Asignatura</th><th>Sistema de Notas</th><th>Alumnos</th><th style="width:100px; text-align:center;">Acciones</th></tr>
               </thead>
               <tbody>
       `;
@@ -191,21 +177,21 @@ window.loadAsignaturas = async () => {
         const formatoStr = d.algoritmoNotas === 'letras_cambridge' ? '<span style="color:var(--accent); font-weight:bold;">Cambridge Engine</span>' : 'Estándar (0-10)';
         const safeName = d.nombre.replace(/'/g, "\\'"); 
 
+        // BOTÓN 👥 DE GESTIONAR ALUMNOS AÑADIDO AQUÍ 👇
         html += `
           <tr>
             <td style="padding-left: 24px;"><strong>${d.nombre}</strong></td>
             <td>${formatoStr}</td>
-            <td>${d.alumnos?.length || 0}</td>
-            <td style="text-align:center;">
-              <button class="btn-icon" style="color:var(--accent);" onclick="window.deleteAsignatura('${d.id}','${safeName}')">🗑️</button>
+            <td>${d.alumnos?.length || 0} matriculados</td>
+            <td style="text-align:center; display:flex; justify-content:center; gap:12px;">
+              <button class="btn-icon" style="color:var(--ink);" title="Añadir/Quitar Alumnos" onclick="window.openManageAsignaturaAlumnos('${d.id}','${safeName}')">👥</button>
+              <button class="btn-icon" style="color:var(--accent);" title="Borrar Asignatura" onclick="window.deleteAsignatura('${d.id}','${safeName}')">🗑️</button>
             </td>
           </tr>
         `;
       });
-
       html += `</tbody></table></div></details>`;
     }
-    
     list.innerHTML = html; 
   } catch(e) { console.error(e); }
 };
@@ -545,6 +531,54 @@ window.openCreateAsignaturaModal = async () => {
   } catch (error) { profesContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>'; alumnosContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>'; }
 };
 
+// 7.5 NUEVA FUNCIÓN: GESTIONAR ALUMNOS DESPUÉS DE CREAR LA ASIGNATURA
+window.openManageAsignaturaAlumnos = async (asigId, asigNombre) => {
+  document.getElementById('manageAsigId').value = asigId;
+  document.getElementById('manageAsigNameTitle').textContent = asigNombre;
+  document.getElementById('manageAsignaturaAlumnosModal').classList.add('active');
+  
+  const container = document.getElementById('manageAlumnosSelection');
+  container.innerHTML = '<span class="loading">Cargando alumnos...</span>';
+  
+  try {
+    const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${asigId}`));
+    const enrolled = asigDoc.exists() ? (asigDoc.data().alumnos || []) : [];
+    
+    const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
+    let html = '';
+    
+    for (const claseDoc of clasesSnap.docs) {
+      const claseName = claseDoc.data().nombre;
+      const alumnosSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${claseDoc.id}/alumnos`));
+      
+      if (!alumnosSnap.empty) {
+        html += `<details style="margin-top:8px; border:1px solid var(--border); border-radius:6px; background:white; overflow:hidden;" open>
+          <summary style="font-weight:bold; padding:10px 12px; color:var(--ink); cursor:pointer; background:var(--cream); border-bottom:1px solid var(--border); outline:none;">
+            📁 ${claseName}
+          </summary>
+          <div style="padding: 8px 12px; background:white;">`;
+        
+        alumnosSnap.forEach(alumnoDoc => {
+          const a = alumnoDoc.data(); 
+          const val = `${claseDoc.id}/${alumnoDoc.id}`;
+          const isChecked = enrolled.includes(val) ? 'checked' : '';
+          html += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #f0f0f0;">
+            <input type="checkbox" name="manageAlumnos" value="${val}" ${isChecked} style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> 
+            <span style="font-size:14px; color:var(--ink);">${a.apellidos}, ${a.nombre}</span>
+          </label>`;
+        });
+        html += `</div></details>`;
+      }
+    }
+    container.innerHTML = html || '<span style="color:var(--accent); font-size:13px;">No hay alumnos en el centro.</span>';
+  } catch(e) {
+    container.innerHTML = '<span style="color:red;">Error de conexión.</span>';
+  }
+};
+
+// ==========================================
+// 8. EVENTOS DE ENVÍO (SUBMITS)
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('createClassForm')?.addEventListener('submit', async(e) => { 
     e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
@@ -596,6 +630,24 @@ document.addEventListener('DOMContentLoaded', () => {
       for(const p of profesChecked) { await updateDoc(doc(db, 'profesores', p), { asignaturas: arrayUnion(ref.id) }); } 
       window.loadAsignaturas(); document.getElementById('createAsignaturaModal').classList.remove('active'); e.target.reset(); 
     } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Crear"; } 
+  });
+
+  // SUBMIT DE LA NUEVA VENTANA DE GESTIONAR ALUMNOS
+  document.getElementById('manageAsignaturaAlumnosForm')?.addEventListener('submit', async(e) => {
+    e.preventDefault(); 
+    const btn = e.target.querySelector('button[type="submit"]'); 
+    btn.disabled = true; btn.textContent = "Guardando...";
+    
+    const asigId = document.getElementById('manageAsigId').value;
+    const alumnosChecked = Array.from(document.querySelectorAll('#manageAlumnosSelection input[type="checkbox"]:checked')).map(cb => cb.value); 
+    
+    try {
+      await updateDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${asigId}`), {
+        alumnos: alumnosChecked
+      });
+      window.loadAsignaturas(); 
+      document.getElementById('manageAsignaturaAlumnosModal').classList.remove('active');
+    } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Guardar Cambios"; }
   });
 
   document.getElementById('inviteProfesorForm')?.addEventListener('submit', async(e) => { 
