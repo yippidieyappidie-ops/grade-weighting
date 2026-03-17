@@ -1,5 +1,6 @@
 import { collection, addDoc, getDocs, getDoc, doc, setDoc, updateDoc, arrayUnion, deleteDoc, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
+import { CAMBRIDGE_LEVELS, CAMBRIDGE_CURVES, calculateScaleScore, getCambridgeGrade, getCambridgeColor } from './cambridge.js';
 
 // Variables globales para los gráficos
 let expRadarChartInstance = null; 
