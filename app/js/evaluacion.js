@@ -96,7 +96,14 @@ window.showClaseDetail = async (classId, className) => {
     let html = '<div class="cards-grid">';
     snap.forEach(docSnap => {
       const a = docSnap.data(); window.state.cachedAlumnos.push({ id: docSnap.id, n: a.nombre, a: a.apellidos });
-      html += `<div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${docSnap.id}', '${a.nombre.replace(/'/g, "\\'")} ${a.apellidos.replace(/'/g, "\\'")}')"><div class="card-title">${a.apellidos}, ${a.nombre}</div><div class="card-meta">Ver Expediente →</div></div>`;
+      const safeName = a.nombre.replace(/'/g, "\\'"); const safeApe = a.apellidos.replace(/'/g, "\\'");
+      
+      // BOTÓN DE BORRAR ALUMNO AÑADIDO AQUÍ 👇
+      html += `<div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${docSnap.id}', '${safeName} ${safeApe}')">
+        <button class="btn-delete-card" style="z-index: 10;" onclick="event.stopPropagation(); window.deleteStudent('${classId}','${docSnap.id}','${safeName} ${safeApe}')">🗑️</button>
+        <div class="card-title">${a.apellidos}, ${a.nombre}</div>
+        <div class="card-meta">Ver Expediente →</div>
+      </div>`;
     });
     html += `<div class="card card-clickable" onclick="document.getElementById('addStudentModal').classList.add('active')" style="border:2px dashed var(--border); text-align:center;">+ Añadir Alumno</div>`;
     list.innerHTML = html + '</div>';
@@ -104,7 +111,7 @@ window.showClaseDetail = async (classId, className) => {
 };
 
 window.deleteClass = async (id, nombre) => { if(confirm(`⚠️ ¿Borrar el grupo "${nombre}"?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${id}`)); window.loadClasses('classesList', false); } catch (e) {} } };
-window.deleteStudent = async (cId, sId, name) => { if(confirm(`¿Eliminar al alumno "${name}"?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${cId}/alumnos/${sId}`)); const cRef = doc(db, `colegios/${window.state.colegioId}/clases`, cId); const cDoc = await getDoc(cRef); if(cDoc.exists()) { await updateDoc(cRef, { numAlumnos: (cDoc.data().numAlumnos || 1) - 1 }); } window.showClaseDetail(cId, document.getElementById('claseDetailName').textContent); } catch (e) {} } };
+window.deleteStudent = async (cId, sId, name) => { if(confirm(`¿Eliminar al alumno "${name}" permanentemente?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/clases/${cId}/alumnos/${sId}`)); const cRef = doc(db, `colegios/${window.state.colegioId}/clases`, cId); const cDoc = await getDoc(cRef); if(cDoc.exists()) { await updateDoc(cRef, { numAlumnos: (cDoc.data().numAlumnos || 1) - 1 }); } window.showClaseDetail(cId, document.getElementById('claseDetailName').textContent); } catch (e) {} } };
 window.deleteAsignatura = async (id, nombre) => { if(confirm(`¿Borrar asignatura "${nombre}"?`)) { try { await deleteDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${id}`)); window.loadAsignaturas(); } catch (e) {} } };
 window.deleteProfesor = async (email) => { if(email === window.state.currentUser.email) return alert("No puedes borrarte a ti mismo."); if(confirm(`¿Revocar acceso a ${email}?`)) { try { await deleteDoc(doc(db, 'profesores', email)); window.loadProfesores(); } catch (e) {} } };
 
@@ -125,7 +132,6 @@ window.loadProfesores = async () => {
 window.loadAsignaturas = async () => { 
   const list = document.getElementById('asignaturasList'); list.innerHTML = '<div class="loading">Cargando...</div>';
   try {
-    // 1. Descargar profes para el diccionario
     const profesSnap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId)));
     const mapProfes = {};
     profesSnap.forEach(p => { mapProfes[p.id] = p.data().nombre || p.id.split('@')[0]; });
@@ -134,7 +140,6 @@ window.loadAsignaturas = async () => {
     if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay asignaturas creadas.</p></div>'; return; }
     
     let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Sistema</th><th>Profesores</th><th>Alumnos</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
-    
     snap.forEach(docSnap => { 
       const d = docSnap.data(); 
       let profesHtmlArr = [];
@@ -443,15 +448,14 @@ window.openInviteProfesorModal = () => {
   document.getElementById('inviteProfesorModal').classList.add('active');
 };
 
-// Modal Inteligente de Asignaturas (Alineado a la Izquierda)
+// Modal de Asignaturas con sistema de Carpetas Acordeón
 window.openCreateAsignaturaModal = async () => {
   document.getElementById('createAsignaturaModal').classList.add('active');
   const profesContainer = document.getElementById('asignaturaProfesoresSelection');
   const alumnosContainer = document.getElementById('alumnosSelection');
   
-  // Forzar estilos por si el CSS los sobreescribe
   profesContainer.style.textAlign = 'left'; profesContainer.style.background = 'var(--cream, #f8f9fa)'; profesContainer.style.border = '1px solid var(--border, #ddd)'; profesContainer.style.padding = '10px'; profesContainer.style.borderRadius = '8px'; profesContainer.style.maxHeight = '150px'; profesContainer.style.overflowY = 'auto';
-  alumnosContainer.style.textAlign = 'left'; alumnosContainer.style.background = 'var(--cream, #f8f9fa)'; alumnosContainer.style.border = '1px solid var(--border, #ddd)'; alumnosContainer.style.padding = '10px'; alumnosContainer.style.borderRadius = '8px'; alumnosContainer.style.maxHeight = '250px'; alumnosContainer.style.overflowY = 'auto';
+  alumnosContainer.style.textAlign = 'left'; alumnosContainer.style.background = 'transparent'; alumnosContainer.style.border = 'none'; alumnosContainer.style.padding = '0'; alumnosContainer.style.maxHeight = '250px'; alumnosContainer.style.overflowY = 'auto';
 
   profesContainer.innerHTML = '<span style="color:var(--ink-light); font-size:13px;">Buscando profesores...</span>';
   alumnosContainer.innerHTML = '<span style="color:var(--ink-light); font-size:13px;">Buscando alumnos...</span>';
@@ -462,7 +466,7 @@ window.openCreateAsignaturaModal = async () => {
     profesSnap.forEach(docSnap => {
       profesHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #eee;"><input type="checkbox" name="profesoresAsig" value="${docSnap.id}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> <span style="font-size:14px; font-weight:500;">${docSnap.data().nombre || docSnap.id}</span></label>`;
     });
-    profesContainer.innerHTML = profesHtml || '<span style="color:var(--accent); font-size:13px;">No hay profesores en este centro.</span>';
+    profesContainer.innerHTML = profesHtml || '<span style="color:var(--accent); font-size:13px;">No hay profesores.</span>';
 
     const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
     let alumnosHtml = '';
@@ -471,12 +475,23 @@ window.openCreateAsignaturaModal = async () => {
     for (const claseDoc of clasesSnap.docs) {
       const claseName = claseDoc.data().nombre;
       const alumnosSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${claseDoc.id}/alumnos`));
+      
+      // CREACIÓN DEL ACORDEÓN / CARPETA (HTML details)
       if (!alumnosSnap.empty) {
-        alumnosHtml += `<div style="font-weight:bold; margin-top:12px; margin-bottom:4px; color:var(--ink); border-bottom:1px solid var(--border); padding-bottom:4px; text-align:left;">📚 ${claseName}</div>`;
+        alumnosHtml += `<details style="margin-top:8px; border:1px solid var(--border); border-radius:6px; background:white; overflow:hidden;">
+          <summary style="font-weight:bold; padding:10px 12px; color:var(--ink); cursor:pointer; background:var(--cream); border-bottom:1px solid var(--border); outline:none;">
+            📁 ${claseName} <span style="font-size:12px; color:var(--ink-light); font-weight:normal; float:right;">(${alumnosSnap.size} alumnos) ▼</span>
+          </summary>
+          <div style="padding: 8px 12px; background:white;">`;
+        
         alumnosSnap.forEach(alumnoDoc => {
           const a = alumnoDoc.data(); const alumnoValue = `${claseDoc.id}/${alumnoDoc.id}`;
-          alumnosHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0 6px 12px; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #eee;"><input type="checkbox" name="alumnos" value="${alumnoValue}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> <span style="font-size:14px;">${a.apellidos}, ${a.nombre}</span></label>`;
+          alumnosHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #f0f0f0;">
+            <input type="checkbox" name="alumnos" value="${alumnoValue}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> 
+            <span style="font-size:14px; color:var(--ink);">${a.apellidos}, ${a.nombre}</span>
+          </label>`;
         });
+        alumnosHtml += `</div></details>`;
       }
     }
     alumnosContainer.innerHTML = alumnosHtml || '<span style="color:var(--accent); font-size:13px;">No hay alumnos matriculados.</span>';
@@ -494,9 +509,44 @@ document.addEventListener('DOMContentLoaded', () => {
     try { await updateDoc(doc(db, `colegios/${window.state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value }); window.loadClasses('classesList', false); document.getElementById('editClassModal').classList.remove('active'); } catch(err) { alert(err.message); } finally { btn.disabled = false; } 
   });
   
+  // SISTEMA DE DETECCIÓN DE NOMBRES DUPLICADOS 
   document.getElementById('addStudentForm')?.addEventListener('submit', async(e) => { 
-    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Añadiendo...";
-    try { const cDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId)); const c = cDoc.data().numAlumnos || 0; await addDoc(collection(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/alumnos`), { nombre: e.target.nombre.value, apellidos: e.target.apellidos.value, orden: c + 1, createdAt: serverTimestamp() }); await setDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId), { numAlumnos: c + 1 }, { merge: true }); document.getElementById('addStudentModal').classList.remove('active'); e.target.reset(); window.showClaseDetail(window.state.currentClassId, document.getElementById('claseDetailName').textContent); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Añadir"; } 
+    e.preventDefault(); 
+    const btn = e.target.querySelector('button[type="submit"]'); 
+    btn.disabled = true; btn.textContent = "Verificando...";
+    
+    const nombreVal = e.target.nombre.value.trim();
+    const apellidosVal = e.target.apellidos.value.trim();
+
+    try {
+      // 1. RASTREAR TODAS LAS CLASES BUSCANDO A ESTE ALUMNO
+      const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
+      let claseDuplicada = null;
+      
+      for(const cDoc of clasesSnap.docs) {
+        const alSnap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases/${cDoc.id}/alumnos`), where('nombre', '==', nombreVal), where('apellidos', '==', apellidosVal)));
+        if(!alSnap.empty) { claseDuplicada = cDoc.data().nombre; break; }
+      }
+      
+      // 2. SI LO ENCUENTRA, LANZAR AVISO
+      if(claseDuplicada) {
+        const proceder = confirm(`⚠️ ATENCIÓN: Ya existe un alumno llamado "${nombreVal} ${apellidosVal}" matriculado en la clase "${claseDuplicada}".\n\n¿Estás seguro de que quieres añadirlo de nuevo?`);
+        if(!proceder) { btn.disabled = false; btn.textContent = "Añadir"; return; }
+      }
+
+      // 3. SI DA EL OK O NO ES DUPLICADO, AÑADIRLO
+      btn.textContent = "Añadiendo...";
+      const cDocActual = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId)); 
+      const c = cDocActual.data().numAlumnos || 0; 
+      await addDoc(collection(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/alumnos`), { nombre: nombreVal, apellidos: apellidosVal, orden: c + 1, createdAt: serverTimestamp() }); 
+      await setDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId), { numAlumnos: c + 1 }, { merge: true }); 
+      document.getElementById('addStudentModal').classList.remove('active'); e.target.reset(); 
+      window.showClaseDetail(window.state.currentClassId, document.getElementById('claseDetailName').textContent); 
+    } catch(err) { 
+      alert(err.message); 
+    } finally { 
+      btn.disabled = false; btn.textContent = "Añadir"; 
+    } 
   });
   
   document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e) => { 
