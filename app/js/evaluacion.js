@@ -70,7 +70,7 @@ async function getFormatoAsignatura() {
 }
 
 // ==========================================
-// 2. GESTIÓN DE CLASES, PROFESORES Y ASIGNATURAS
+// 2. GESTIÓN DE CLASES Y PROFESORES
 // ==========================================
 window.loadClasses = async (containerId, isProfesor) => {
   const list = document.getElementById(containerId); list.innerHTML = '<div class="loading">Cargando grupos...</div>';
@@ -97,8 +97,6 @@ window.showClaseDetail = async (classId, className) => {
     snap.forEach(docSnap => {
       const a = docSnap.data(); window.state.cachedAlumnos.push({ id: docSnap.id, n: a.nombre, a: a.apellidos });
       const safeName = a.nombre.replace(/'/g, "\\'"); const safeApe = a.apellidos.replace(/'/g, "\\'");
-      
-      // BOTÓN DE BORRAR ALUMNO AÑADIDO AQUÍ 👇
       html += `<div class="card card-clickable" onclick="window.initExpedienteGlobal('${classId}/${docSnap.id}', '${safeName} ${safeApe}')">
         <button class="btn-delete-card" style="z-index: 10;" onclick="event.stopPropagation(); window.deleteStudent('${classId}','${docSnap.id}','${safeName} ${safeApe}')">🗑️</button>
         <div class="card-title">${a.apellidos}, ${a.nombre}</div>
@@ -129,8 +127,13 @@ window.loadProfesores = async () => {
   } catch(e) {}
 };
 
+// ==========================================
+// 2.5 NUEVO: ASIGNATURAS AGRUPADAS POR PROFESOR
+// ==========================================
 window.loadAsignaturas = async () => { 
-  const list = document.getElementById('asignaturasList'); list.innerHTML = '<div class="loading">Cargando...</div>';
+  const list = document.getElementById('asignaturasList'); 
+  list.innerHTML = '<div class="loading">Agrupando asignaturas por profesor...</div>';
+  
   try {
     const profesSnap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId)));
     const mapProfes = {};
@@ -139,21 +142,71 @@ window.loadAsignaturas = async () => {
     const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), orderBy('nombre'))); 
     if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay asignaturas creadas.</p></div>'; return; }
     
-    let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Sistema</th><th>Profesores</th><th>Alumnos</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
+    const agrupadas = {};
+    Object.keys(mapProfes).forEach(email => agrupadas[email] = []);
+    agrupadas['sin_asignar'] = [];
+
     snap.forEach(docSnap => { 
-      const d = docSnap.data(); 
-      let profesHtmlArr = [];
-      const emails = d.profesorEmails || (d.profesorEmail ? [d.profesorEmail] : []);
-      emails.forEach(email => {
-        const nombreMostrar = mapProfes[email] || email.split('@')[0];
-        profesHtmlArr.push(`<span title="${email}" style="cursor:help; border-bottom:1px dotted var(--ink-light);">${nombreMostrar}</span>`);
-      });
-      const profes = profesHtmlArr.length > 0 ? profesHtmlArr.join(', ') : '—';
-      const formatoStr = d.algoritmoNotas === 'letras_cambridge' ? '<span style="color:var(--accent); font-weight:bold;">Cambridge Engine</span>' : 'Estándar (0-10)';
+      const asig = { id: docSnap.id, ...docSnap.data() };
+      const emails = asig.profesorEmails || (asig.profesorEmail ? [asig.profesorEmail] : []);
       
-      html += `<tr><td><strong>${d.nombre}</strong></td><td>${formatoStr}</td><td>${profes}</td><td>${d.alumnos?.length || 0}</td><td style="text-align:center;"><button class="btn-icon" style="color:var(--accent);" onclick="window.deleteAsignatura('${docSnap.id}','${d.nombre}')">🗑️</button></td></tr>`; 
-    }); 
-    list.innerHTML = html + '</tbody></table>'; 
+      if (emails.length === 0) {
+        agrupadas['sin_asignar'].push(asig);
+      } else {
+        emails.forEach(email => {
+          if (!agrupadas[email]) agrupadas[email] = [];
+          agrupadas[email].push(asig);
+        });
+      }
+    });
+
+    let html = '';
+    
+    for (const [email, asignaturas] of Object.entries(agrupadas)) {
+      if (asignaturas.length === 0) continue; 
+
+      const nombreCarpeta = email === 'sin_asignar' ? '⚠️ Sin Profesor Asignado' : mapProfes[email];
+      const icono = email === 'sin_asignar' ? '' : '👨‍🏫';
+
+      html += `
+        <details style="margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; background: white; overflow: hidden;">
+          <summary style="padding: 14px 18px; background: var(--cream); font-weight: bold; color: var(--ink); cursor: pointer; outline: none; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; list-style: none;">
+            <span title="${email}">${icono} ${nombreCarpeta}</span>
+            <span style="font-size: 13px; color: var(--ink-light); font-weight: normal; background: #eee; padding: 2px 8px; border-radius: 12px;">${asignaturas.length} asignaturas ▼</span>
+          </summary>
+          <div style="padding: 0; overflow-x: auto;">
+            <table class="table" style="margin: 0; border: none; box-shadow: none;">
+              <thead style="background: transparent; border-bottom: 1px dashed var(--border);">
+                <tr>
+                  <th style="padding-left: 24px;">Asignatura</th>
+                  <th>Sistema de Notas</th>
+                  <th>Alumnos Matriculados</th>
+                  <th style="width:50px; text-align:center;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+
+      asignaturas.forEach(d => {
+        const formatoStr = d.algoritmoNotas === 'letras_cambridge' ? '<span style="color:var(--accent); font-weight:bold;">Cambridge Engine</span>' : 'Estándar (0-10)';
+        const safeName = d.nombre.replace(/'/g, "\\'"); 
+
+        html += `
+          <tr>
+            <td style="padding-left: 24px;"><strong>${d.nombre}</strong></td>
+            <td>${formatoStr}</td>
+            <td>${d.alumnos?.length || 0}</td>
+            <td style="text-align:center;">
+              <button class="btn-icon" style="color:var(--accent);" onclick="window.deleteAsignatura('${d.id}','${safeName}')">🗑️</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table></div></details>`;
+    }
+    
+    list.innerHTML = html; 
   } catch(e) { console.error(e); }
 };
 
@@ -416,7 +469,7 @@ window.showClassAnalytics = async () => { alert("Analíticas globales ubicadas e
 
 
 // ==========================================
-// 7. FUNCIONES DE INTERFAZ Y FORMULARIOS (100% FUNCIONALES)
+// 7. FUNCIONES DE INTERFAZ Y FORMULARIOS
 // ==========================================
 const loadTutorsForSelect = async (selectId) => {
   const select = document.getElementById(selectId);
@@ -438,17 +491,12 @@ window.openEditClassModal = (id, nombre, curso, tutorEmail) => {
   document.getElementById('editClassId').value = id;
   document.getElementById('editClassNombre').value = nombre;
   document.getElementById('editClassCurso').value = curso;
-  loadTutorsForSelect('editClassTutor').then(() => {
-    document.getElementById('editClassTutor').value = tutorEmail || '';
-  });
+  loadTutorsForSelect('editClassTutor').then(() => { document.getElementById('editClassTutor').value = tutorEmail || ''; });
   document.getElementById('editClassModal').classList.add('active');
 };
 
-window.openInviteProfesorModal = () => {
-  document.getElementById('inviteProfesorModal').classList.add('active');
-};
+window.openInviteProfesorModal = () => { document.getElementById('inviteProfesorModal').classList.add('active'); };
 
-// Modal de Asignaturas con sistema de Carpetas Acordeón
 window.openCreateAsignaturaModal = async () => {
   document.getElementById('createAsignaturaModal').classList.add('active');
   const profesContainer = document.getElementById('asignaturaProfesoresSelection');
@@ -476,7 +524,6 @@ window.openCreateAsignaturaModal = async () => {
       const claseName = claseDoc.data().nombre;
       const alumnosSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${claseDoc.id}/alumnos`));
       
-      // CREACIÓN DEL ACORDEÓN / CARPETA (HTML details)
       if (!alumnosSnap.empty) {
         alumnosHtml += `<details style="margin-top:8px; border:1px solid var(--border); border-radius:6px; background:white; overflow:hidden;">
           <summary style="font-weight:bold; padding:10px 12px; color:var(--ink); cursor:pointer; background:var(--cream); border-bottom:1px solid var(--border); outline:none;">
@@ -509,32 +556,24 @@ document.addEventListener('DOMContentLoaded', () => {
     try { await updateDoc(doc(db, `colegios/${window.state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value }); window.loadClasses('classesList', false); document.getElementById('editClassModal').classList.remove('active'); } catch(err) { alert(err.message); } finally { btn.disabled = false; } 
   });
   
-  // SISTEMA DE DETECCIÓN DE NOMBRES DUPLICADOS 
   document.getElementById('addStudentForm')?.addEventListener('submit', async(e) => { 
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
     btn.disabled = true; btn.textContent = "Verificando...";
-    
-    const nombreVal = e.target.nombre.value.trim();
-    const apellidosVal = e.target.apellidos.value.trim();
+    const nombreVal = e.target.nombre.value.trim(); const apellidosVal = e.target.apellidos.value.trim();
 
     try {
-      // 1. RASTREAR TODAS LAS CLASES BUSCANDO A ESTE ALUMNO
       const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
       let claseDuplicada = null;
-      
       for(const cDoc of clasesSnap.docs) {
         const alSnap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases/${cDoc.id}/alumnos`), where('nombre', '==', nombreVal), where('apellidos', '==', apellidosVal)));
         if(!alSnap.empty) { claseDuplicada = cDoc.data().nombre; break; }
       }
-      
-      // 2. SI LO ENCUENTRA, LANZAR AVISO
       if(claseDuplicada) {
         const proceder = confirm(`⚠️ ATENCIÓN: Ya existe un alumno llamado "${nombreVal} ${apellidosVal}" matriculado en la clase "${claseDuplicada}".\n\n¿Estás seguro de que quieres añadirlo de nuevo?`);
         if(!proceder) { btn.disabled = false; btn.textContent = "Añadir"; return; }
       }
 
-      // 3. SI DA EL OK O NO ES DUPLICADO, AÑADIRLO
       btn.textContent = "Añadiendo...";
       const cDocActual = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId)); 
       const c = cDocActual.data().numAlumnos || 0; 
@@ -542,11 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await setDoc(doc(db, `colegios/${window.state.colegioId}/clases`, window.state.currentClassId), { numAlumnos: c + 1 }, { merge: true }); 
       document.getElementById('addStudentModal').classList.remove('active'); e.target.reset(); 
       window.showClaseDetail(window.state.currentClassId, document.getElementById('claseDetailName').textContent); 
-    } catch(err) { 
-      alert(err.message); 
-    } finally { 
-      btn.disabled = false; btn.textContent = "Añadir"; 
-    } 
+    } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Añadir"; } 
   });
   
   document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e) => { 
@@ -554,11 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const alumnosChecked = Array.from(document.querySelectorAll('#alumnosSelection input[type="checkbox"]:checked')).map(cb => cb.value); 
     const profesChecked = Array.from(document.querySelectorAll('#asignaturaProfesoresSelection input[type="checkbox"]:checked')).map(cb => cb.value);
     
-    if(alumnosChecked.length === 0 || profesChecked.length === 0) { 
-      alert('⚠️ Selecciona al menos un alumno y un profesor.'); 
-      btn.disabled = false; btn.textContent = "Crear"; 
-      return; 
-    }
+    if(alumnosChecked.length === 0 || profesChecked.length === 0) { alert('⚠️ Selecciona al menos un alumno y un profesor.'); btn.disabled = false; btn.textContent = "Crear"; return; }
     
     try { 
       const ref = await addDoc(collection(db, `colegios/${window.state.colegioId}/asignaturas`), { nombre: e.target.nombre.value, profesorEmails: profesChecked, alumnos: alumnosChecked, algoritmoNotas: e.target.algoritmoNotas.value, trimestres: ['T1','T2','T3'], createdAt: serverTimestamp() }); 
