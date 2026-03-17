@@ -455,125 +455,26 @@ window.showClassAnalytics = async () => { alert("Analíticas globales ubicadas e
 
 
 // ==========================================
-// 7. FUNCIONES DE INTERFAZ Y FORMULARIOS
+// NAVEGACIÓN DEL PROFESOR (ENTRAR A ASIGNATURAS Y TUTORÍAS)
 // ==========================================
-const loadTutorsForSelect = async (selectId) => {
-  const select = document.getElementById(selectId);
-  select.innerHTML = '<option value="">Cargando tutores...</option>';
-  try {
-    const profesSnap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId)));
-    let html = '';
-    profesSnap.forEach(p => { html += `<option value="${p.id}">${p.data().nombre || p.id}</option>`; });
-    select.innerHTML = html || '<option value="">No hay profesores</option>';
-  } catch(e) { select.innerHTML = '<option value="">Error cargando</option>'; }
-};
-
-window.openCreateClassModal = () => {
-  document.getElementById('createClassModal').classList.add('active');
-  loadTutorsForSelect('createClassTutor'); 
-};
-
-window.openEditClassModal = (id, nombre, curso, tutorEmail) => {
-  document.getElementById('editClassId').value = id;
-  document.getElementById('editClassNombre').value = nombre;
-  document.getElementById('editClassCurso').value = curso;
-  loadTutorsForSelect('editClassTutor').then(() => { document.getElementById('editClassTutor').value = tutorEmail || ''; });
-  document.getElementById('editClassModal').classList.add('active');
-};
-
-window.openInviteProfesorModal = () => { document.getElementById('inviteProfesorModal').classList.add('active'); };
-
-window.openCreateAsignaturaModal = async () => {
-  document.getElementById('createAsignaturaModal').classList.add('active');
-  const profesContainer = document.getElementById('asignaturaProfesoresSelection');
-  const alumnosContainer = document.getElementById('alumnosSelection');
-  
-  profesContainer.style.textAlign = 'left'; profesContainer.style.background = 'var(--cream, #f8f9fa)'; profesContainer.style.border = '1px solid var(--border, #ddd)'; profesContainer.style.padding = '10px'; profesContainer.style.borderRadius = '8px'; profesContainer.style.maxHeight = '150px'; profesContainer.style.overflowY = 'auto';
-  alumnosContainer.style.textAlign = 'left'; alumnosContainer.style.background = 'transparent'; alumnosContainer.style.border = 'none'; alumnosContainer.style.padding = '0'; alumnosContainer.style.maxHeight = '250px'; alumnosContainer.style.overflowY = 'auto';
-
-  profesContainer.innerHTML = '<span style="color:var(--ink-light); font-size:13px;">Buscando profesores...</span>';
-  alumnosContainer.innerHTML = '<span style="color:var(--ink-light); font-size:13px;">Buscando alumnos...</span>';
-  
-  try {
-    const profesSnap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId)));
-    let profesHtml = '';
-    profesSnap.forEach(docSnap => {
-      profesHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #eee;"><input type="checkbox" name="profesoresAsig" value="${docSnap.id}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> <span style="font-size:14px; font-weight:500;">${docSnap.data().nombre || docSnap.id}</span></label>`;
-    });
-    profesContainer.innerHTML = profesHtml || '<span style="color:var(--accent); font-size:13px;">No hay profesores.</span>';
-
-    const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
-    let alumnosHtml = '';
-    if (clasesSnap.empty) { alumnosContainer.innerHTML = '<span style="color:var(--accent); font-size:13px;">Crea una clase y añade alumnos primero.</span>'; return; }
-
-    for (const claseDoc of clasesSnap.docs) {
-      const claseName = claseDoc.data().nombre;
-      const alumnosSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${claseDoc.id}/alumnos`));
-      
-      if (!alumnosSnap.empty) {
-        alumnosHtml += `<details style="margin-top:8px; border:1px solid var(--border); border-radius:6px; background:white; overflow:hidden;">
-          <summary style="font-weight:bold; padding:10px 12px; color:var(--ink); cursor:pointer; background:var(--cream); border-bottom:1px solid var(--border); outline:none;">
-            📁 ${claseName} <span style="font-size:12px; color:var(--ink-light); font-weight:normal; float:right;">(${alumnosSnap.size} alumnos) ▼</span>
-          </summary>
-          <div style="padding: 8px 12px; background:white;">`;
-        
-        alumnosSnap.forEach(alumnoDoc => {
-          const a = alumnoDoc.data(); const alumnoValue = `${claseDoc.id}/${alumnoDoc.id}`;
-          alumnosHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #f0f0f0;">
-            <input type="checkbox" name="alumnos" value="${alumnoValue}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> 
-            <span style="font-size:14px; color:var(--ink);">${a.apellidos}, ${a.nombre}</span>
-          </label>`;
-        });
-        alumnosHtml += `</div></details>`;
-      }
-    }
-    alumnosContainer.innerHTML = alumnosHtml || '<span style="color:var(--accent); font-size:13px;">No hay alumnos matriculados.</span>';
-  } catch (error) { profesContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>'; alumnosContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>'; }
-};
-
-// 7.5 NUEVA FUNCIÓN: GESTIONAR ALUMNOS DESPUÉS DE CREAR LA ASIGNATURA
-window.openManageAsignaturaAlumnos = async (asigId, asigNombre) => {
-  document.getElementById('manageAsigId').value = asigId;
-  document.getElementById('manageAsigNameTitle').textContent = asigNombre;
-  document.getElementById('manageAsignaturaAlumnosModal').classList.add('active');
-  
-  const container = document.getElementById('manageAlumnosSelection');
-  container.innerHTML = '<span class="loading">Cargando alumnos...</span>';
-  
-  try {
-    const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${asigId}`));
-    const enrolled = asigDoc.exists() ? (asigDoc.data().alumnos || []) : [];
-    
-    const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
-    let html = '';
-    
-    for (const claseDoc of clasesSnap.docs) {
-      const claseName = claseDoc.data().nombre;
-      const alumnosSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${claseDoc.id}/alumnos`));
-      
-      if (!alumnosSnap.empty) {
-        html += `<details style="margin-top:8px; border:1px solid var(--border); border-radius:6px; background:white; overflow:hidden;" open>
-          <summary style="font-weight:bold; padding:10px 12px; color:var(--ink); cursor:pointer; background:var(--cream); border-bottom:1px solid var(--border); outline:none;">
-            📁 ${claseName}
-          </summary>
-          <div style="padding: 8px 12px; background:white;">`;
-        
-        alumnosSnap.forEach(alumnoDoc => {
-          const a = alumnoDoc.data(); 
-          const val = `${claseDoc.id}/${alumnoDoc.id}`;
-          const isChecked = enrolled.includes(val) ? 'checked' : '';
-          html += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #f0f0f0;">
-            <input type="checkbox" name="manageAlumnos" value="${val}" ${isChecked} style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> 
-            <span style="font-size:14px; color:var(--ink);">${a.apellidos}, ${a.nombre}</span>
-          </label>`;
-        });
-        html += `</div></details>`;
-      }
-    }
-    container.innerHTML = html || '<span style="color:var(--accent); font-size:13px;">No hay alumnos en el centro.</span>';
-  } catch(e) {
-    container.innerHTML = '<span style="color:red;">Error de conexión.</span>';
+window.showAsignaturaDetail = (id, nombre) => {
+  window.state.currentAsignaturaId = id;
+  window.state.currentContext = 'asignatura';
+  if(document.getElementById('asignaturaDetailName')) {
+    document.getElementById('asignaturaDetailName').textContent = nombre;
   }
+  window.hideAllViews();
+  document.getElementById('asignaturaDetailView').classList.remove('hidden');
+};
+
+window.showTutoriaDetail = (id, nombre) => {
+  window.state.currentClassId = id;
+  window.state.currentContext = 'tutoria';
+  if(document.getElementById('tutoriaDetailName')) {
+    document.getElementById('tutoriaDetailName').textContent = nombre;
+  }
+  window.hideAllViews();
+  document.getElementById('tutoriaDetailView').classList.remove('hidden');
 };
 
 // ==========================================
