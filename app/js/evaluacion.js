@@ -70,6 +70,29 @@ async function getFormatoAsignatura() {
 }
 
 // ==========================================
+// NAVEGACIÓN DEL PROFESOR (ASIGNATURAS Y TUTORÍAS)
+// ==========================================
+window.showAsignaturaDetail = (id, nombre) => {
+  window.state.currentAsignaturaId = id;
+  window.state.currentContext = 'asignatura';
+  if(document.getElementById('asignaturaDetailName')) {
+    document.getElementById('asignaturaDetailName').textContent = nombre;
+  }
+  window.hideAllViews();
+  document.getElementById('asignaturaDetailView').classList.remove('hidden');
+};
+
+window.showTutoriaDetail = (id, nombre) => {
+  window.state.currentClassId = id;
+  window.state.currentContext = 'tutoria';
+  if(document.getElementById('tutoriaDetailName')) {
+    document.getElementById('tutoriaDetailName').textContent = nombre;
+  }
+  window.hideAllViews();
+  document.getElementById('tutoriaDetailView').classList.remove('hidden');
+};
+
+// ==========================================
 // 2. GESTIÓN DE CLASES Y PROFESORES
 // ==========================================
 window.loadClasses = async (containerId, isProfesor) => {
@@ -128,7 +151,7 @@ window.loadProfesores = async () => {
 };
 
 // ==========================================
-// 2.5 ASIGNATURAS AGRUPADAS POR PROFESOR
+// ASIGNATURAS AGRUPADAS POR PROFESOR
 // ==========================================
 window.loadAsignaturas = async () => { 
   const list = document.getElementById('asignaturasList'); 
@@ -177,7 +200,6 @@ window.loadAsignaturas = async () => {
         const formatoStr = d.algoritmoNotas === 'letras_cambridge' ? '<span style="color:var(--accent); font-weight:bold;">Cambridge Engine</span>' : 'Estándar (0-10)';
         const safeName = d.nombre.replace(/'/g, "\\'"); 
 
-        // BOTÓN 👥 DE GESTIONAR ALUMNOS AÑADIDO AQUÍ 👇
         html += `
           <tr>
             <td style="padding-left: 24px;"><strong>${d.nombre}</strong></td>
@@ -261,12 +283,40 @@ window.loadPonderacion = async (t) => {
 
 window.renderCategorias = (formato) => {
   const container = document.getElementById('categoriasConfig');
+  if(!container) return;
+
   if (formato === 'letras_cambridge') {
-    container.innerHTML = `<div style="margin-bottom:20px;"><label>Nivel de Examen Oficial:</label><select onchange="window.changeCambridgeLevel(this.value)" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--ink); font-weight:bold;"><option value="A1" ${currentCambridgeLevel==='A1'?'selected':''}>A1 (Starters/Movers)</option><option value="A2" ${currentCambridgeLevel==='A2'?'selected':''}>A2 Key</option><option value="B1" ${currentCambridgeLevel==='B1'?'selected':''}>B1 Preliminary</option><option value="B2" ${currentCambridgeLevel==='B2'?'selected':''}>B2 First</option><option value="C1" ${currentCambridgeLevel==='C1'?'selected':''}>C1 Advanced</option><option value="C2" ${currentCambridgeLevel==='C2'?'selected':''}>C2 Proficiency</option></select></div><div style="background:var(--cream); padding:15px; border-radius:8px;"><strong>Papers Evaluados:</strong> ${currentCategorias.map(c => c.nombre).join(', ')}</div>`;
-    document.querySelector('button[onclick="window.añadirCategoria()"]').style.display = 'none';
+    container.innerHTML = `
+      <div style="margin-bottom:20px;">
+        <label>Nivel de Examen Oficial:</label>
+        <select onchange="window.changeCambridgeLevel(this.value)" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--ink); font-weight:bold;">
+          <option value="A1" ${currentCambridgeLevel==='A1'?'selected':''}>A1 (Starters/Movers)</option>
+          <option value="A2" ${currentCambridgeLevel==='A2'?'selected':''}>A2 Key</option>
+          <option value="B1" ${currentCambridgeLevel==='B1'?'selected':''}>B1 Preliminary</option>
+          <option value="B2" ${currentCambridgeLevel==='B2'?'selected':''}>B2 First</option>
+          <option value="C1" ${currentCambridgeLevel==='C1'?'selected':''}>C1 Advanced</option>
+          <option value="C2" ${currentCambridgeLevel==='C2'?'selected':''}>C2 Proficiency</option>
+        </select>
+      </div>
+      <div style="background:var(--cream); padding:15px; border-radius:8px;">
+        <strong>Papers Evaluados:</strong> ${currentCategorias.map(c => c.nombre).join(', ')}
+      </div>
+      
+      <div style="margin-top:20px; padding:16px; background:rgba(200, 75, 49, 0.05); border:2px dashed var(--accent); border-radius:8px; text-align:center;">
+        <h4 style="margin-top:0; color:var(--ink); font-size:15px;">Evaluación Rápida de Clase</h4>
+        <button id="btnGlobalMock" class="btn-primary" onclick="window.addMockExamGlobal()" style="background:var(--accent); border-color:var(--accent); width:100%;">📝 Crear Simulacro a Toda la Clase</button>
+        <p style="font-size:13px; color:var(--ink-light); margin-bottom:0; margin-top:8px;">Añade el examen vacío a todos los alumnos a la vez. Luego haz clic en cada alumno (abajo) para introducir sus puntos exactos de Reading, Writing, etc.</p>
+      </div>
+    `;
+    const btnAddCat = document.querySelector('button[onclick="window.añadirCategoria()"]');
+    if(btnAddCat) btnAddCat.style.display = 'none';
   } else {
-    document.querySelector('button[onclick="window.añadirCategoria()"]').style.display = 'inline-flex';
-    let html = '<div class="ponderacion-config">'; currentCategorias.forEach((cat, i) => { html += `<div class="categoria-row"><input type="text" value="${cat.nombre}" onchange="window.updateCategoriaNombre(${i}, this.value)"><input type="number" value="${cat.peso}" onchange="window.updateCategoriaPeso(${i}, this.value)"><button class="btn-icon" onclick="window.eliminarCategoria(${i})">🗑️</button></div>`; });
+    const btnAddCat = document.querySelector('button[onclick="window.añadirCategoria()"]');
+    if(btnAddCat) btnAddCat.style.display = 'inline-flex';
+    let html = '<div class="ponderacion-config">'; 
+    currentCategorias.forEach((cat, i) => { 
+      html += `<div class="categoria-row"><input type="text" value="${cat.nombre}" onchange="window.updateCategoriaNombre(${i}, this.value)"><input type="number" value="${cat.peso}" onchange="window.updateCategoriaPeso(${i}, this.value)"><button class="btn-icon" onclick="window.eliminarCategoria(${i})">🗑️</button></div>`; 
+    });
     container.innerHTML = html + '</div>';
   }
 };
@@ -309,7 +359,7 @@ window.loadAlumnosParaEvaluar = async () => {
 };
 
 // ==========================================
-// 5. PANEL DE NOTAS (MÚLTIPLES MOCK EXAMS Y ESTÁNDAR)
+// 5. PANEL DE NOTAS Y SIMULACROS
 // ==========================================
 window.showNotasView = (id, nombreAlumno, classId, alumId) => { window.state.currentAlumnoId = id; window.state.currentEvalClassId = classId; window.state.currentEvalAlumId = alumId; document.getElementById('currentAlumnoNombre').textContent = nombreAlumno; window.hideAllViews(); document.getElementById('notasView').classList.remove('hidden'); window.loadNotas(); };
 window.switchTrimestre = (t, btnElement) => { window.state.currentTrimestre = t; document.querySelectorAll('#notasView .trimestre-tab').forEach(tab => tab.classList.remove('active')); if(btnElement) btnElement.classList.add('active'); window.loadNotas(); };
@@ -326,7 +376,7 @@ window.loadNotas = async () => {
     if (formato === 'letras_cambridge') {
       const level = pondData.cambridgeLevel || 'B2'; const maxScores = CAMBRIDGE_LEVELS[level].max;
       const mocks = data.mockExams || [];
-      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="margin:0;">Simulacros (Mock Exams) - <span style="color:var(--accent);">${level}</span></h3><button class="btn-secondary btn-sm" onclick="window.addMockExam()">+ Añadir Simulacro</button></div>`;
+      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="margin:0;">Simulacros (Mock Exams) - <span style="color:var(--accent);">${level}</span></h3><button class="btn-secondary btn-sm" onclick="window.addMockExam()">+ Añadir Simulacro Individual</button></div>`;
       if (mocks.length === 0) { html += `<div class="empty-state">No hay simulacros en este trimestre.</div>`; }
       let sumTotalScaleScores = 0; let validMocks = 0;
 
@@ -371,7 +421,38 @@ window.deleteNota = async (cat, idx) => { try { const p = getNotasPath(window.st
 window.addMockExam = async () => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {}; if(!data.mockExams) data.mockExams = []; data.mockExams.push({ name: `Mock Exam ${data.mockExams.length + 1}`, parts: {} }); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
 window.updateMockPart = async (idx, paper, val) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); if (!data.mockExams[idx].parts) data.mockExams[idx].parts = {}; data.mockExams[idx].parts[paper] = parseFloat(val) || 0; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
 window.updateMockName = async (idx, name) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams[idx].name = name; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
-window.deleteMockExam = async (idx) => { if(!confirm('¿Eliminar simulacro?')) return; const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams.splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
+window.deleteMockExam = async (idx) => { if(!confirm('¿Eliminar simulacro individual?')) return; const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams.splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
+
+// Añadir Mock Exam a TODA LA CLASE a la vez
+window.addMockExamGlobal = async () => {
+  const btn = document.getElementById('btnGlobalMock');
+  if(btn) { btn.disabled = true; btn.textContent = "⏳ Creando a todos..."; }
+  
+  const mockName = prompt("Nombre del Simulacro para TODA la clase (Ej: Mock Exam Term 1):", "Mock Exam 1");
+  if(!mockName) { if(btn) { btn.disabled = false; btn.textContent = "📝 Crear Simulacro a Toda la Clase"; } return; }
+
+  try {
+    let creados = 0;
+    for(const alum of window.state.currentAlumnosList) {
+      const p = getNotasPath(alum.id, window.state.currentTrimestre);
+      const d = await getDoc(doc(db, p));
+      const data = d.exists() ? d.data() : { categorias: {}, mockExams: [] };
+      if(!data.mockExams) data.mockExams = [];
+      
+      const existe = data.mockExams.find(m => m.name === mockName);
+      if(!existe) {
+        data.mockExams.push({ name: mockName, parts: {} });
+        await setDoc(doc(db, p), data, {merge:true});
+        creados++;
+      }
+    }
+    alert(`✅ ¡Éxito! Se ha creado la plantilla "${mockName}" en la ficha de ${creados} alumnos.\n\n👇 Ahora haz clic en los alumnos de abajo para rellenar sus puntos.`);
+  } catch(e) {
+    alert("Error al crear simulacros globales: " + e.message);
+  } finally {
+    if(btn) { btn.disabled = false; btn.textContent = "📝 Crear Simulacro a Toda la Clase"; }
+  }
+};
 
 // ==========================================
 // 6. EXPEDIENTES Y ANALYTICS
@@ -455,26 +536,122 @@ window.showClassAnalytics = async () => { alert("Analíticas globales ubicadas e
 
 
 // ==========================================
-// NAVEGACIÓN DEL PROFESOR (ENTRAR A ASIGNATURAS Y TUTORÍAS)
+// 7. FUNCIONES DE INTERFAZ Y MODALES
 // ==========================================
-window.showAsignaturaDetail = (id, nombre) => {
-  window.state.currentAsignaturaId = id;
-  window.state.currentContext = 'asignatura';
-  if(document.getElementById('asignaturaDetailName')) {
-    document.getElementById('asignaturaDetailName').textContent = nombre;
-  }
-  window.hideAllViews();
-  document.getElementById('asignaturaDetailView').classList.remove('hidden');
+const loadTutorsForSelect = async (selectId) => {
+  const select = document.getElementById(selectId);
+  select.innerHTML = '<option value="">Cargando tutores...</option>';
+  try {
+    const profesSnap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId)));
+    let html = '';
+    profesSnap.forEach(p => { html += `<option value="${p.id}">${p.data().nombre || p.id}</option>`; });
+    select.innerHTML = html || '<option value="">No hay profesores</option>';
+  } catch(e) { select.innerHTML = '<option value="">Error cargando</option>'; }
 };
 
-window.showTutoriaDetail = (id, nombre) => {
-  window.state.currentClassId = id;
-  window.state.currentContext = 'tutoria';
-  if(document.getElementById('tutoriaDetailName')) {
-    document.getElementById('tutoriaDetailName').textContent = nombre;
-  }
-  window.hideAllViews();
-  document.getElementById('tutoriaDetailView').classList.remove('hidden');
+window.openCreateClassModal = () => {
+  document.getElementById('createClassModal').classList.add('active');
+  loadTutorsForSelect('createClassTutor'); 
+};
+
+window.openEditClassModal = (id, nombre, curso, tutorEmail) => {
+  document.getElementById('editClassId').value = id;
+  document.getElementById('editClassNombre').value = nombre;
+  document.getElementById('editClassCurso').value = curso;
+  loadTutorsForSelect('editClassTutor').then(() => { document.getElementById('editClassTutor').value = tutorEmail || ''; });
+  document.getElementById('editClassModal').classList.add('active');
+};
+
+window.openInviteProfesorModal = () => { document.getElementById('inviteProfesorModal').classList.add('active'); };
+
+window.openCreateAsignaturaModal = async () => {
+  document.getElementById('createAsignaturaModal').classList.add('active');
+  const profesContainer = document.getElementById('asignaturaProfesoresSelection');
+  const alumnosContainer = document.getElementById('alumnosSelection');
+  
+  profesContainer.style.textAlign = 'left'; profesContainer.style.background = 'var(--cream, #f8f9fa)'; profesContainer.style.border = '1px solid var(--border, #ddd)'; profesContainer.style.padding = '10px'; profesContainer.style.borderRadius = '8px'; profesContainer.style.maxHeight = '150px'; profesContainer.style.overflowY = 'auto';
+  alumnosContainer.style.textAlign = 'left'; alumnosContainer.style.background = 'transparent'; alumnosContainer.style.border = 'none'; alumnosContainer.style.padding = '0'; alumnosContainer.style.maxHeight = '250px'; alumnosContainer.style.overflowY = 'auto';
+
+  profesContainer.innerHTML = '<span style="color:var(--ink-light); font-size:13px;">Buscando profesores...</span>';
+  alumnosContainer.innerHTML = '<span style="color:var(--ink-light); font-size:13px;">Buscando alumnos...</span>';
+  
+  try {
+    const profesSnap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId)));
+    let profesHtml = '';
+    profesSnap.forEach(docSnap => {
+      profesHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #eee;"><input type="checkbox" name="profesoresAsig" value="${docSnap.id}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> <span style="font-size:14px; font-weight:500;">${docSnap.data().nombre || docSnap.id}</span></label>`;
+    });
+    profesContainer.innerHTML = profesHtml || '<span style="color:var(--accent); font-size:13px;">No hay profesores.</span>';
+
+    const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
+    let alumnosHtml = '';
+    if (clasesSnap.empty) { alumnosContainer.innerHTML = '<span style="color:var(--accent); font-size:13px;">Crea una clase y añade alumnos primero.</span>'; return; }
+
+    for (const claseDoc of clasesSnap.docs) {
+      const claseName = claseDoc.data().nombre;
+      const alumnosSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${claseDoc.id}/alumnos`));
+      
+      if (!alumnosSnap.empty) {
+        alumnosHtml += `<details style="margin-top:8px; border:1px solid var(--border); border-radius:6px; background:white; overflow:hidden;">
+          <summary style="font-weight:bold; padding:10px 12px; color:var(--ink); cursor:pointer; background:var(--cream); border-bottom:1px solid var(--border); outline:none;">
+            📁 ${claseName} <span style="font-size:12px; color:var(--ink-light); font-weight:normal; float:right;">(${alumnosSnap.size} alumnos) ▼</span>
+          </summary>
+          <div style="padding: 8px 12px; background:white;">`;
+        
+        alumnosSnap.forEach(alumnoDoc => {
+          const a = alumnoDoc.data(); const alumnoValue = `${claseDoc.id}/${alumnoDoc.id}`;
+          alumnosHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #f0f0f0;">
+            <input type="checkbox" name="alumnos" value="${alumnoValue}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> 
+            <span style="font-size:14px; color:var(--ink);">${a.apellidos}, ${a.nombre}</span>
+          </label>`;
+        });
+        alumnosHtml += `</div></details>`;
+      }
+    }
+    alumnosContainer.innerHTML = alumnosHtml || '<span style="color:var(--accent); font-size:13px;">No hay alumnos matriculados.</span>';
+  } catch (error) { profesContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>'; alumnosContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>'; }
+};
+
+window.openManageAsignaturaAlumnos = async (asigId, asigNombre) => {
+  document.getElementById('manageAsigId').value = asigId;
+  document.getElementById('manageAsigNameTitle').textContent = asigNombre;
+  document.getElementById('manageAsignaturaAlumnosModal').classList.add('active');
+  
+  const container = document.getElementById('manageAlumnosSelection');
+  container.innerHTML = '<span class="loading">Cargando alumnos...</span>';
+  
+  try {
+    const asigDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${asigId}`));
+    const enrolled = asigDoc.exists() ? (asigDoc.data().alumnos || []) : [];
+    
+    const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
+    let html = '';
+    
+    for (const claseDoc of clasesSnap.docs) {
+      const claseName = claseDoc.data().nombre;
+      const alumnosSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${claseDoc.id}/alumnos`));
+      
+      if (!alumnosSnap.empty) {
+        html += `<details style="margin-top:8px; border:1px solid var(--border); border-radius:6px; background:white; overflow:hidden;" open>
+          <summary style="font-weight:bold; padding:10px 12px; color:var(--ink); cursor:pointer; background:var(--cream); border-bottom:1px solid var(--border); outline:none;">
+            📁 ${claseName}
+          </summary>
+          <div style="padding: 8px 12px; background:white;">`;
+        
+        alumnosSnap.forEach(alumnoDoc => {
+          const a = alumnoDoc.data(); 
+          const val = `${claseDoc.id}/${alumnoDoc.id}`;
+          const isChecked = enrolled.includes(val) ? 'checked' : '';
+          html += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #f0f0f0;">
+            <input type="checkbox" name="manageAlumnos" value="${val}" ${isChecked} style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> 
+            <span style="font-size:14px; color:var(--ink);">${a.apellidos}, ${a.nombre}</span>
+          </label>`;
+        });
+        html += `</div></details>`;
+      }
+    }
+    container.innerHTML = html || '<span style="color:var(--accent); font-size:13px;">No hay alumnos en el centro.</span>';
+  } catch(e) { container.innerHTML = '<span style="color:red;">Error de conexión.</span>'; }
 };
 
 // ==========================================
@@ -533,7 +710,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Crear"; } 
   });
 
-  // SUBMIT DE LA NUEVA VENTANA DE GESTIONAR ALUMNOS
   document.getElementById('manageAsignaturaAlumnosForm')?.addEventListener('submit', async(e) => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
@@ -543,9 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const alumnosChecked = Array.from(document.querySelectorAll('#manageAlumnosSelection input[type="checkbox"]:checked')).map(cb => cb.value); 
     
     try {
-      await updateDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${asigId}`), {
-        alumnos: alumnosChecked
-      });
+      await updateDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${asigId}`), { alumnos: alumnosChecked });
       window.loadAsignaturas(); 
       document.getElementById('manageAsignaturaAlumnosModal').classList.remove('active');
     } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Guardar Cambios"; }
