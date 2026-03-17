@@ -125,15 +125,31 @@ window.loadProfesores = async () => {
 window.loadAsignaturas = async () => { 
   const list = document.getElementById('asignaturasList'); list.innerHTML = '<div class="loading">Cargando...</div>';
   try {
+    // 1. Descargar profes para el diccionario
+    const profesSnap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId)));
+    const mapProfes = {};
+    profesSnap.forEach(p => { mapProfes[p.id] = p.data().nombre || p.id.split('@')[0]; });
+
     const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), orderBy('nombre'))); 
     if(snap.empty) { list.innerHTML = '<div class="empty-state"><p>No hay asignaturas creadas.</p></div>'; return; }
+    
     let html = '<table class="table"><thead><tr><th>Asignatura</th><th>Sistema</th><th>Profesores</th><th>Alumnos</th><th style="width:50px;">Acciones</th></tr></thead><tbody>'; 
+    
     snap.forEach(docSnap => { 
-      const d = docSnap.data(); const profes = d.profesorEmails ? d.profesorEmails.join(', ') : (d.profesorEmail || '—');
+      const d = docSnap.data(); 
+      let profesHtmlArr = [];
+      const emails = d.profesorEmails || (d.profesorEmail ? [d.profesorEmail] : []);
+      emails.forEach(email => {
+        const nombreMostrar = mapProfes[email] || email.split('@')[0];
+        profesHtmlArr.push(`<span title="${email}" style="cursor:help; border-bottom:1px dotted var(--ink-light);">${nombreMostrar}</span>`);
+      });
+      const profes = profesHtmlArr.length > 0 ? profesHtmlArr.join(', ') : '—';
       const formatoStr = d.algoritmoNotas === 'letras_cambridge' ? '<span style="color:var(--accent); font-weight:bold;">Cambridge Engine</span>' : 'Estándar (0-10)';
+      
       html += `<tr><td><strong>${d.nombre}</strong></td><td>${formatoStr}</td><td>${profes}</td><td>${d.alumnos?.length || 0}</td><td style="text-align:center;"><button class="btn-icon" style="color:var(--accent);" onclick="window.deleteAsignatura('${docSnap.id}','${d.nombre}')">🗑️</button></td></tr>`; 
-    }); list.innerHTML = html + '</tbody></table>'; 
-  } catch(e) {}
+    }); 
+    list.innerHTML = html + '</tbody></table>'; 
+  } catch(e) { console.error(e); }
 };
 
 window.loadProfesorAsignaturas = async () => { 
@@ -147,7 +163,7 @@ window.loadProfesorAsignaturas = async () => {
       snapTut.forEach(docSnap => { const d = docSnap.data(); html += `<div class="card card-clickable" style="border-left: 4px solid var(--gold);" onclick="window.showTutoriaDetail('${docSnap.id}','${d.nombre}')"><div class="card-title">Tutoría - ${d.nombre}</div><div class="card-meta">${d.numAlumnos || 0} alumnos</div></div>`; });
       html += `</div><br><br>`;
     }
-    html += `<h3 style="margin-bottom:16px;">📖 Mis Asignaturas</h3>`;
+    html += `<h3 style="margin-bottom:16px;">📖 Mis Asignaturas Normales</h3>`;
     if(snapAsig.empty) { html += '<p class="empty-state">No tienes asignaturas asignadas.</p>'; } 
     else {
       html += `<div class="cards-grid">`;
@@ -395,10 +411,8 @@ window.showClassAnalytics = async () => { alert("Analíticas globales ubicadas e
 
 
 // ==========================================
-// 7. FUNCIONES DE MODALES Y FORMULARIOS (100% FUNCIONALES)
+// 7. FUNCIONES DE INTERFAZ Y FORMULARIOS (100% FUNCIONALES)
 // ==========================================
-
-// Función auxiliar para cargar a los tutores en los modales de Clase
 const loadTutorsForSelect = async (selectId) => {
   const select = document.getElementById(selectId);
   select.innerHTML = '<option value="">Cargando tutores...</option>';
@@ -412,7 +426,7 @@ const loadTutorsForSelect = async (selectId) => {
 
 window.openCreateClassModal = () => {
   document.getElementById('createClassModal').classList.add('active');
-  loadTutorsForSelect('createClassTutor'); // Carga a los profes para elegir tutor
+  loadTutorsForSelect('createClassTutor'); 
 };
 
 window.openEditClassModal = (id, nombre, curso, tutorEmail) => {
@@ -429,49 +443,44 @@ window.openInviteProfesorModal = () => {
   document.getElementById('inviteProfesorModal').classList.add('active');
 };
 
-// Modal Inteligente de Asignaturas
+// Modal Inteligente de Asignaturas (Alineado a la Izquierda)
 window.openCreateAsignaturaModal = async () => {
   document.getElementById('createAsignaturaModal').classList.add('active');
   const profesContainer = document.getElementById('asignaturaProfesoresSelection');
   const alumnosContainer = document.getElementById('alumnosSelection');
   
+  // Forzar estilos por si el CSS los sobreescribe
+  profesContainer.style.textAlign = 'left'; profesContainer.style.background = 'var(--cream, #f8f9fa)'; profesContainer.style.border = '1px solid var(--border, #ddd)'; profesContainer.style.padding = '10px'; profesContainer.style.borderRadius = '8px'; profesContainer.style.maxHeight = '150px'; profesContainer.style.overflowY = 'auto';
+  alumnosContainer.style.textAlign = 'left'; alumnosContainer.style.background = 'var(--cream, #f8f9fa)'; alumnosContainer.style.border = '1px solid var(--border, #ddd)'; alumnosContainer.style.padding = '10px'; alumnosContainer.style.borderRadius = '8px'; alumnosContainer.style.maxHeight = '250px'; alumnosContainer.style.overflowY = 'auto';
+
   profesContainer.innerHTML = '<span style="color:var(--ink-light); font-size:13px;">Buscando profesores...</span>';
   alumnosContainer.innerHTML = '<span style="color:var(--ink-light); font-size:13px;">Buscando alumnos...</span>';
   
   try {
-    // Buscar Profesores
     const profesSnap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId)));
     let profesHtml = '';
     profesSnap.forEach(docSnap => {
-      profesHtml += `<label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" name="profesoresAsig" value="${docSnap.id}"> ${docSnap.data().nombre || docSnap.id}</label>`;
+      profesHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #eee;"><input type="checkbox" name="profesoresAsig" value="${docSnap.id}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> <span style="font-size:14px; font-weight:500;">${docSnap.data().nombre || docSnap.id}</span></label>`;
     });
     profesContainer.innerHTML = profesHtml || '<span style="color:var(--accent); font-size:13px;">No hay profesores en este centro.</span>';
 
-    // Buscar Alumnos agrupados
     const clasesSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases`));
     let alumnosHtml = '';
-    if (clasesSnap.empty) {
-      alumnosContainer.innerHTML = '<span style="color:var(--accent); font-size:13px;">Crea una clase y añade alumnos primero.</span>';
-      return;
-    }
+    if (clasesSnap.empty) { alumnosContainer.innerHTML = '<span style="color:var(--accent); font-size:13px;">Crea una clase y añade alumnos primero.</span>'; return; }
 
     for (const claseDoc of clasesSnap.docs) {
       const claseName = claseDoc.data().nombre;
       const alumnosSnap = await getDocs(collection(db, `colegios/${window.state.colegioId}/clases/${claseDoc.id}/alumnos`));
       if (!alumnosSnap.empty) {
-        alumnosHtml += `<div style="font-weight:bold; margin-top:12px; margin-bottom:8px; color:var(--ink); border-bottom:1px solid var(--border); padding-bottom:4px;">📚 ${claseName}</div>`;
+        alumnosHtml += `<div style="font-weight:bold; margin-top:12px; margin-bottom:4px; color:var(--ink); border-bottom:1px solid var(--border); padding-bottom:4px; text-align:left;">📚 ${claseName}</div>`;
         alumnosSnap.forEach(alumnoDoc => {
-          const a = alumnoDoc.data();
-          const alumnoValue = `${claseDoc.id}/${alumnoDoc.id}`;
-          alumnosHtml += `<label style="display:flex; align-items:center; gap:8px; margin-left:12px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" name="alumnos" value="${alumnoValue}"> ${a.apellidos}, ${a.nombre}</label>`;
+          const a = alumnoDoc.data(); const alumnoValue = `${claseDoc.id}/${alumnoDoc.id}`;
+          alumnosHtml += `<label style="display:flex; align-items:center; justify-content:flex-start; text-align:left; padding:6px 0 6px 12px; margin:0; cursor:pointer; width:100%; border-bottom:1px solid #eee;"><input type="checkbox" name="alumnos" value="${alumnoValue}" style="width:16px; height:16px; margin:0 12px 0 0; flex-shrink:0;"> <span style="font-size:14px;">${a.apellidos}, ${a.nombre}</span></label>`;
         });
       }
     }
     alumnosContainer.innerHTML = alumnosHtml || '<span style="color:var(--accent); font-size:13px;">No hay alumnos matriculados.</span>';
-  } catch (error) {
-    profesContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>';
-    alumnosContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>';
-  }
+  } catch (error) { profesContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>'; alumnosContainer.innerHTML = '<span style="color:red;">Error de conexión.</span>'; }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
