@@ -151,7 +151,7 @@ window.loadProfesores = async () => {
 };
 
 // ==========================================
-// ASIGNATURAS AGRUPADAS POR PROFESOR
+// 2.5 ASIGNATURAS AGRUPADAS POR PROFESOR
 // ==========================================
 window.loadAsignaturas = async () => { 
   const list = document.getElementById('asignaturasList'); 
@@ -288,7 +288,7 @@ window.renderCategorias = (formato) => {
   if (formato === 'letras_cambridge') {
     container.innerHTML = `
       <div style="margin-bottom:20px;">
-        <label>Nivel de Examen Oficial:</label>
+        <label>Nivel de Examen por Defecto:</label>
         <select onchange="window.changeCambridgeLevel(this.value)" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--ink); font-weight:bold;">
           <option value="A1" ${currentCambridgeLevel==='A1'?'selected':''}>A1 (Starters/Movers)</option>
           <option value="A2" ${currentCambridgeLevel==='A2'?'selected':''}>A2 Key</option>
@@ -299,13 +299,13 @@ window.renderCategorias = (formato) => {
         </select>
       </div>
       <div style="background:var(--cream); padding:15px; border-radius:8px;">
-        <strong>Papers Evaluados:</strong> ${currentCategorias.map(c => c.nombre).join(', ')}
+        <strong>Papers Base:</strong> ${currentCategorias.map(c => c.nombre).join(', ')}
       </div>
       
       <div style="margin-top:20px; padding:16px; background:rgba(200, 75, 49, 0.05); border:2px dashed var(--accent); border-radius:8px; text-align:center;">
         <h4 style="margin-top:0; color:var(--ink); font-size:15px;">Evaluación Rápida de Clase</h4>
         <button id="btnGlobalMock" class="btn-primary" onclick="window.addMockExamGlobal()" style="background:var(--accent); border-color:var(--accent); width:100%;">📝 Crear Simulacro a Toda la Clase</button>
-        <p style="font-size:13px; color:var(--ink-light); margin-bottom:0; margin-top:8px;">Añade el examen vacío a todos los alumnos a la vez. Luego haz clic en cada alumno (abajo) para introducir sus puntos exactos de Reading, Writing, etc.</p>
+        <p style="font-size:13px; color:var(--ink-light); margin-bottom:0; margin-top:8px;">Añade un examen vacío a todos los alumnos. Luego haz clic en cada alumno (abajo) para introducir sus puntos exactos.</p>
       </div>
     `;
     const btnAddCat = document.querySelector('button[onclick="window.añadirCategoria()"]');
@@ -321,7 +321,6 @@ window.renderCategorias = (formato) => {
   }
 };
 
-// 👉 SOLUCIÓN: Actualizamos pantalla y categorías en local SIN recargar base de datos
 window.changeCambridgeLevel = (val) => { 
   currentCambridgeLevel = val; 
   const config = CAMBRIDGE_LEVELS[currentCambridgeLevel]; 
@@ -344,7 +343,7 @@ window.eliminarCategoria = (i) => { if(currentCategorias.length <= 1) return ale
 window.guardarPonderacion = async () => {
   const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
   if(Math.round(total) !== 100 && await getFormatoAsignatura() !== 'letras_cambridge') return alert('La suma debe ser 100%.'); 
-  try { await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), { categorias: currentCategorias, cambridgeLevel: currentCambridgeLevel, updatedAt: serverTimestamp() }); alert('✅ Configuración guardada.'); } catch(e) {}
+  try { await setDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)), { categorias: currentCategorias, cambridgeLevel: currentCambridgeLevel, updatedAt: serverTimestamp() }, {merge:true}); alert('✅ Configuración guardada.'); } catch(e) {}
 };
 
 window.loadAlumnosParaEvaluar = async () => {
@@ -360,9 +359,27 @@ window.loadAlumnosParaEvaluar = async () => {
       for (const ref of alumnosRefs) { const partes = ref.split('/'); if (partes.length === 2) { const aDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases/${partes[0]}/alumnos`, partes[1])); if (aDoc.exists()) { alumnos.push({ id: ref, n: aDoc.data().nombre || '', a: aDoc.data().apellidos || '', classId: partes[0], alumId: partes[1] }); } } }
     }
     if (alumnos.length === 0) { list.innerHTML = '<div class="empty-state">No hay alumnos.</div>'; return; }
-    alumnos.sort((a,b) => (a.a || '').localeCompare(b.a || '')); window.state.currentAlumnosList = alumnos; let html = '<div class="cards-grid">';
+    alumnos.sort((a,b) => (a.a || '').localeCompare(b.a || '')); window.state.currentAlumnosList = alumnos; 
+
+    // Panel de Simulacros Globales
+    let panelGlobalHtml = '';
+    const formato = await getFormatoAsignatura();
+    if (formato === 'letras_cambridge') {
+      const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)));
+      const globalMocks = pDoc.exists() ? (pDoc.data().globalMocks || []) : [];
+      if (globalMocks.length > 0) {
+        panelGlobalHtml = `<div style="background:var(--paper); border:2px solid var(--border); padding:16px; border-radius:8px; margin-bottom:24px;">
+          <h3 style="margin-top:0; font-size:15px; color:var(--ink); margin-bottom:12px;">📊 Registro de Simulacros Globales del Trimestre</h3>
+          <ul style="margin:0; padding-left:20px; color:var(--ink-light); font-size:14px;">
+            ${globalMocks.map(m => `<li style="margin-bottom:4px;"><strong>${m.name}</strong> <span style="background:var(--cream); border:1px solid var(--border); padding:2px 6px; border-radius:4px; font-size:11px; margin-left:8px;">Nivel ${m.level}</span></li>`).join('')}
+          </ul>
+        </div>`;
+      }
+    }
+
+    let html = '<div class="cards-grid">';
     alumnos.forEach(alum => { const nLimpio = (alum.n + ' ' + alum.a).replace(/'/g, "\\'").replace(/"/g, "&quot;"); html += `<div class="card card-clickable" onclick="window.showNotasView('${alum.id}', '${nLimpio}', '${alum.classId}', '${alum.alumId}')"><div class="card-title">${alum.a}, ${alum.n}</div><div class="card-meta">Evaluar →</div></div>`; });
-    list.innerHTML = html + '</div>';
+    list.innerHTML = panelGlobalHtml + html + '</div>';
   } catch(e) {}
 };
 
@@ -382,25 +399,44 @@ window.loadNotas = async () => {
     let html = `<div class="professional-comment"><div class="comment-header"><strong>📝 Observaciones</strong><span id="saveStatusIndicator" style="font-size:12px; color:var(--green); opacity:0; transition:opacity 0.3s;">Guardado ✓</span></div><textarea id="comentarioArea" rows="3" placeholder="Añade observaciones..." onchange="window.guardarComentario()">${data.comentarioTutor || ""}</textarea></div>`;
 
     if (formato === 'letras_cambridge') {
-      const level = pondData.cambridgeLevel || 'B2'; const maxScores = CAMBRIDGE_LEVELS[level].max;
+      const defaultLevel = pondData.cambridgeLevel || 'B2';
       const mocks = data.mockExams || [];
-      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="margin:0;">Simulacros (Mock Exams) - <span style="color:var(--accent);">${level}</span></h3><button class="btn-secondary btn-sm" onclick="window.addMockExam()">+ Añadir Simulacro Individual</button></div>`;
+      html += `<div class="card" style="border-left:5px solid var(--accent); padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="margin:0;">Simulacros (Mock Exams)</h3><button class="btn-secondary btn-sm" onclick="window.addMockExam()">+ Añadir Individual</button></div>`;
       if (mocks.length === 0) { html += `<div class="empty-state">No hay simulacros en este trimestre.</div>`; }
       let sumTotalScaleScores = 0; let validMocks = 0;
 
       mocks.forEach((mock, idx) => {
         let sumMockScale = 0; let paperCount = 0;
-        html += `<div style="border:1px solid var(--border); padding:16px; margin-bottom:16px; border-radius:8px; background:var(--paper);"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:8px;"><input type="text" value="${mock.name || 'Mock Exam '+(idx+1)}" onchange="window.updateMockName(${idx}, this.value)" style="font-weight:bold; font-size:16px; border:none; width:200px; color:var(--ink); background:transparent;"><button class="btn-icon" onclick="window.deleteMockExam(${idx})" style="color:red;">🗑️</button></div>`;
-        cats.forEach((cat) => {
-          const mxs = maxScores[cat.nombre]; const pts = mock.parts?.[cat.nombre] || 0; const pct = pts / mxs; const scaleScore = calculateScaleScore(level, pct);
+        const mLevel = mock.level || defaultLevel;
+        const mMaxScores = CAMBRIDGE_LEVELS[mLevel].max;
+        const mParts = CAMBRIDGE_LEVELS[mLevel].parts;
+
+        html += `<div style="border:1px solid var(--border); padding:16px; margin-bottom:16px; border-radius:8px; background:var(--paper);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+            <input type="text" value="${mock.name || 'Mock Exam '+(idx+1)}" onchange="window.updateMockName(${idx}, this.value)" style="font-weight:bold; font-size:16px; border:none; width:150px; color:var(--ink); background:transparent;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <select onchange="window.updateMockLevel(${idx}, this.value)" style="padding:4px; border-radius:4px; font-weight:bold; color:var(--accent); border:1px solid var(--accent); background:transparent;">
+                <option value="A1" ${mLevel==='A1'?'selected':''}>A1 Starters</option>
+                <option value="A2" ${mLevel==='A2'?'selected':''}>A2 Key</option>
+                <option value="B1" ${mLevel==='B1'?'selected':''}>B1 Prelim</option>
+                <option value="B2" ${mLevel==='B2'?'selected':''}>B2 First</option>
+                <option value="C1" ${mLevel==='C1'?'selected':''}>C1 Adv</option>
+                <option value="C2" ${mLevel==='C2'?'selected':''}>C2 Prof</option>
+              </select>
+              <button class="btn-icon" onclick="window.deleteMockExam(${idx})" style="color:red;">🗑️</button>
+            </div>
+          </div>`;
+
+        mParts.forEach((partName) => {
+          const mxs = mMaxScores[partName]; const pts = mock.parts?.[partName] || 0; const pct = pts / mxs; const scaleScore = calculateScaleScore(mLevel, pct);
           sumMockScale += scaleScore; paperCount++;
-          html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><div style="font-size:14px; font-weight:500;">${cat.nombre} <span style="font-size:11px; color:var(--ink-light); margin-left:8px; font-weight:normal;">Scale: ${scaleScore}</span></div><div style="display:flex; align-items:center;"><input type="number" value="${pts}" step="0.5" min="0" max="${mxs}" onchange="window.updateMockPart(${idx}, '${cat.nombre}', this.value)" style="width:60px; text-align:center; border:1px solid var(--border); border-radius:4px; padding:4px; font-weight:bold; color:var(--accent);"><span style="font-size:12px; color:var(--ink-light); margin-left:6px;">/ ${mxs}</span></div></div>`;
+          html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><div style="font-size:14px; font-weight:500;">${partName} <span style="font-size:11px; color:var(--ink-light); margin-left:8px; font-weight:normal;">Scale: ${scaleScore}</span></div><div style="display:flex; align-items:center;"><input type="number" value="${pts}" step="0.5" min="0" max="${mxs}" onchange="window.updateMockPart(${idx}, '${partName}', this.value)" style="width:60px; text-align:center; border:1px solid var(--border); border-radius:4px; padding:4px; font-weight:bold; color:var(--accent);"><span style="font-size:12px; color:var(--ink-light); margin-left:6px;">/ ${mxs}</span></div></div>`;
         });
-        const mockAvgScale = Math.round(sumMockScale / paperCount); const mockGrade = getCambridgeGrade(level, mockAvgScale); sumTotalScaleScores += mockAvgScale; validMocks++;
-        html += `<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-weight:bold; font-size:14px; color:${getCambridgeColor(level, mockAvgScale)}; text-align:right;">Resultado: ${mockGrade} (${mockAvgScale})</div></div>`;
+        const mockAvgScale = Math.round(sumMockScale / paperCount); const mockGrade = getCambridgeGrade(mLevel, mockAvgScale); sumTotalScaleScores += mockAvgScale; validMocks++;
+        html += `<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-weight:bold; font-size:14px; color:${getCambridgeColor(mLevel, mockAvgScale)}; text-align:right;">Resultado: ${mockGrade} (${mockAvgScale})</div></div>`;
       });
       html += `</div>`;
-      const overallScaleScore = validMocks > 0 ? Math.round(sumTotalScaleScores / validMocks) : 0; const finalGrade = validMocks > 0 ? getCambridgeGrade(level, overallScaleScore) : '—'; const finalColor = validMocks > 0 ? getCambridgeColor(level, overallScaleScore) : 'var(--ink)';
+      const overallScaleScore = validMocks > 0 ? Math.round(sumTotalScaleScores / validMocks) : 0; const finalGrade = validMocks > 0 ? getCambridgeGrade(defaultLevel, overallScaleScore) : '—'; const finalColor = validMocks > 0 ? getCambridgeColor(defaultLevel, overallScaleScore) : 'var(--ink)';
       html += `<div class="nota-final-display" style="background:var(--ink); border-radius:12px; padding:32px; text-align:center; margin-top:24px;"><h3 style="color:var(--cream); font-size:14px; margin-bottom:8px; text-transform:uppercase;">Media del Trimestre</h3><div style="font-size:14px; color:rgba(255,255,255,0.6); margin-bottom:16px;">Overall Scale Score: ${overallScaleScore}</div><div class="nota" style="font-size:42px; font-weight:700; color:${finalColor};">${finalGrade}</div></div>`; 
     } else {
       let notaFinalGlobal = 0; let pesoTotalGlobal = 0;
@@ -420,13 +456,15 @@ window.loadNotas = async () => {
   } catch(e) {}
 };
 
+// Funciones Auxiliares de Modificación
 window.toggleAccordion = (bId, iId) => { const b = document.getElementById(bId); const i = document.getElementById(iId); if(b.classList.contains('active')) { b.classList.remove('active'); i.classList.remove('open'); } else { b.classList.add('active'); i.classList.add('open'); } };
 window.guardarComentario = async () => { try { await setDoc(doc(db, getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre)), { comentarioTutor: document.getElementById('comentarioArea').value }, { merge:true }); const i = document.getElementById('saveStatusIndicator'); i.style.opacity = 1; setTimeout(() => i.style.opacity = 0, 2000); } catch(e) {} };
 window.addNota = async (cat) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {categorias:{}}; if(!data.categorias[cat]) { data.categorias[cat] = []; } data.categorias[cat].push({valor: '', maximo: 10, descripcion: ''}); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 window.updateNotaDetalle = async (cat, idx, campo, val) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); if(typeof data.categorias[cat][idx] === 'number') { data.categorias[cat][idx] = {valor: data.categorias[cat][idx], maximo: 10, descripcion: ''}; } if (campo === 'valor' || campo === 'maximo') { data.categorias[cat][idx][campo] = val === '' ? '' : (parseFloat(val) || 0); } else { data.categorias[cat][idx][campo] = val; } await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 window.deleteNota = async (cat, idx) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.categorias[cat].splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
 
-window.addMockExam = async () => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {}; if(!data.mockExams) data.mockExams = []; data.mockExams.push({ name: `Mock Exam ${data.mockExams.length + 1}`, parts: {} }); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
+window.updateMockLevel = async (idx, newLevel) => { try { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams[idx].level = newLevel; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); } catch(e) {} };
+window.addMockExam = async () => { const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre))); const defaultLevel = pDoc.exists() ? (pDoc.data().cambridgeLevel || 'B2') : 'B2'; const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.exists() ? d.data() : {}; if(!data.mockExams) data.mockExams = []; data.mockExams.push({ name: `Mock Exam ${data.mockExams.length + 1}`, level: defaultLevel, parts: {} }); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
 window.updateMockPart = async (idx, paper, val) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); if (!data.mockExams[idx].parts) data.mockExams[idx].parts = {}; data.mockExams[idx].parts[paper] = parseFloat(val) || 0; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
 window.updateMockName = async (idx, name) => { const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams[idx].name = name; await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
 window.deleteMockExam = async (idx) => { if(!confirm('¿Eliminar simulacro individual?')) return; const p = getNotasPath(window.state.currentAlumnoId, window.state.currentTrimestre); const d = await getDoc(doc(db, p)); const data = d.data(); data.mockExams.splice(idx, 1); await setDoc(doc(db, p), data, {merge:true}); window.loadNotas(); };
@@ -435,31 +473,26 @@ window.deleteMockExam = async (idx) => { if(!confirm('¿Eliminar simulacro indiv
 window.addMockExamGlobal = async () => {
   const btn = document.getElementById('btnGlobalMock');
   if(btn) { btn.disabled = true; btn.textContent = "⏳ Creando a todos..."; }
-  
-  const mockName = prompt("Nombre del Simulacro para TODA la clase (Ej: Mock Exam Term 1):", "Mock Exam 1");
+  const mockName = prompt("Nombre del Simulacro (Ej: Mock Exam Term 1):", "Mock Exam 1");
   if(!mockName) { if(btn) { btn.disabled = false; btn.textContent = "📝 Crear Simulacro a Toda la Clase"; } return; }
-
+  let mockLevel = prompt("¿Qué nivel de Cambridge es este simulacro? (A1, A2, B1, B2, C1, C2)", currentCambridgeLevel || "B2");
+  if(!mockLevel) { if(btn) { btn.disabled = false; btn.textContent = "📝 Crear Simulacro a Toda la Clase"; } return; }
+  mockLevel = mockLevel.toUpperCase(); if(!['A1','A2','B1','B2','C1','C2'].includes(mockLevel)) mockLevel = 'B2';
   try {
+    const pRef = doc(db, getPonderacionPath(window.state.currentTrimestre));
+    await setDoc(pRef, { globalMocks: arrayUnion({ name: mockName, level: mockLevel, date: new Date().toISOString() }) }, { merge: true });
     let creados = 0;
     for(const alum of window.state.currentAlumnosList) {
       const p = getNotasPath(alum.id, window.state.currentTrimestre);
       const d = await getDoc(doc(db, p));
       const data = d.exists() ? d.data() : { categorias: {}, mockExams: [] };
       if(!data.mockExams) data.mockExams = [];
-      
       const existe = data.mockExams.find(m => m.name === mockName);
-      if(!existe) {
-        data.mockExams.push({ name: mockName, parts: {} });
-        await setDoc(doc(db, p), data, {merge:true});
-        creados++;
-      }
+      if(!existe) { data.mockExams.push({ name: mockName, level: mockLevel, parts: {} }); await setDoc(doc(db, p), data, {merge:true}); creados++; }
     }
-    alert(`✅ ¡Éxito! Se ha creado la plantilla "${mockName}" en la ficha de ${creados} alumnos.\n\n👇 Ahora haz clic en los alumnos de abajo para rellenar sus puntos.`);
-  } catch(e) {
-    alert("Error al crear simulacros globales: " + e.message);
-  } finally {
-    if(btn) { btn.disabled = false; btn.textContent = "📝 Crear Simulacro a Toda la Clase"; }
-  }
+    alert(`✅ ¡Éxito! Se ha creado el simulacro "${mockName}" (Nivel ${mockLevel}) en la ficha de ${creados} alumnos.`);
+    window.loadAlumnosParaEvaluar(); 
+  } catch(e) { alert("Error al crear simulacros: " + e.message); } finally { if(btn) { btn.disabled = false; btn.textContent = "📝 Crear Simulacro a Toda la Clase"; } }
 };
 
 // ==========================================
@@ -469,7 +502,7 @@ function calcFinalGradeForChart(categorias, notasData, formato, cambridgeLevel) 
   if (formato === 'letras_cambridge') {
     const mocks = notasData.mockExams || []; if (mocks.length === 0) return null;
     let totalMocksScale = 0;
-    mocks.forEach(mock => { let sumScale = 0; let count = 0; categorias.forEach(cat => { const max = CAMBRIDGE_LEVELS[cambridgeLevel].max[cat.nombre]; const val = mock.parts?.[cat.nombre] || 0; sumScale += calculateScaleScore(cambridgeLevel, val/max); count++; }); totalMocksScale += (sumScale/count); });
+    mocks.forEach(mock => { let sumScale = 0; let count = 0; const mLevel = mock.level || cambridgeLevel; const mParts = CAMBRIDGE_LEVELS[mLevel].parts; mParts.forEach(partName => { const max = CAMBRIDGE_LEVELS[mLevel].max[partName]; const val = mock.parts?.[partName] || 0; sumScale += calculateScaleScore(mLevel, val/max); count++; }); totalMocksScale += (sumScale/count); });
     return Math.round(totalMocksScale / mocks.length);
   } else {
     let notaFinal = 0; let pesoTotal = 0;
@@ -541,7 +574,6 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
 
 window.exportarNotasCSV = async () => { alert("Exportar a CSV activado en la tabla de alumnos."); };
 window.showClassAnalytics = async () => { alert("Analíticas globales ubicadas en expedientes individuales."); };
-
 
 // ==========================================
 // 7. FUNCIONES DE INTERFAZ Y MODALES
@@ -722,10 +754,8 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
     btn.disabled = true; btn.textContent = "Guardando...";
-    
     const asigId = document.getElementById('manageAsigId').value;
     const alumnosChecked = Array.from(document.querySelectorAll('#manageAlumnosSelection input[type="checkbox"]:checked')).map(cb => cb.value); 
-    
     try {
       await updateDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${asigId}`), { alumnos: alumnosChecked });
       window.loadAsignaturas(); 
