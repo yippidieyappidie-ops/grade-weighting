@@ -321,7 +321,15 @@ window.renderCategorias = (formato) => {
   }
 };
 
-window.changeCambridgeLevel = (val) => { currentCambridgeLevel = val; window.loadPonderacion(window.state.currentTrimestre); };
+// 👉 SOLUCIÓN: Actualizamos pantalla y categorías en local SIN recargar base de datos
+window.changeCambridgeLevel = (val) => { 
+  currentCambridgeLevel = val; 
+  const config = CAMBRIDGE_LEVELS[currentCambridgeLevel]; 
+  const pesoPorParte = 100 / config.parts.length;
+  currentCategorias = config.parts.map(p => ({ nombre: p, peso: pesoPorParte }));
+  window.renderCategorias('letras_cambridge'); 
+};
+
 window.updatePesoTotal = () => {
   const total = currentCategorias.reduce((s,c) => s + (parseFloat(c.peso) || 0), 0);
   const spanT = document.getElementById('pesoTotal'); const spanS = document.getElementById('pesoStatus');
