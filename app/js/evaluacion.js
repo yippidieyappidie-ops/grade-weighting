@@ -1,6 +1,65 @@
 import { collection, addDoc, getDocs, getDoc, doc, setDoc, updateDoc, arrayUnion, deleteDoc, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
-import { CAMBRIDGE_LEVELS, CAMBRIDGE_CURVES, calculateScaleScore, getCambridgeGrade, getCambridgeColor } from './cambridge.js';
+
+// Variables globales para los gráficos
+let expRadarChartInstance = null; 
+let expLineChartInstance = null;
+let expStandardBarChartInstance = null;
+let expStandardLineChartInstance = null;
+
+// ==========================================
+// 1. MOTOR OFICIAL CAMBRIDGE ENGLISH SCALE
+// ==========================================
+const CAMBRIDGE_LEVELS = {
+  'A1': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 20, 'Writing': 20, 'Listening': 20, 'Speaking': 20 } },
+  'A2': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 30, 'Writing': 30, 'Listening': 25, 'Speaking': 15 } },
+  'B1': { parts: ['Reading', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 32, 'Writing': 40, 'Listening': 25, 'Speaking': 30 } },
+  'B2': { parts: ['Reading', 'Use of English', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 42, 'Use of English': 28, 'Writing': 40, 'Listening': 30, 'Speaking': 60 } },
+  'C1': { parts: ['Reading', 'Use of English', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 50, 'Use of English': 28, 'Writing': 40, 'Listening': 30, 'Speaking': 75 } },
+  'C2': { parts: ['Reading', 'Use of English', 'Writing', 'Listening', 'Speaking'], max: { 'Reading': 56, 'Use of English': 28, 'Writing': 40, 'Listening': 30, 'Speaking': 75 } }
+};
+
+const CAMBRIDGE_CURVES = {
+  'A1': [[0, 60], [0.45, 80], [0.60, 90], [0.75, 100], [0.80, 110], [1, 120]],
+  'A2': [[0, 82], [0.45, 100], [0.60, 120], [0.75, 133], [0.80, 140], [1, 150]],
+  'B1': [[0, 102], [0.45, 120], [0.60, 140], [0.75, 153], [0.80, 160], [1, 170]],
+  'B2': [[0, 122], [0.45, 140], [0.60, 160], [0.75, 173], [0.80, 180], [1, 190]],
+  'C1': [[0, 142], [0.45, 160], [0.60, 180], [0.75, 193], [0.80, 200], [1, 210]],
+  'C2': [[0, 162], [0.45, 180], [0.60, 200], [0.75, 213], [0.80, 220], [1, 230]]
+};
+
+function calculateScaleScore(level, pct) {
+  const curve = CAMBRIDGE_CURVES[level] || CAMBRIDGE_CURVES['B2'];
+  if (pct <= 0) return curve[0][1]; 
+  if (pct >= 1) return curve[curve.length - 1][1];
+  
+  for (let i = 0; i < curve.length - 1; i++) {
+    const [p1, s1] = curve[i]; 
+    const [p2, s2] = curve[i+1];
+    if (pct >= p1 && pct <= p2) { 
+      return Math.round(s1 + ((pct - p1) / (p2 - p1)) * (s2 - s1)); 
+    }
+  }
+  return curve[0][1];
+}
+
+function getCambridgeGrade(level, scaleScore) {
+  if (level === 'C2') { if (scaleScore >= 220) return 'Grade A'; if (scaleScore >= 213) return 'Grade B'; if (scaleScore >= 200) return 'Grade C'; if (scaleScore >= 180) return 'Level C1'; return 'Fail'; }
+  if (level === 'C1') { if (scaleScore >= 200) return 'Grade A'; if (scaleScore >= 193) return 'Grade B'; if (scaleScore >= 180) return 'Grade C'; if (scaleScore >= 160) return 'Level B2'; return 'Fail'; }
+  if (level === 'B2') { if (scaleScore >= 180) return 'Grade A'; if (scaleScore >= 173) return 'Grade B'; if (scaleScore >= 160) return 'Grade C'; if (scaleScore >= 140) return 'Level B1'; return 'Fail'; }
+  if (level === 'B1') { if (scaleScore >= 160) return 'Grade A'; if (scaleScore >= 153) return 'Grade B'; if (scaleScore >= 140) return 'Grade C'; if (scaleScore >= 120) return 'Level A2'; return 'Fail'; }
+  if (level === 'A2') { if (scaleScore >= 140) return 'Distinction'; if (scaleScore >= 133) return 'Merit'; if (scaleScore >= 120) return 'Pass'; if (scaleScore >= 100) return 'Level A1'; return 'Fail'; }
+  if (level === 'A1') { if (scaleScore >= 120) return 'Distinction'; if (scaleScore >= 110) return 'Merit'; if (scaleScore >= 100) return 'Pass'; return 'Fail'; }
+  return 'Fail';
+}
+
+function getCambridgeColor(level, scaleScore) {
+  const grade = getCambridgeGrade(level, scaleScore);
+  if (grade.includes('Grade A') || grade.includes('Distinction')) return 'var(--green)';
+  if (grade.includes('Grade B') || grade.includes('Merit')) return '#0055ff'; 
+  if (grade.includes('Grade C') || grade.includes('Pass')) return 'var(--gold)';
+  return 'var(--accent)'; 
+}
 
 function getNotaFormateada(notaDecimal, formato, level = 'B2') {
   if (notaDecimal === null || notaDecimal === undefined || isNaN(notaDecimal)) return '—';
@@ -86,9 +145,7 @@ window.loadClasses = async (containerId, isProfesor) => {
       html += `<div class="card-title">${data.nombre}</div><div class="card-meta">📖 ${data.curso}</div></div>`;
     }); 
     list.innerHTML = html + '</div>';
-  } catch(e) {
-    console.error(e);
-  }
+  } catch(e) { console.error(e); }
 };
 
 window.showClaseDetail = async (classId, className) => {
@@ -125,9 +182,7 @@ window.showClaseDetail = async (classId, className) => {
     
     html += `<div class="card card-clickable" onclick="document.getElementById('addStudentModal').classList.add('active')" style="border:2px dashed var(--border); text-align:center;">+ Añadir Alumno</div>`;
     list.innerHTML = html + '</div>';
-  } catch(e) {
-    console.error(e);
-  }
+  } catch(e) { console.error(e); }
 };
 
 window.deleteClass = async (id, nombre) => { 
@@ -552,7 +607,6 @@ window.loadAlumnosParaEvaluar = async () => {
     const formato = await getFormatoAsignatura();
     let panelGlobalHtml = '';
 
-    // Si es Cambridge, mostrar la tabla de simulacros globales
     if (formato === 'letras_cambridge') {
       const allMocksMap = new Set(); 
       const studentMocks = {};
@@ -636,7 +690,6 @@ window.switchTrimestre = (t, btnElement) => {
 window.loadNotas = async () => {
   const container = document.getElementById('notasContent'); 
   
-  // LIVE SAVE: Si hay un input activo, no mostramos "Cargando..."
   const activeId = document.activeElement ? document.activeElement.id : null;
   if (!activeId) {
     container.innerHTML = '<div class="loading">Cargando perfil...</div>';
@@ -667,7 +720,6 @@ window.loadNotas = async () => {
     const defaultLevel = pondData.cambridgeLevel || 'B2';
     const pesoMocks = pondData.pesoMocks !== undefined ? pondData.pesoMocks : 100;
 
-    // RENDERIZAR MOCKS (SI ES CAMBRIDGE)
     if (formato === 'letras_cambridge') {
       const mocks = data.mockExams || [];
       html += `
@@ -743,11 +795,7 @@ window.loadNotas = async () => {
       overallMockScaleScore = validMocks > 0 ? Math.round(sumTotalScaleScores / validMocks) : 0; 
     }
 
-    // RENDERIZAR CATEGORÍAS (STANDARD Y EXTRAS DE CAMBRIDGE)
-    let overallCategoriesScaleScore = 0; 
-    let pesoCategoriasCalculado = 0; 
-    let notaFinalGlobal = 0; 
-    let pesoTotalGlobal = 0;
+    let overallCategoriesScaleScore = 0; let pesoCategoriasCalculado = 0; let notaFinalGlobal = 0; let pesoTotalGlobal = 0;
     
     cats.forEach((cat, idx) => {
       let notasArr = data.categorias?.[cat.nombre] || []; 
@@ -762,8 +810,7 @@ window.loadNotas = async () => {
       
       const mediaBase10 = notasArr.length > 0 ? (sumaBase10 / notasArr.length) : 0; 
       
-      let displayScore = ""; 
-      let displayColor = "var(--ink)";
+      let displayScore = ""; let displayColor = "var(--ink)";
       
       if (formato === 'letras_cambridge') {
           const pct = mediaBase10 / 10;
@@ -792,9 +839,7 @@ window.loadNotas = async () => {
           <div class="accordion-body" id="acc-${idx}">
             <div style="padding-top:15px;">`;
             
-      if (notasArr.length === 0) { 
-        html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros. Pulsa Añadir.</div>`; 
-      }
+      if (notasArr.length === 0) { html += `<div style="font-size:13px; color:var(--ink-light); margin-bottom:12px;">Sin registros. Pulsa Añadir.</div>`; }
       
       notasArr.forEach((nObj, i) => { 
         const dateStr = nObj.date ? new Date(nObj.date).toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'}) : '';
@@ -853,7 +898,6 @@ window.loadNotas = async () => {
          </div>`; 
     }
     
-    // MAGIA: RESTAURACIÓN DE FOCO
     container.innerHTML = html;
     if (activeId) {
       const el = document.getElementById(activeId);
@@ -1047,7 +1091,7 @@ window.addMockExamGlobal = async () => {
 
 
 // ==========================================
-// 8. EXPEDIENTES Y ANALYTICAS (NUEVO SISTEMA GRAFICO Y PDF)
+// 8. EXPEDIENTES Y ANALYTICAS (KPIs, Radar/Bar, Line, PDF)
 // ==========================================
 function calcFinalGradeForChart(categorias, notasData, formato, cambridgeLevel, pesoMocks = 100) {
   if (formato === 'letras_cambridge') {
@@ -1235,22 +1279,79 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
      }
   });
 
-  let dashboardHtml = `<div class="analytics-grid" style="grid-template-columns: 1fr 1fr;">`;
-  
+  // KPI Normalization para encontrar mejor y peor asignatura
+  const normalizeGrade = (g, format, lvl) => {
+    if(g === null || g === undefined) return -1;
+    if(format === 'letras_cambridge') {
+        const min = CAMBRIDGE_CURVES[lvl][0][1];
+        const max = CAMBRIDGE_CURVES[lvl][CAMBRIDGE_CURVES[lvl].length-1][1];
+        return ((g - min) / (max - min)) * 100;
+    }
+    return (g / 10) * 100;
+  };
+
+  let numGrades = 0;
+  let bestSubj = {name: '-', grade: -1, norm: -1};
+  let worstSubj = {name: '-', grade: 999, norm: 101};
+
+  window.state.expedienteData.subjects.forEach(sub => {
+      const grade = sub.grades[t];
+      if (grade !== null && grade !== undefined) {
+          numGrades++;
+          const norm = normalizeGrade(grade, sub.formato, sub.level);
+          if (norm > bestSubj.norm) bestSubj = {name: sub.name, grade: grade, norm: norm, format: sub.formato, lvl: sub.level};
+          if (norm < worstSubj.norm) worstSubj = {name: sub.name, grade: grade, norm: norm, format: sub.formato, lvl: sub.level};
+      }
+  });
+
   const faltas = window.state.expedienteData.attendance.F; 
   const retrasos = window.state.expedienteData.attendance.R;
+
+  // DISEÑO DE LOS WIDGETS KPI
+  let dashboardHtml = `<div class="analytics-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:24px;">`;
+  
   dashboardHtml += `
     <div class="insight-card">
       <div class="insight-icon">📅</div>
       <div class="insight-title">Asistencia Anual</div>
       <div class="insight-value">${faltas} Faltas</div>
-      <p style="font-size:13px; color:var(--ink-light); margin-top:8px;">Retrasos: ${retrasos}</p>
+      <p style="font-size:13px; color:var(--ink-light); margin-top:8px; margin-bottom:0;">Retrasos acumulados: ${retrasos}</p>
     </div>`;
 
-  // RENDEREIZADO DE ESTRUCTURA HTML SEGÚN EL TIPO DE ALUMNO (Cambridge vs Standard)
+  if (numGrades > 0) {
+      const bestFmt = getNotaFormateada(bestSubj.grade, bestSubj.format, bestSubj.lvl);
+      const bestCol = getNotaColor(bestSubj.grade, bestSubj.format, bestSubj.lvl);
+      dashboardHtml += `
+        <div class="insight-card">
+          <div class="insight-icon">🏆</div>
+          <div class="insight-title">Punto Fuerte</div>
+          <div class="insight-value" style="color:${bestCol}; font-size:18px;">${bestSubj.name}</div>
+          <p style="font-size:14px; font-weight:bold; margin-top:8px; margin-bottom:0;">${bestFmt}</p>
+        </div>`;
+
+      const worstFmt = getNotaFormateada(worstSubj.grade, worstSubj.format, worstSubj.lvl);
+      const worstCol = getNotaColor(worstSubj.grade, worstSubj.format, worstSubj.lvl);
+      dashboardHtml += `
+        <div class="insight-card">
+          <div class="insight-icon">🎯</div>
+          <div class="insight-title">Área de Mejora</div>
+          <div class="insight-value" style="color:${worstCol}; font-size:18px;">${worstSubj.name}</div>
+          <p style="font-size:14px; font-weight:bold; margin-top:8px; margin-bottom:0;">${worstFmt}</p>
+        </div>`;
+  } else {
+      dashboardHtml += `
+        <div class="insight-card" style="grid-column: span 2;">
+          <div class="insight-icon">⏳</div>
+          <div class="insight-title">Sin Calificaciones</div>
+          <div class="insight-value" style="font-size:16px;">Esperando evaluación en este trimestre</div>
+        </div>`;
+  }
+  dashboardHtml += `</div>`; 
+
+  // RENDEREIZADO DE ESTRUCTURA HTML PARA GRÁFICOS SEGÚN EL TIPO DE ALUMNO
   if (hasCambridge && allMocks.length > 0) {
       dashboardHtml += `
-      <div class="chart-box" style="grid-column:span 2; display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:24px;">
+      <div class="chart-box" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:24px; margin-bottom:24px;">
         <div>
           <h3 style="margin-top:0; font-size:15px; text-align:center;">🕸️ Análisis de Skills (Cambridge)</h3>
           <div class="chart-wrapper"><canvas id="expRadarChart"></canvas></div>
@@ -1262,7 +1363,7 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
       </div>`;
   } else if (!hasCambridge) {
       dashboardHtml += `
-      <div class="chart-box" style="grid-column:span 2; display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:24px;">
+      <div class="chart-box" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:24px; margin-bottom:24px;">
         <div>
           <h3 style="margin-top:0; font-size:15px; text-align:center;">📊 Rendimiento por Asignatura</h3>
           <div class="chart-wrapper"><canvas id="expStandardBarChart"></canvas></div>
@@ -1273,8 +1374,6 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
         </div>
       </div>`;
   }
-  
-  dashboardHtml += `</div>`; 
 
   let htmlTable = '<table class="table"><thead><tr><th>Asignatura / Skill</th><th>Profesor</th><th>Calificación</th></tr></thead><tbody>'; 
   let htmlComments = ''; 
@@ -1328,21 +1427,21 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
       const radarData = Object.keys(skills).map(k => skills[k].c > 0 ? Math.round(skills[k].s/skills[k].c) : 0);
       const radarLabels = Object.keys(skills).map((k, i) => radarData[i] > 0 ? `${k} (${radarData[i]})` : k);
       
-      expRadarChartInstance = new Chart(document.getElementById('expRadarChart').getContext('2d'), { 
-        type: 'radar', 
-        data: { 
-          labels: radarLabels, 
-          datasets: [{ label: 'Scale Score Medio', data: radarData, backgroundColor: 'rgba(45, 106, 79, 0.2)', borderColor: '#2d6a4f', pointBackgroundColor: '#2d6a4f' }] 
-        }, 
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false, 
-          scales: { 
-            r: { min: 100, max: 210, ticks: { display: false } } 
+      if (document.getElementById('expRadarChart')) {
+        expRadarChartInstance = new Chart(document.getElementById('expRadarChart').getContext('2d'), { 
+          type: 'radar', 
+          data: { 
+            labels: radarLabels, 
+            datasets: [{ label: 'Scale Score Medio', data: radarData, backgroundColor: 'rgba(45, 106, 79, 0.2)', borderColor: '#2d6a4f', pointBackgroundColor: '#2d6a4f' }] 
           }, 
-          plugins: { legend: { display: false } } 
-        } 
-      });
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { r: { min: 100, max: 210, ticks: { display: false } } }, 
+            plugins: { legend: { display: false } } 
+          } 
+        });
+      }
 
       allMocks.sort((a,b) => new Date(a.date || 0) - new Date(b.date || 0));
       let lineLabels = []; let lineData = [];
@@ -1360,66 +1459,69 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
           }
       });
 
-      expLineChartInstance = new Chart(document.getElementById('expLineChart').getContext('2d'), { 
-        type: 'line', 
-        data: { 
-          labels: lineLabels, 
-          datasets: [{ label: 'Evolución Score', data: lineData, borderColor: '#c84b31', backgroundColor: '#c84b31', tension: 0.3, fill: false }] 
-        }, 
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false, 
-          plugins: { legend: { display: false } }, 
-          scales: { y: { suggestedMin: 120, suggestedMax: 190 } } 
-        } 
-      });
+      if (document.getElementById('expLineChart')) {
+        expLineChartInstance = new Chart(document.getElementById('expLineChart').getContext('2d'), { 
+          type: 'line', 
+          data: { 
+            labels: lineLabels, 
+            datasets: [{ label: 'Evolución Score', data: lineData, borderColor: '#c84b31', backgroundColor: '#c84b31', tension: 0.3, fill: false }] 
+          }, 
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } }, 
+            scales: { y: { suggestedMin: 120, suggestedMax: 190 } } 
+          } 
+        });
+      }
       
-  } else if (!hasCambridge) {
-      // Gráfico de Barras por Asignatura (Trimestre Actual)
-      expStandardBarChartInstance = new Chart(document.getElementById('expStandardBarChart').getContext('2d'), { 
-        type: 'bar', 
-        data: { 
-          labels: basicBarLabels, 
-          datasets: [{ label: 'Nota', data: basicBarData, backgroundColor: '#2d6a4f', borderRadius: 4 }] 
-        }, 
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false, 
-          scales: { y: { min: 0, max: 10 } }, 
-          plugins: { legend: { display: false } } 
-        } 
-      });
+  } else if (!hasCambridge && basicBarLabels.length > 0) {
+      if (document.getElementById('expStandardBarChart')) {
+        expStandardBarChartInstance = new Chart(document.getElementById('expStandardBarChart').getContext('2d'), { 
+          type: 'bar', 
+          data: { 
+            labels: basicBarLabels, 
+            datasets: [{ label: 'Nota Normalizada', data: basicBarData, backgroundColor: '#2d6a4f', borderRadius: 4 }] 
+          }, 
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { y: { min: 0, max: 10 } }, 
+            plugins: { legend: { display: false } } 
+          } 
+        });
+      }
 
-      // Gráfico de Línea de Evolución General (T1, T2, T3)
       let trendLabels = ['T1', 'T2', 'T3'];
       let trendData = [];
       trendLabels.forEach(term => {
           let sum = 0; let count = 0;
           window.state.expedienteData.subjects.forEach(sub => {
-              if (sub.formato !== 'letras_cambridge' && sub.grades[term] !== null && sub.grades[term] !== undefined) {
-                  sum += sub.grades[term];
+              if (sub.grades[term] !== null && sub.grades[term] !== undefined) {
+                  sum += sub.formato === 'letras_cambridge' ? normalizeGrade(sub.grades[term], sub.formato, sub.level)/10 : sub.grades[term]; 
                   count++;
               }
           });
           trendData.push(count > 0 ? (sum / count).toFixed(2) : null);
       });
 
-      expStandardLineChartInstance = new Chart(document.getElementById('expStandardLineChart').getContext('2d'), { 
-        type: 'line', 
-        data: { 
-          labels: trendLabels.map(l => l === 'T1' ? '1º Trim' : l === 'T2' ? '2º Trim' : '3º Trim'), 
-          datasets: [{ label: 'Media Global', data: trendData, borderColor: '#c84b31', backgroundColor: '#c84b31', tension: 0.3, fill: false, spanGaps: true }] 
-        }, 
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false, 
-          scales: { y: { min: 0, max: 10 } }, 
-          plugins: { legend: { display: false } } 
-        } 
-      });
+      if (document.getElementById('expStandardLineChart')) {
+        expStandardLineChartInstance = new Chart(document.getElementById('expStandardLineChart').getContext('2d'), { 
+          type: 'line', 
+          data: { 
+            labels: trendLabels.map(l => l === 'T1' ? '1º Trim' : l === 'T2' ? '2º Trim' : '3º Trim'), 
+            datasets: [{ label: 'Media Global (Base 10)', data: trendData, borderColor: '#c84b31', backgroundColor: '#c84b31', tension: 0.3, fill: false, spanGaps: true }] 
+          }, 
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { y: { min: 0, max: 10 } }, 
+            plugins: { legend: { display: false } } 
+          } 
+        });
+      }
   }
 };
-
 
 // ==========================================
 // 9. EXPORTACIÓN CSV Y CLASS ANALYTICS
