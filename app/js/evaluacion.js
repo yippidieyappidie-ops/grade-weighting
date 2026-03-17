@@ -421,3 +421,25 @@ document.addEventListener('DOMContentLoaded', () => {
     try { const email = e.target.email.value.trim().toLowerCase(); const ref = doc(db, 'profesores', email); const d = await getDoc(ref); if(d.exists()) { if(d.data().colegioId === window.state.colegioId) throw new Error('Ya añadido a tu colegio.'); else throw new Error('Registrado en otro colegio.'); } await setDoc(ref, { nombre: e.target.nombre.value || '', colegioId: window.state.colegioId, rol: 'profesor', asignaturas: [], createdAt: serverTimestamp() }); window.loadProfesores(); alert('Profesor invitado correctamente.'); document.getElementById('inviteProfesorModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Invitar"; } 
   });
 });
+// ==========================================
+// FUNCIONES DE INTERFAZ (ABRIR MODALES)
+// ==========================================
+window.openCreateClassModal = () => {
+  document.getElementById('createClassModal').classList.add('active');
+};
+
+window.openEditClassModal = (id, nombre, curso, tutorEmail) => {
+  document.getElementById('editClassId').value = id;
+  document.getElementById('editClassNombre').value = nombre;
+  document.getElementById('editClassCurso').value = curso;
+  document.getElementById('editClassTutor').value = tutorEmail || '';
+  document.getElementById('editClassModal').classList.add('active');
+};
+
+window.openCreateAsignaturaModal = () => {
+  document.getElementById('createAsignaturaModal').classList.add('active');
+};
+
+window.openInviteProfesorModal = () => {
+  document.getElementById('inviteProfesorModal').classList.add('active');
+};
