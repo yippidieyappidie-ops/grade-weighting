@@ -1335,3 +1335,57 @@ document.addEventListener('DOMContentLoaded', () => {
     try { const email = e.target.email.value.trim().toLowerCase(); const ref = doc(db, 'profesores', email); const d = await getDoc(ref); if(d.exists()) { if(d.data().colegioId === window.state.colegioId) throw new Error('Ya añadido a tu colegio.'); else throw new Error('Registrado en otro colegio.'); } await setDoc(ref, { nombre: e.target.nombre.value || '', colegioId: window.state.colegioId, rol: 'profesor', asignaturas: [], createdAt: serverTimestamp() }); window.loadProfesores(); alert('Profesor invitado correctamente.'); document.getElementById('inviteProfesorModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Invitar"; } 
   });
 });
+// ==========================================
+// 10. EXPORTACIÓN Y ANALÍTICAS DE CLASE
+// ==========================================
+window.exportarNotasCSV = async () => {
+  window.showToast("⏳ Generando archivo CSV...");
+  try {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Apellidos,Nombre,Nota Final\n";
+    
+    for (const alum of window.state.currentAlumnosList) {
+      const nDoc = await getDoc(doc(db, getNotasPath(alum.id, window.state.currentTrimestre)));
+      const pDoc = await getDoc(doc(db, getPonderacionPath(window.state.currentTrimestre)));
+      const data = nDoc.exists() ? nDoc.data() : { categorias: {}, mockExams: [] };
+      const pondData = pDoc.exists() ? pDoc.data() : {};
+      
+      const formato = await getFormatoAsignatura();
+      let finalScore = "—";
+
+      const cats = pondData.categorias || [];
+      const cambridgeLvl = pondData.cambridgeLevel || 'B2';
+      const pesoMocks = pondData.pesoMocks !== undefined ? pondData.pesoMocks : 100;
+      
+      // Reutilizamos nuestro motor de cálculo para sacar la nota exacta
+      let calculated = calcFinalGradeForChart(cats, data, formato, cambridgeLvl, pesoMocks);
+      
+      if (calculated !== null) {
+        if (formato === 'letras_cambridge') {
+            finalScore = `${calculated} - ${getCambridgeGrade(cambridgeLvl, calculated)}`;
+        } else {
+            finalScore = calculated.toFixed(2);
+        }
+      }
+      
+      csvContent += `"${alum.a}","${alum.n}","${finalScore}"\n`;
+    }
+
+    // Forzamos la descarga del archivo en el navegador
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Notas_${window.state.currentTrimestre}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    window.showToast("✅ Archivo CSV descargado");
+  } catch(e) {
+    alert("Error al exportar CSV: " + e.message);
+  }
+};
+
+window.showClassAnalytics = () => {
+  alert("📊 Analíticas Globales de Clase:\n\nEsta función está en desarrollo para la próxima versión. Por ahora, puedes ver el progreso avanzado individual en el expediente de cada alumno o exportar las notas a CSV.");
+};
