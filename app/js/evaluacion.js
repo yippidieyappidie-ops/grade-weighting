@@ -108,7 +108,7 @@ window.showAsignaturaDetail = (id, nombre) => {
     document.getElementById('asignaturaDetailName').textContent = nombre;
   }
   window.hideAllViews();
-  document.getElementById('asignaturaDetailView').classList.remove('hidden');
+  if (document.getElementById('asignaturaDetailView')) document.getElementById('asignaturaDetailView').classList.remove('hidden');
 };
 
 window.showTutoriaDetail = (id, nombre) => {
@@ -118,11 +118,12 @@ window.showTutoriaDetail = (id, nombre) => {
     document.getElementById('tutoriaDetailName').textContent = nombre;
   }
   window.hideAllViews();
-  document.getElementById('tutoriaDetailView').classList.remove('hidden');
+  if (document.getElementById('tutoriaDetailView')) document.getElementById('tutoriaDetailView').classList.remove('hidden');
 };
 
 window.loadClasses = async (containerId, isProfesor) => {
   const list = document.getElementById(containerId); 
+  if(!list) return;
   list.innerHTML = '<div class="loading">Cargando grupos...</div>';
   try {
     const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases`), orderBy('nombre'))); 
@@ -152,11 +153,12 @@ window.loadClasses = async (containerId, isProfesor) => {
 
 window.showClaseDetail = async (classId, className) => {
   window.state.currentClassId = classId; 
-  document.getElementById('claseDetailName').textContent = className; 
+  if(document.getElementById('claseDetailName')) document.getElementById('claseDetailName').textContent = className; 
   window.hideAllViews(); 
-  document.getElementById('claseDetailView').classList.remove('hidden');
+  if(document.getElementById('claseDetailView')) document.getElementById('claseDetailView').classList.remove('hidden');
   
   const list = document.getElementById('claseAlumnosList'); 
+  if(!list) return;
   list.innerHTML = '<div class="loading">Cargando...</div>';
   try {
     const snap = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/clases/${classId}/alumnos`), orderBy('apellidos'))); 
@@ -233,6 +235,7 @@ window.deleteProfesor = async (email) => {
 
 window.loadProfesores = async () => { 
   const list = document.getElementById('profesoresList'); 
+  if(!list) return;
   list.innerHTML = '<div class="loading">Cargando...</div>';
   try {
     const snap = await getDocs(query(collection(db, 'profesores'), where('colegioId', '==', window.state.colegioId))); 
@@ -262,6 +265,7 @@ window.loadProfesores = async () => {
 // ==========================================
 window.loadAsignaturas = async () => { 
   const list = document.getElementById('asignaturasList'); 
+  if(!list) return;
   list.innerHTML = '<div class="loading">Agrupando asignaturas por profesor...</div>';
   
   try {
@@ -342,6 +346,7 @@ window.loadAsignaturas = async () => {
 
 window.loadProfesorAsignaturas = async () => { 
   const list = document.getElementById('profesorAsignaturasList'); 
+  if(!list) return;
   list.innerHTML = '<div class="loading">Cargando...</div>';
   try {
     const snapAsig = await getDocs(query(collection(db, `colegios/${window.state.colegioId}/asignaturas`), where('profesorEmails', 'array-contains', window.state.currentUser.email))); 
@@ -377,14 +382,15 @@ window.loadProfesorAsignaturas = async () => {
 // ==========================================
 window.showAsistenciaView = () => { 
   window.hideAllViews(); 
-  document.getElementById('asistenciaView').classList.remove('hidden'); 
+  if(document.getElementById('asistenciaView')) document.getElementById('asistenciaView').classList.remove('hidden'); 
   const td = new Date().toISOString().split('T')[0]; 
-  document.getElementById('asistenciaDateInput').value = td; 
+  if(document.getElementById('asistenciaDateInput')) document.getElementById('asistenciaDateInput').value = td; 
   window.loadAsistencia(td); 
 };
 
 window.loadAsistencia = async (date) => {
   const cont = document.getElementById('asistenciaListContainer'); 
+  if(!cont) return;
   cont.innerHTML = '<div class="loading">Cargando...</div>';
   try {
     const d = await getDoc(doc(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/asistencia/${date}`)); 
@@ -409,9 +415,9 @@ window.loadAsistencia = async (date) => {
 
 window.markAsistencia = async (id, st, date) => { 
   ['P','F','R'].forEach(s => { 
-    document.getElementById(`btn-ast-${id}-${s}`).className = 'ast-btn'; 
+    if(document.getElementById(`btn-ast-${id}-${s}`)) document.getElementById(`btn-ast-${id}-${s}`).className = 'ast-btn'; 
   }); 
-  document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st); 
+  if(document.getElementById(`btn-ast-${id}-${st}`)) document.getElementById(`btn-ast-${id}-${st}`).classList.add('active', st); 
   await setDoc(doc(db, `colegios/${window.state.colegioId}/clases/${window.state.currentClassId}/asistencia/${date}`), { [id]: st }, { merge: true }); 
 };
 
@@ -436,11 +442,11 @@ function getNotasPath(studentRefStr, t) {
 window.showTrimestreDetail = async (t) => {
   window.state.currentTrimestre = t; 
   window.hideAllViews(); 
-  document.getElementById('trimestreDetailView').classList.remove('hidden');
+  if(document.getElementById('trimestreDetailView')) document.getElementById('trimestreDetailView').classList.remove('hidden');
   await window.loadPonderacion(t); 
   await window.loadAlumnosParaEvaluar();
-  document.getElementById('currentTrimestre').textContent = t; 
-  document.getElementById('trimestreDetailTitle').textContent = t === 'T1' ? '1º Trimestre' : t === 'T2' ? '2º Trimestre' : '3º Trimestre';
+  if(document.getElementById('currentTrimestre')) document.getElementById('currentTrimestre').textContent = t; 
+  if(document.getElementById('trimestreDetailTitle')) document.getElementById('trimestreDetailTitle').textContent = t === 'T1' ? '1º Trimestre' : t === 'T2' ? '2º Trimestre' : '3º Trimestre';
 };
 
 window.loadPonderacion = async (t) => {
@@ -469,7 +475,8 @@ window.renderCategorias = (formato) => {
   const container = document.getElementById('categoriasConfig'); 
   if (!container) return;
 
-  document.querySelector('button[onclick="window.añadirCategoria()"]').style.display = 'inline-flex';
+  const btnAdd = document.querySelector('button[onclick="window.añadirCategoria()"]');
+  if(btnAdd) btnAdd.style.display = 'inline-flex';
 
   let html = '';
   if (formato === 'letras_cambridge') {
@@ -573,6 +580,7 @@ window.guardarPonderacion = async () => {
 // ==========================================
 window.loadAlumnosParaEvaluar = async () => {
   const list = document.getElementById('trimestreAlumnosList'); 
+  if(!list) return;
   list.innerHTML = '<div class="loading">Buscando alumnos...</div>';
   try {
     let alumnos = [];
@@ -678,9 +686,9 @@ window.showNotasView = (id, nombreAlumno, classId, alumId) => {
   window.state.currentAlumnoId = id; 
   window.state.currentEvalClassId = classId; 
   window.state.currentEvalAlumId = alumId; 
-  document.getElementById('currentAlumnoNombre').textContent = nombreAlumno; 
+  if(document.getElementById('currentAlumnoNombre')) document.getElementById('currentAlumnoNombre').textContent = nombreAlumno; 
   window.hideAllViews(); 
-  document.getElementById('notasView').classList.remove('hidden'); 
+  if(document.getElementById('notasView')) document.getElementById('notasView').classList.remove('hidden'); 
   window.loadNotas(); 
 };
 
@@ -693,6 +701,7 @@ window.switchTrimestre = (t, btnElement) => {
 
 window.loadNotas = async () => {
   const container = document.getElementById('notasContent'); 
+  if(!container) return;
   
   const activeId = document.activeElement ? document.activeElement.id : null;
   if (!activeId) {
@@ -918,12 +927,12 @@ window.loadNotas = async () => {
 window.toggleAccordion = (bId, iId) => { 
   const b = document.getElementById(bId); 
   const i = document.getElementById(iId); 
-  if(b.classList.contains('active')) { 
+  if(b && b.classList.contains('active')) { 
     b.classList.remove('active'); 
-    i.classList.remove('open'); 
-  } else { 
+    if(i) i.classList.remove('open'); 
+  } else if(b) { 
     b.classList.add('active'); 
-    i.classList.add('open'); 
+    if(i) i.classList.add('open'); 
   } 
 };
 
@@ -1229,7 +1238,6 @@ window.initExpedienteGlobal = async (studentRef, studentName) => {
         if (pDoc.exists() && pDoc.data().cambridgeLevel) subRecord.level = pDoc.data().cambridgeLevel;
         if (pDoc.exists() && pDoc.data().pesoMocks !== undefined) subRecord.pesoMocks = pDoc.data().pesoMocks;
         
-        // CÁLCULO SEGURO: Llama a la función principal para no olvidar el peso de las categorías
         subRecord.grades[t] = calcFinalGradeForChart(cats, notasData, subRecord.formato, subRecord.level, subRecord.pesoMocks);
       }
       window.state.expedienteData.subjects.push(subRecord);
@@ -1262,13 +1270,11 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
      }
   });
 
-  // KPI Normalization para encontrar mejor y peor asignatura Y SKILL INTERNA
   const normalizeGrade = (g, format, lvl) => {
     if(g === null || g === undefined) return -1;
     if(format === 'letras_cambridge') {
         const min = CAMBRIDGE_CURVES[lvl][0][1];
         const max = CAMBRIDGE_CURVES[lvl][CAMBRIDGE_CURVES[lvl].length-1][1];
-        // Protegemos que C1 no de negativo o superior a 100 en la normalización
         return Math.max(0, Math.min(100, ((g - min) / (max - min)) * 100));
     }
     return (g / 10) * 100;
@@ -1284,7 +1290,6 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
           numGrades++;
           const norm = normalizeGrade(grade, sub.formato, sub.level);
 
-          // Buscar la parte (skill/categoría) donde más/menos destaca DENTRO de esta asignatura
           let partMaxNorm = -1; let partMaxName = '-';
           let partMinNorm = 101; let partMinName = '-';
 
@@ -1338,7 +1343,6 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   const faltas = window.state.expedienteData.attendance.F; 
   const retrasos = window.state.expedienteData.attendance.R;
 
-  // DISEÑO DE LOS WIDGETS KPI
   let dashboardHtml = `<div class="analytics-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:24px;">`;
   
   dashboardHtml += `
@@ -1385,7 +1389,6 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   }
   dashboardHtml += `</div>`; 
 
-  // RENDEREIZADO DE ESTRUCTURA HTML PARA GRÁFICOS SEGÚN EL TIPO DE ALUMNO
   if (hasCambridge && allMocks.length > 0) {
       dashboardHtml += `
       <div class="chart-box" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:24px; margin-bottom:24px;">
@@ -1440,9 +1443,6 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   document.getElementById('expedienteContentTable').innerHTML = htmlTable + '</tbody></table>'; 
   document.getElementById('expedienteContentComments').innerHTML = hasComments ? htmlComments : '<div style="color:var(--ink-light); font-size:14px; font-style:italic;">No hay observaciones en este trimestre.</div>';
 
-  // ==========================================
-  // INICIALIZACIÓN DE GRÁFICOS (CHART.JS)
-  // ==========================================
   if (expRadarChartInstance) { expRadarChartInstance.destroy(); expRadarChartInstance = null; }
   if (expLineChartInstance) { expLineChartInstance.destroy(); expLineChartInstance = null; }
   if (expStandardBarChartInstance) { expStandardBarChartInstance.destroy(); expStandardBarChartInstance = null; }
@@ -1461,7 +1461,6 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
           });
       });
       
-      // Filtramos las skills que están a 0 (ej: Use of English en A2) para no romper el radar
       const validSkills = Object.keys(skills).filter(k => skills[k].c > 0);
       const radarData = validSkills.map(k => Math.round(skills[k].s/skills[k].c));
       const radarLabels = validSkills.map((k, i) => `${k} (${radarData[i]})`);
@@ -1562,9 +1561,8 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   }
 };
 
-
 // ==========================================
-// 9. EXPORTACIÓN CSV Y CLASS ANALYTICS
+// 9. EXPORTACIÓN CSV
 // ==========================================
 window.exportarNotasCSV = async () => {
   window.showToast("⏳ Generando archivo CSV...");
@@ -1607,13 +1605,7 @@ window.exportarNotasCSV = async () => {
     link.remove();
     
     window.showToast("✅ Archivo CSV descargado");
-  } catch(e) {
-    alert("Error al exportar CSV: " + e.message);
-  }
-};
-
-window.showClassAnalytics = () => {
-  alert("📊 Analíticas Globales de Clase:\n\nEsta función está preparada en el código core. Actualmente puedes ver el progreso individual detallado en el expediente de cada alumno o exportar todas las notas usando el botón CSV.");
+  } catch(e) { alert("Error al exportar CSV: " + e.message); }
 };
 
 // ==========================================
@@ -1703,39 +1695,14 @@ window.openManageAsignaturaAlumnos = async (asigId, asigNombre) => {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
 
-  // CSS PARA IMPRESIÓN PDF PERFECTA
-  const style = document.createElement('style');
-  style.innerHTML = `
-    @media print {
-      body * { visibility: hidden; }
-      #expedienteView, #expedienteView * { visibility: visible; }
-      #expedienteView { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
-      .no-print { display: none !important; }
-      .chart-wrapper { page-break-inside: avoid; }
-      .card, .insight-card { border: 1px solid #ccc !important; box-shadow: none !important; }
-    }
-  `;
-  document.head.appendChild(style);
-
   document.getElementById('createClassForm')?.addEventListener('submit', async(e) => { 
-    e.preventDefault(); 
-    const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
-    try { 
-      await addDoc(collection(db, `colegios/${window.state.colegioId}/clases`), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value, numAlumnos: 0, createdAt: serverTimestamp(), createdBy: window.state.currentUser.email }); 
-      window.loadClasses('classesList', false); 
-      document.getElementById('createClassModal').classList.remove('active'); 
-      e.target.reset(); 
-    } catch(err) { alert(err.message); } finally { btn.disabled = false; } 
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
+    try { await addDoc(collection(db, `colegios/${window.state.colegioId}/clases`), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value, numAlumnos: 0, createdAt: serverTimestamp(), createdBy: window.state.currentUser.email }); window.loadClasses('classesList', false); document.getElementById('createClassModal').classList.remove('active'); e.target.reset(); } catch(err) { alert(err.message); } finally { btn.disabled = false; } 
   });
   
   document.getElementById('editClassForm')?.addEventListener('submit', async(e) => { 
-    e.preventDefault(); 
-    const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
-    try { 
-      await updateDoc(doc(db, `colegios/${window.state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value }); 
-      window.loadClasses('classesList', false); 
-      document.getElementById('editClassModal').classList.remove('active'); 
-    } catch(err) { alert(err.message); } finally { btn.disabled = false; } 
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; 
+    try { await updateDoc(doc(db, `colegios/${window.state.colegioId}/clases`, e.target.classId.value), { nombre: e.target.nombre.value, curso: e.target.curso.value, tutorEmail: e.target.tutorEmail.value }); window.loadClasses('classesList', false); document.getElementById('editClassModal').classList.remove('active'); } catch(err) { alert(err.message); } finally { btn.disabled = false; } 
   });
   
   document.getElementById('addStudentForm')?.addEventListener('submit', async(e) => { 
@@ -1770,8 +1737,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   document.getElementById('createAsignaturaForm')?.addEventListener('submit', async(e) => { 
-    e.preventDefault(); 
-    const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Creando...";
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Creando...";
     const alumnosChecked = Array.from(document.querySelectorAll('#alumnosSelection input[type="checkbox"]:checked')).map(cb => cb.value); 
     const profesChecked = Array.from(document.querySelectorAll('#asignaturaProfesoresSelection input[type="checkbox"]:checked')).map(cb => cb.value);
     
@@ -1792,8 +1758,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('manageAsignaturaAlumnosForm')?.addEventListener('submit', async(e) => {
-    e.preventDefault(); 
-    const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Guardando...";
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Guardando...";
     const asigId = document.getElementById('manageAsigId').value;
     const alumnosChecked = Array.from(document.querySelectorAll('#manageAlumnosSelection input[type="checkbox"]:checked')).map(cb => cb.value); 
     
@@ -1805,8 +1770,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('inviteProfesorForm')?.addEventListener('submit', async(e) => { 
-    e.preventDefault(); 
-    const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Enviando...";
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = "Enviando...";
     try { 
       const email = e.target.email.value.trim().toLowerCase(); 
       const ref = doc(db, 'profesores', email); 
@@ -1823,3 +1787,172 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(err) { alert(err.message); } finally { btn.disabled = false; btn.textContent = "Invitar"; } 
   });
 });
+
+// ==========================================
+// 12. CONTROL DE PRESENCIA (FICHAJES) - ¡NUEVO!
+// ==========================================
+window.abrirModalFichaje = async () => {
+    if(!document.getElementById('fichajeModal')) {
+        const modal = document.createElement('div');
+        modal.id = 'fichajeModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width:400px; text-align:center;">
+                <h2 style="margin-top:0;">⏱️ Control de Presencia</h2>
+                <p style="color:var(--ink-light); margin-bottom:24px;">Introduce tu PIN para fichar (Por defecto: 1234)</p>
+                <input type="password" id="fichajePin" placeholder="****" style="font-size:32px; text-align:center; letter-spacing:15px; padding:15px; width:200px; border-radius:12px; border:2px solid var(--ink); margin-bottom:24px; outline:none;" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <br>
+                <button class="btn-primary" onclick="window.registrarFichaje()" style="width:100%; margin-bottom:12px; padding:14px; font-size:16px;">Fichar Entrada / Salida</button>
+                <button class="btn-secondary" onclick="document.getElementById('fichajeModal').classList.remove('active')" style="width:100%;">Cancelar</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    document.getElementById('fichajePin').value = '';
+    document.getElementById('fichajeModal').classList.add('active');
+    setTimeout(() => document.getElementById('fichajePin').focus(), 100);
+};
+
+window.registrarFichaje = async () => {
+    const pin = document.getElementById('fichajePin').value;
+    const btn = document.querySelector('#fichajeModal .btn-primary');
+    
+    if (pin.length !== 4) {
+        alert('❌ El PIN debe tener 4 números.');
+        return;
+    }
+    
+    btn.disabled = true; btn.textContent = 'Procesando...';
+    try {
+        const profeDoc = await getDoc(doc(db, 'profesores', window.state.currentUser.email));
+        const profeData = profeDoc.exists() ? profeDoc.data() : {};
+        const validPin = profeData.pinFichaje || '1234';
+        
+        if (pin !== validPin) {
+            alert('❌ PIN incorrecto.');
+            btn.disabled = false; btn.textContent = 'Fichar Entrada / Salida';
+            return;
+        }
+        
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        const monthStr = `${yyyy}-${mm}`;
+        
+        const email = window.state.currentUser.email;
+        const docId = `${email}_${dateStr}`;
+        const fichajeRef = doc(db, `colegios/${window.state.colegioId}/fichajes/${docId}`);
+        
+        const d = await getDoc(fichajeRef);
+        
+        if (!d.exists()) {
+            await setDoc(fichajeRef, { email: email, nombre: profeData.nombre || email, fecha: dateStr, mes: monthStr, entrada: new Date().toISOString(), salida: null });
+            window.showToast("✅ Entrada registrada correctamente");
+        } else {
+            const data = d.data();
+            if (!data.salida) {
+                await updateDoc(fichajeRef, { salida: new Date().toISOString() });
+                window.showToast("👋 Salida registrada correctamente");
+            } else {
+                alert("Ya has registrado tu entrada y salida completa el día de hoy.");
+            }
+        }
+        document.getElementById('fichajeModal').classList.remove('active');
+    } catch(e) {
+        alert("Error al fichar: " + e.message);
+    } finally {
+        btn.disabled = false; btn.textContent = 'Fichar Entrada / Salida';
+    }
+};
+
+window.showFichajesView = () => {
+    window.hideAllViews();
+    if(!document.getElementById('fichajesAdminView')) {
+        const view = document.createElement('div');
+        view.id = 'fichajesAdminView';
+        view.className = 'view-section'; 
+        view.innerHTML = `
+            <div class="page-header" style="margin-bottom:24px;">
+                <h1>⏱️ Registro de Presencia Mensual</h1>
+                <input type="month" id="fichajesMonthPicker" onchange="window.loadFichajesAdmin(this.value)" style="padding:10px 16px; border-radius:8px; border:2px solid var(--ink); font-size:16px; font-weight:bold; cursor:pointer; outline:none;">
+            </div>
+            <div id="fichajesTableContainer" style="background:white; border-radius:12px; border:1px solid var(--border); padding:20px; overflow-x:auto;">
+            </div>
+        `;
+        document.querySelector('main').appendChild(view);
+    }
+    
+    document.getElementById('fichajesAdminView').classList.remove('hidden');
+    
+    const today = new Date();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const defaultMonth = `${yyyy}-${mm}`;
+    document.getElementById('fichajesMonthPicker').value = defaultMonth;
+    
+    window.loadFichajesAdmin(defaultMonth);
+};
+
+window.loadFichajesAdmin = async (mes) => {
+    const container = document.getElementById('fichajesTableContainer');
+    container.innerHTML = '<div class="loading">Cargando registros...</div>';
+    
+    try {
+        const q = query(
+            collection(db, `colegios/${window.state.colegioId}/fichajes`),
+            where('mes', '==', mes)
+        );
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            container.innerHTML = '<div class="empty-state">No hay registros de presencia para este mes.</div>';
+            return;
+        }
+        
+        let registros = [];
+        snap.forEach(d => registros.push(d.data()));
+        
+        registros.sort((a,b) => {
+            if (a.fecha === b.fecha) return a.nombre.localeCompare(b.nombre);
+            return b.fecha.localeCompare(a.fecha);
+        });
+        
+        let html = '<table class="table"><thead><tr><th>Fecha</th><th>Profesor</th><th>Hora Entrada</th><th>Hora Salida</th><th>Total Horas</th></tr></thead><tbody>';
+        
+        registros.forEach(r => {
+            const fEntrada = new Date(r.entrada);
+            const horaEntrada = fEntrada.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+            
+            let horaSalida = '—'; let totalStr = '—'; let rowColor = '';
+            
+            if (r.salida) {
+                const fSalida = new Date(r.salida);
+                horaSalida = fSalida.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+                const diffMs = fSalida - fEntrada;
+                const diffHrs = Math.floor(diffMs / 3600000);
+                const diffMins = Math.floor((diffMs % 3600000) / 60000);
+                totalStr = `${diffHrs}h ${diffMins}m`;
+            } else {
+                rowColor = 'background:rgba(232, 168, 56, 0.1);'; 
+            }
+            
+            const splitF = r.fecha.split('-');
+            const fechaBonita = `${splitF[2]}/${splitF[1]}/${splitF[0]}`;
+            
+            html += `<tr style="${rowColor}">
+                <td><strong>${fechaBonita}</strong></td>
+                <td>${r.nombre}</td>
+                <td style="color:var(--green); font-weight:bold;">📥 ${horaEntrada}</td>
+                <td style="color:var(--accent); font-weight:bold;">${r.salida ? '📤 ' + horaSalida : '⏳ En activo...'}</td>
+                <td><strong>${totalStr}</strong></td>
+            </tr>`;
+        });
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch(e) {
+        container.innerHTML = `<div class="empty-state" style="color:red;">Error cargando datos: ${e.message}</div>`;
+    }
+};
