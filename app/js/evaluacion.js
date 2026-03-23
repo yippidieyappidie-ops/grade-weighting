@@ -145,7 +145,9 @@ window.loadClasses = async (containerId, isProfesor) => {
       html += `<div class="card-title">${data.nombre}</div><div class="card-meta">📖 ${data.curso}</div></div>`;
     }); 
     list.innerHTML = html + '</div>';
-  } catch(e) { console.error(e); }
+  } catch(e) {
+    console.error(e);
+  }
 };
 
 window.showClaseDetail = async (classId, className) => {
@@ -182,7 +184,9 @@ window.showClaseDetail = async (classId, className) => {
     
     html += `<div class="card card-clickable" onclick="document.getElementById('addStudentModal').classList.add('active')" style="border:2px dashed var(--border); text-align:center;">+ Añadir Alumno</div>`;
     list.innerHTML = html + '</div>';
-  } catch(e) { console.error(e); }
+  } catch(e) {
+    console.error(e);
+  }
 };
 
 window.deleteClass = async (id, nombre) => { 
@@ -1208,7 +1212,7 @@ window.initExpedienteGlobal = async (studentRef, studentName) => {
     for (const d of snapAsig.docs) {
       const asig = d.data(); 
       const profeStr = asig.profesorEmails ? asig.profesorEmails.join(', ') : asig.profesorEmail; 
-      let subRecord = { name: asig.nombre, profe: profeStr, grades: {}, comments: {}, formato: asig.algoritmoNotas || 'numerico_10', level: 'B2', pesoMocks: 100, rawMocks: {} };
+      let subRecord = { name: asig.nombre, profe: profeStr, grades: {}, comments: {}, formato: asig.algoritmoNotas || 'numerico_10', level: 'B2', pesoMocks: 100, rawMocks: {}, rawCats: {}, catsConfig: {} };
       
       for (const t of ['T1', 'T2', 'T3']) {
         const pDoc = await getDoc(doc(db, `colegios/${window.state.colegioId}/asignaturas/${d.id}/ponderaciones/${t}`)); 
@@ -1219,6 +1223,8 @@ window.initExpedienteGlobal = async (studentRef, studentName) => {
         
         subRecord.comments[t] = notasData.comentarioTutor || ""; 
         subRecord.rawMocks[t] = notasData.mockExams || [];
+        subRecord.rawCats[t] = notasData.categorias || {};
+        subRecord.catsConfig[t] = cats;
         
         if (pDoc.exists() && pDoc.data().cambridgeLevel) subRecord.level = pDoc.data().cambridgeLevel;
         if (pDoc.exists() && pDoc.data().pesoMocks !== undefined) subRecord.pesoMocks = pDoc.data().pesoMocks;
@@ -1279,7 +1285,7 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
      }
   });
 
-  // KPI Normalization para encontrar mejor y peor asignatura
+  // KPI Normalization para encontrar mejor y peor asignatura Y SKILL INTERNA
   const normalizeGrade = (g, format, lvl) => {
     if(g === null || g === undefined) return -1;
     if(format === 'letras_cambridge') {
@@ -1291,16 +1297,63 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   };
 
   let numGrades = 0;
-  let bestSubj = {name: '-', grade: -1, norm: -1};
-  let worstSubj = {name: '-', grade: 999, norm: 101};
+  let bestSubj = {name: '-', grade: -1, norm: -1, bestPart: '-'};
+  let worstSubj = {name: '-', grade: 999, norm: 101, worstPart: '-'};
 
   window.state.expedienteData.subjects.forEach(sub => {
       const grade = sub.grades[t];
       if (grade !== null && grade !== undefined) {
           numGrades++;
           const norm = normalizeGrade(grade, sub.formato, sub.level);
-          if (norm > bestSubj.norm) bestSubj = {name: sub.name, grade: grade, norm: norm, format: sub.formato, lvl: sub.level};
-          if (norm < worstSubj.norm) worstSubj = {name: sub.name, grade: grade, norm: norm, format: sub.formato, lvl: sub.level};
+
+          // Buscar la parte (skill/categoría) donde más/menos destaca DENTRO de esta asignatura
+          let partMaxNorm = -1; let partMaxName = '-';
+          let partMinNorm = 101; let partMinName = '-';
+
+          if (sub.formato === 'letras_cambridge') {
+              let partsSums = {}; let partsCounts = {};
+              const mocks = sub.rawMocks[t] || [];
+              mocks.forEach(m => {
+                  const mLevel = m.level || sub.level;
+                  CAMBRIDGE_LEVELS[mLevel].parts.forEach(p => {
+                      if(m.parts && m.parts[p] !== undefined && m.parts[p] !== '') {
+                          const mx = CAMBRIDGE_LEVELS[mLevel].max[p];
+                          const scale = calculateScaleScore(mLevel, m.parts[p]/mx);
+                          const pNorm = normalizeGrade(scale, 'letras_cambridge', mLevel);
+                          if(!partsSums[p]) { partsSums[p]=0; partsCounts[p]=0; }
+                          partsSums[p]+=pNorm; partsCounts[p]++;
+                      }
+                  });
+              });
+              Object.keys(partsSums).forEach(p => {
+                  let avg = partsSums[p]/partsCounts[p];
+                  if(avg > partMaxNorm) { partMaxNorm = avg; partMaxName = p; }
+                  if(avg < partMinNorm) { partMinNorm = avg; partMinName = p; }
+              });
+          } else {
+              const cConfig = sub.catsConfig[t] || [];
+              const cData = sub.rawCats[t] || {};
+              cConfig.forEach(cat => {
+                  const arr = cData[cat.nombre] || [];
+                  if(arr.length > 0) {
+                      let sum = 0;
+                      arr.forEach(n => {
+                          let v = parseFloat(n.valor||0); let m = parseFloat(n.maximo||10); if(m<=0)m=10;
+                          sum += (v/m)*100;
+                      });
+                      let avg = sum / arr.length;
+                      if(avg > partMaxNorm) { partMaxNorm = avg; partMaxName = cat.nombre; }
+                      if(avg < partMinNorm) { partMinNorm = avg; partMinName = cat.nombre; }
+                  }
+              });
+          }
+
+          if (norm > bestSubj.norm) {
+              bestSubj = {name: sub.name, grade: grade, norm: norm, format: sub.formato, lvl: sub.level, bestPart: partMaxName};
+          }
+          if (norm < worstSubj.norm) {
+              worstSubj = {name: sub.name, grade: grade, norm: norm, format: sub.formato, lvl: sub.level, worstPart: partMinName};
+          }
       }
   });
 
@@ -1321,22 +1374,28 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   if (numGrades > 0) {
       const bestFmt = getNotaFormateada(bestSubj.grade, bestSubj.format, bestSubj.lvl);
       const bestCol = getNotaColor(bestSubj.grade, bestSubj.format, bestSubj.lvl);
+      const bestPartTxt = bestSubj.bestPart !== '-' ? `<span style="font-size:12px; color:var(--ink-light); display:block; margin-top:4px;">Destaca en: <strong style="color:var(--ink);">${bestSubj.bestPart}</strong></span>` : '';
+      
       dashboardHtml += `
         <div class="insight-card">
           <div class="insight-icon">🏆</div>
           <div class="insight-title">Punto Fuerte</div>
           <div class="insight-value" style="color:${bestCol}; font-size:18px;">${bestSubj.name}</div>
-          <p style="font-size:14px; font-weight:bold; margin-top:8px; margin-bottom:0;">${bestFmt}</p>
+          <div style="font-size:14px; font-weight:bold; margin-top:4px;">${bestFmt}</div>
+          ${bestPartTxt}
         </div>`;
 
       const worstFmt = getNotaFormateada(worstSubj.grade, worstSubj.format, worstSubj.lvl);
       const worstCol = getNotaColor(worstSubj.grade, worstSubj.format, worstSubj.lvl);
+      const worstPartTxt = worstSubj.worstPart !== '-' ? `<span style="font-size:12px; color:var(--ink-light); display:block; margin-top:4px;">Debe mejorar: <strong style="color:var(--ink);">${worstSubj.worstPart}</strong></span>` : '';
+      
       dashboardHtml += `
         <div class="insight-card">
           <div class="insight-icon">🎯</div>
           <div class="insight-title">Área de Mejora</div>
           <div class="insight-value" style="color:${worstCol}; font-size:18px;">${worstSubj.name}</div>
-          <p style="font-size:14px; font-weight:bold; margin-top:8px; margin-bottom:0;">${worstFmt}</p>
+          <div style="font-size:14px; font-weight:bold; margin-top:4px;">${worstFmt}</div>
+          ${worstPartTxt}
         </div>`;
   } else {
       dashboardHtml += `
@@ -1406,10 +1465,10 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
   // ==========================================
   // INICIALIZACIÓN DE GRÁFICOS (CHART.JS)
   // ==========================================
-  if (expRadarChartInstance) expRadarChartInstance.destroy();
-  if (expLineChartInstance) expLineChartInstance.destroy();
-  if (expStandardBarChartInstance) expStandardBarChartInstance.destroy();
-  if (expStandardLineChartInstance) expStandardLineChartInstance.destroy();
+  if (expRadarChartInstance) { expRadarChartInstance.destroy(); expRadarChartInstance = null; }
+  if (expLineChartInstance) { expLineChartInstance.destroy(); expLineChartInstance = null; }
+  if (expStandardBarChartInstance) { expStandardBarChartInstance.destroy(); expStandardBarChartInstance = null; }
+  if (expStandardLineChartInstance) { expStandardLineChartInstance.destroy(); expStandardLineChartInstance = null; }
 
   if (hasCambridge && allMocks.length > 0) {
       let skills = { 'Reading': {s:0,c:0}, 'Writing': {s:0,c:0}, 'Listening': {s:0,c:0}, 'Speaking': {s:0,c:0}, 'Use of English': {s:0,c:0} };
@@ -1481,7 +1540,7 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
           type: 'bar', 
           data: { 
             labels: basicBarLabels, 
-            datasets: [{ label: 'Nota Normalizada', data: basicBarData, backgroundColor: '#2d6a4f', borderRadius: 4 }] 
+            datasets: [{ label: 'Nota', data: basicBarData, backgroundColor: '#2d6a4f', borderRadius: 4 }] 
           }, 
           options: { 
             responsive: true, 
@@ -1522,6 +1581,7 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
       }
   }
 };
+
 
 // ==========================================
 // 9. EXPORTACIÓN CSV Y CLASS ANALYTICS
