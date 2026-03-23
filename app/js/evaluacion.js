@@ -644,7 +644,7 @@ window.loadAlumnosParaEvaluar = async () => {
                      count++; 
                    });
                    const avg = Math.round(sumScale/count);
-                   tableHtml += `<td><strong style="color:${getCambridgeColor(mLevel, avg)}">${avg}</strong> <span style="font-size:11px; color:var(--ink-light);">(${mLevel})</span></td>`;
+                   tableHtml += `<td><strong style="color:${getCambridgeColor(mLevel, avg)}">${getCambridgeGrade(mLevel, avg)} (${avg})</strong> <span style="font-size:11px; color:var(--ink-light);">(${mLevel})</span></td>`;
                } else { 
                  tableHtml += `<td style="color:var(--ink-light);">-</td>`; 
                }
@@ -1229,31 +1229,8 @@ window.initExpedienteGlobal = async (studentRef, studentName) => {
         if (pDoc.exists() && pDoc.data().cambridgeLevel) subRecord.level = pDoc.data().cambridgeLevel;
         if (pDoc.exists() && pDoc.data().pesoMocks !== undefined) subRecord.pesoMocks = pDoc.data().pesoMocks;
         
-        let final = null;
-        if (subRecord.formato === 'letras_cambridge') {
-          let sumScale=0; let valCount=0;
-          subRecord.rawMocks[t].forEach(mock => { 
-            let s=0; let c=0; 
-            const mLvl=mock.level||subRecord.level; 
-            CAMBRIDGE_LEVELS[mLvl].parts.forEach(p => { 
-              const mx=CAMBRIDGE_LEVELS[mLvl].max[p]; 
-              const v=mock.parts?.[p]||0; 
-              s+=calculateScaleScore(mLvl, v/mx); 
-              c++; 
-            }); 
-            sumScale+=(s/c); valCount++; 
-          });
-          final = valCount>0 ? Math.round(sumScale/valCount) : null; 
-        } else {
-           let nf=0; let pt=0; 
-           cats.forEach(cat => { 
-             let nA=notasData.categorias?.[cat.nombre]||[]; 
-             const s=nA.reduce((a,o)=>a+(((parseFloat(o.valor)||0)/(parseFloat(o.maximo)||10))*10),0); 
-             if(nA.length>0){ nf+=(s/nA.length)*(cat.peso/100); pt+=cat.peso; }
-           }); 
-           final = pt>0 ? nf : null;
-        }
-        subRecord.grades[t] = final;
+        // CÁLCULO SEGURO: Llama a la función principal para no olvidar el peso de las categorías
+        subRecord.grades[t] = calcFinalGradeForChart(cats, notasData, subRecord.formato, subRecord.level, subRecord.pesoMocks);
       }
       window.state.expedienteData.subjects.push(subRecord);
     }
@@ -1291,7 +1268,8 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
     if(format === 'letras_cambridge') {
         const min = CAMBRIDGE_CURVES[lvl][0][1];
         const max = CAMBRIDGE_CURVES[lvl][CAMBRIDGE_CURVES[lvl].length-1][1];
-        return ((g - min) / (max - min)) * 100;
+        // Protegemos que C1 no de negativo o superior a 100 en la normalización
+        return Math.max(0, Math.min(100, ((g - min) / (max - min)) * 100));
     }
     return (g / 10) * 100;
   };
@@ -1483,8 +1461,10 @@ window.switchExpedienteTrimestre = (t, btnElement) => {
           });
       });
       
-      const radarData = Object.keys(skills).map(k => skills[k].c > 0 ? Math.round(skills[k].s/skills[k].c) : 0);
-      const radarLabels = Object.keys(skills).map((k, i) => radarData[i] > 0 ? `${k} (${radarData[i]})` : k);
+      // Filtramos las skills que están a 0 (ej: Use of English en A2) para no romper el radar
+      const validSkills = Object.keys(skills).filter(k => skills[k].c > 0);
+      const radarData = validSkills.map(k => Math.round(skills[k].s/skills[k].c));
+      const radarLabels = validSkills.map((k, i) => `${k} (${radarData[i]})`);
       
       if (document.getElementById('expRadarChart')) {
         expRadarChartInstance = new Chart(document.getElementById('expRadarChart').getContext('2d'), { 
